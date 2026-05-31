@@ -2,8 +2,7 @@ package com.ludot.rules;
 
 import com.ludot.model.Player;
 
-// LUDO-T specific dice rule that integrates block-breaking on the triple-six penalty (T-6).
-
+// T-6: triple-six with an active block forces a block break — handled by TurnManager after detection.
 public class LudoTDiceRule extends BaseDiceRule {
 
     private final BlockRule blockRule;
@@ -15,6 +14,8 @@ public class LudoTDiceRule extends BaseDiceRule {
 
     @Override
     public boolean isTripleSix(Player player, int roll) {
-        return false;
+        return super.isTripleSix(player, roll);
     }
+
+    public BlockRule getBlockRule() { return blockRule; }
 }

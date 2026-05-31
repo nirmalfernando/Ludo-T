@@ -2,16 +2,11 @@ package com.ludot.rules;
 
 import com.ludot.model.Piece;
 
-// LUDO-T specific home-entry rule enforcing the approach-pass-count requirement.
-
 public class LudoTHomeEntryRule extends BaseHomeEntryRule {
 
-    public LudoTHomeEntryRule() {
-        super();
-    }
-
+    // T-7: piece must have captured at least once before entering the home straight
     @Override
     public boolean canEnterHomeStraight(Piece piece) {
-        return false;
+        return super.canEnterHomeStraight(piece) && piece.getCaptureCount() >= 1;
     }
 }

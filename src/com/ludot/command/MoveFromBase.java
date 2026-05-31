@@ -26,4 +26,6 @@ public class MoveFromBase implements Move {
     public String describe() {
         return piece.getName() + " moves out of base";
     }
+
+    public Piece getPiece() { return piece; }
 }

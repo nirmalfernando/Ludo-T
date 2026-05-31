@@ -38,7 +38,7 @@ public class RuleResult {
         return captured;
     }
 
-    public boolean isGrantsBonusRoll() {
+    public boolean grantsBonusRoll() {
         return grantsBonusRoll;
     }
 }

@@ -32,4 +32,7 @@ public class BlockMove implements Move {
     public String describe() {
         return "Block of " + block.size() + " moves " + steps + " steps";
     }
+
+    public List<Piece> getBlock() { return block; }
+    public int getSteps() { return steps; }
 }

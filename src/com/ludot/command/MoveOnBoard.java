@@ -47,4 +47,7 @@ public class MoveOnBoard implements Move {
     public String describe() {
         return piece.getName() + " moves " + steps + " steps";
     }
+
+    public Piece getPiece() { return piece; }
+    public int getSteps() { return steps; }
 }

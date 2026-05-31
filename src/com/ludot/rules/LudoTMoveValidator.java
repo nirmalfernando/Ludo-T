@@ -4,21 +4,24 @@ import com.ludot.dice.RandomProvider;
 import com.ludot.model.Direction;
 import com.ludot.model.Piece;
 
-// LUDO-T specific move validator applying coin-toss direction assignment and approach-count rules.
-
 public class LudoTMoveValidator extends BaseMoveValidator {
 
     public LudoTMoveValidator(RandomProvider random) {
         super(random);
     }
 
+    // T-1: direction assigned by coin toss when piece leaves base
     @Override
     protected Direction assignDirection(Piece piece) {
-        return null;
+        return random.tossCoin() ? Direction.CLOCKWISE : Direction.COUNTER_CLOCKWISE;
     }
 
+    // T-1: CCW pieces must have passed the approach cell at least twice
     @Override
     protected boolean canEnterHomeStraight(Piece piece) {
-        return false;
+        if (piece.getDirection() == Direction.COUNTER_CLOCKWISE) {
+            return piece.canEnterHomeStraight() && piece.getApproachPassCount() >= 2;
+        }
+        return super.canEnterHomeStraight(piece);
     }
 }
