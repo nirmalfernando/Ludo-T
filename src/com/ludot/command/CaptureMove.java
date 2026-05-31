@@ -3,8 +3,6 @@ package com.ludot.command;
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;
 
-// Command that moves an attacker piece to a cell and captures the victim piece there.
-
 public class CaptureMove implements Move {
 
     private final Piece attacker;
@@ -21,11 +19,21 @@ public class CaptureMove implements Move {
 
     @Override
     public MoveResult execute() {
-        return null;
+        // move attacker to the target cell
+        attacker.getPosition().removePiece(attacker);
+        targetCell.addPiece(attacker);
+        attacker.setPosition(targetCell);
+
+        // send victim back to base and record the capture
+        victim.sendToBase();
+        attacker.incrementCaptureCount();
+
+        // grantsBonusRoll = true triggers T-2 bonus roll in TurnManager
+        return new MoveResult(true, victim, false, true, describe());
     }
 
     @Override
     public String describe() {
-        return null;
+        return attacker.getName() + " captures " + victim.getName();
     }
 }

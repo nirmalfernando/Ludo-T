@@ -1,11 +1,10 @@
 package com.ludot.command;
 
-import java.util.List;
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;
+import java.util.List;
 
-// Command that moves an entire block of allied pieces together to a target cell (T-5/6).
-
+// T-3/T-4: moves all pieces in a same-colour block together as a single unit
 public class BlockMove implements Move {
 
     private final List<Piece> block;
@@ -20,11 +19,17 @@ public class BlockMove implements Move {
 
     @Override
     public MoveResult execute() {
-        return null;
+        Cell sourceCell = block.get(0).getPosition();
+        for (Piece piece : block) {
+            sourceCell.removePiece(piece);
+            targetCell.addPiece(piece);
+            piece.setPosition(targetCell);
+        }
+        return new MoveResult(true, null, false, false, describe());
     }
 
     @Override
     public String describe() {
-        return null;
+        return "Block of " + block.size() + " moves " + steps + " steps";
     }
 }
