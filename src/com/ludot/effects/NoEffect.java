@@ -1,11 +1,7 @@
 package com.ludot.effects;
 
-// Null Object implementation of Effect; represents the absence of any active status effect.
-
+// Null Object — default state when no effect is active; steps pass through unchanged.
 public class NoEffect implements Effect {
-
-    public NoEffect() {
-    }
 
     @Override
     public int modifySteps(int baseSteps) {
@@ -18,11 +14,10 @@ public class NoEffect implements Effect {
     }
 
     @Override
-    public void tick() {
-    }
+    public void tick() {}
 
     @Override
     public String getName() {
-        return null;
+        return "NONE";
     }
 }

@@ -1,14 +1,9 @@
 package com.ludot.effects;
 
-// Strategy interface representing a status effect that modifies piece movement (T-12/14).
-
+// Decorator pattern — wraps step calculation so callers need no null checks or effect-type awareness.
 public interface Effect {
-
     int modifySteps(int baseSteps);
-
     boolean isExpired();
-
     void tick();
-
     String getName();
 }

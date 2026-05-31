@@ -1,7 +1,6 @@
 package com.ludot.effects;
 
-// Concrete Effect Strategy that doubles movement steps for a fixed duration (T-14 Beta effect).
-
+// T-12: doubles movement steps for a fixed number of rounds (Alpha mystery cell outcome).
 public class EnergisedEffect implements Effect {
 
     private int roundsLeft;
@@ -27,6 +26,6 @@ public class EnergisedEffect implements Effect {
 
     @Override
     public String getName() {
-        return null;
+        return "ENERGISED";
     }
 }
