@@ -46,19 +46,11 @@ public class Board {
         return List.of();
     }
 
-    public void setCells(List<Cell> cells) {
+    void setCells(List<Cell> cells) {
         this.cells = cells;
     }
 
-    public void setHomeStraights(Map<Colour, List<Cell>> homeStraights) {
+    void setHomeStraights(Map<Colour, List<Cell>> homeStraights) {
         this.homeStraights = homeStraights;
-    }
-
-    public List<Cell> getCells() {
-        return cells;
-    }
-
-    public Map<Colour, List<Cell>> getHomeStraights() {
-        return homeStraights;
     }
 }

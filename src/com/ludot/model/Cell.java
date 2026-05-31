@@ -42,32 +42,16 @@ public class Cell {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public CellType getCellType() {
         return cellType;
-    }
-
-    public void setCellType(CellType cellType) {
-        this.cellType = cellType;
     }
 
     public Colour getColour() {
         return colour;
     }
 
-    public void setColour(Colour colour) {
-        this.colour = colour;
-    }
-
     public List<Piece> getPieces() {
         return pieces;
-    }
-
-    public void setPieces(List<Piece> pieces) {
-        this.pieces = pieces;
     }
 
     public boolean isMysteryCell() {

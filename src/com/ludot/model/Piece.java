@@ -56,16 +56,8 @@ public class Piece {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Colour getColour() {
         return colour;
-    }
-
-    public void setColour(Colour colour) {
-        this.colour = colour;
     }
 
     public Cell getPosition() {
@@ -104,10 +96,6 @@ public class Piece {
         return captureCount;
     }
 
-    public void setCaptureCount(int captureCount) {
-        this.captureCount = captureCount;
-    }
-
     public Effect getActiveEffect() {
         return activeEffect;
     }
@@ -120,15 +108,25 @@ public class Piece {
         return effectRoundsLeft;
     }
 
-    public void setEffectRoundsLeft(int effectRoundsLeft) {
-        this.effectRoundsLeft = effectRoundsLeft;
-    }
-
     public int getApproachPassCount() {
         return approachPassCount;
     }
 
-    public void setApproachPassCount(int approachPassCount) {
-        this.approachPassCount = approachPassCount;
+    public void incrementApproachPassCount() {
+        this.approachPassCount++;
+    }
+
+    public void clearEffect() {
+        this.activeEffect = new com.ludot.effects.NoEffect();
+        this.effectRoundsLeft = 0;
+    }
+
+    public void tickEffect() {
+        if (effectRoundsLeft > 0) {
+            effectRoundsLeft--;
+        }
+        if (effectRoundsLeft == 0) {
+            activeEffect = new com.ludot.effects.NoEffect();
+        }
     }
 }
