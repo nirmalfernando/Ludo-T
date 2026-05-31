@@ -1,9 +1,8 @@
 package com.ludot.model;
 
-import java.util.List;
 import com.ludot.strategy.PlayerStrategy;
-
-// Represents a player in the game, owning a set of pieces and a decision strategy.
+import java.util.ArrayList;
+import java.util.List;
 
 public class Player {
 
@@ -17,31 +16,45 @@ public class Player {
         this.strategy = strategy;
     }
 
+    // pieces physically on the standard path or inside the home straight
     public List<Piece> getPiecesOnBoard() {
-        return List.of();
+        List<Piece> result = new ArrayList<>();
+        for (Piece p : pieces) {
+            PieceState s = p.getState();
+            if (s instanceof OnBoardState || s instanceof InHomeStraightState) {
+                result.add(p);
+            }
+        }
+        return result;
     }
 
+    // pieces waiting at base or locked in briefing (both are off-board)
     public List<Piece> getPiecesAtBase() {
-        return List.of();
+        List<Piece> result = new ArrayList<>();
+        for (Piece p : pieces) {
+            PieceState s = p.getState();
+            if (s instanceof AtBaseState || s instanceof AtBriefingState) {
+                result.add(p);
+            }
+        }
+        return result;
     }
 
     public List<Piece> getPiecesAtHome() {
-        return List.of();
+        List<Piece> result = new ArrayList<>();
+        for (Piece p : pieces) {
+            if (p.getState() instanceof AtHomeState) {
+                result.add(p);
+            }
+        }
+        return result;
     }
 
     public boolean hasWon() {
-        return false;
+        return getPiecesAtHome().size() == pieces.size();
     }
 
-    public Colour getColour() {
-        return colour;
-    }
-
-    public List<Piece> getPieces() {
-        return pieces;
-    }
-
-    public PlayerStrategy getStrategy() {
-        return strategy;
-    }
+    public Colour getColour() { return colour; }
+    public List<Piece> getPieces() { return pieces; }
+    public PlayerStrategy getStrategy() { return strategy; }
 }
