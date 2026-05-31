@@ -3,7 +3,7 @@ package com.ludot.dice;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-// Test-double Strategy that serves pre-loaded values from queues, enabling deterministic tests.
+// Test double — pre-load queues with exact values so tests control every random decision.
 
 public class FixedRandomProvider implements RandomProvider {
 
@@ -77,7 +77,7 @@ public class FixedRandomProvider implements RandomProvider {
     @Override
     public int getMysteryEffect() {
         Integer value = mysteryEffectQueue.poll();
-        return value != null ? value : 0;
+        return value != null ? value : 1; // default to ALPHA destination if queue is empty
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.ludot.dice;
 
-// Strategy interface abstracting all random-number sources for testability.
-
+// Strategy pattern — swap SeededRandomProvider in production, FixedRandomProvider in tests.
 public interface RandomProvider {
 
     int rollDice();
