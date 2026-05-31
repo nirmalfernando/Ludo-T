@@ -1,27 +1,24 @@
 package com.ludot.model;
 
-import java.util.List;
 import com.ludot.command.Move;
-
-// State implementation for a piece actively moving on the main board path.
+import com.ludot.command.MoveOnBoard;
+import java.util.List;
 
 public class OnBoardState implements PieceState {
 
-    public OnBoardState() {
-    }
-
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
-        return List.of();
+        int steps = piece.getEffectiveSteps(roll);
+        return List.of(new MoveOnBoard(piece, steps));
     }
 
     @Override
     public boolean canMove() {
-        return false;
+        return true;
     }
 
     @Override
     public String getStateName() {
-        return null;
+        return "ON_BOARD";
     }
 }

@@ -1,10 +1,9 @@
 package com.ludot.model;
 
-import java.util.List;
 import com.ludot.command.Move;
+import java.util.List;
 
-// State implementation for a piece held at briefing (T-13 rule); tracks remaining locked rounds.
-
+// T-13: piece is locked after landing on Beta mystery cell; triple-3 sends it back to base early
 public class AtBriefingState implements PieceState {
 
     private int roundsLeft;
@@ -17,7 +16,23 @@ public class AtBriefingState implements PieceState {
 
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
-        return List.of();
+        if (roll == 3) {
+            consecutiveThrees++;
+        } else {
+            consecutiveThrees = 0; // streak breaks on any non-3 roll
+        }
+
+        if (consecutiveThrees == 3) {
+            piece.sendToBase(); // sendToBase transitions state to AtBaseState internally
+            return List.of();
+        }
+
+        roundsLeft--;
+        if (roundsLeft <= 0) {
+            piece.setState(new OnBoardState()); // briefing over — piece is free again
+        }
+
+        return List.of(); // locked regardless — no moves this turn
     }
 
     @Override
@@ -27,7 +42,7 @@ public class AtBriefingState implements PieceState {
 
     @Override
     public String getStateName() {
-        return null;
+        return "AT_BRIEFING";
     }
 
     public int getRoundsLeft() {

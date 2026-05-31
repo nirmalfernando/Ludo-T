@@ -1,27 +1,26 @@
 package com.ludot.model;
 
-import java.util.List;
 import com.ludot.command.Move;
-
-// State implementation for a piece sitting at base, applying State pattern rules for base pieces.
+import com.ludot.command.MoveFromBase;
+import java.util.List;
 
 public class AtBaseState implements PieceState {
 
-    public AtBaseState() {
-    }
-
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
+        if (roll == 6) {
+            return List.of(new MoveFromBase(piece));
+        }
         return List.of();
     }
 
     @Override
     public boolean canMove() {
-        return false;
+        return false; // only a roll of 6 unlocks movement, handled in handleRoll
     }
 
     @Override
     public String getStateName() {
-        return null;
+        return "AT_BASE";
     }
 }

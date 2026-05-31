@@ -1,27 +1,32 @@
 package com.ludot.model;
 
-import java.util.List;
 import com.ludot.command.Move;
-
-// State implementation for a piece travelling down the colour-specific home straight.
+import com.ludot.command.MoveOnBoard;
+import java.util.List;
 
 public class InHomeStraightState implements PieceState {
 
-    public InHomeStraightState() {
-    }
-
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
-        return List.of();
+        List<Cell> homeStraight = Board.getInstance().getHomeStraight(piece.getColour());
+        int currentIndex = homeStraight.indexOf(piece.getPosition());
+        int stepsToHome = (homeStraight.size() - 1) - currentIndex;
+        int steps = piece.getEffectiveSteps(roll);
+
+        // exact roll required — overshooting is not allowed
+        if (steps > stepsToHome) {
+            return List.of();
+        }
+        return List.of(new MoveOnBoard(piece, steps));
     }
 
     @Override
     public boolean canMove() {
-        return false;
+        return true;
     }
 
     @Override
     public String getStateName() {
-        return null;
+        return "IN_HOME_STRAIGHT";
     }
 }

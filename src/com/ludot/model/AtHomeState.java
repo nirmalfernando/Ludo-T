@@ -1,14 +1,10 @@
 package com.ludot.model;
 
-import java.util.List;
 import com.ludot.command.Move;
+import java.util.List;
 
-// Terminal State implementation for a piece that has reached home; movement is never allowed.
-
+// terminal state — piece has finished the game, no further movement ever
 public class AtHomeState implements PieceState {
-
-    public AtHomeState() {
-    }
 
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
@@ -22,6 +18,6 @@ public class AtHomeState implements PieceState {
 
     @Override
     public String getStateName() {
-        return null;
+        return "AT_HOME";
     }
 }
