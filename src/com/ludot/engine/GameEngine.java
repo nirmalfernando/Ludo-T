@@ -2,10 +2,10 @@ package com.ludot.engine;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.events.EventBus;
-import com.ludot.events.MysteryExpireEvent;
-import com.ludot.events.MysterySpawnEvent;
-import com.ludot.events.RoundEndEvent;
-import com.ludot.events.WinEvent;
+import com.ludot.events.mystery.MysteryExpireEvent;
+import com.ludot.events.mystery.MysterySpawnEvent;
+import com.ludot.events.flow.RoundEndEvent;
+import com.ludot.events.flow.WinEvent;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;

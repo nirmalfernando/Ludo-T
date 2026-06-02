@@ -1,6 +1,6 @@
 package com.ludot.events;
 
-// Marker interface for all game events published via the Observer/Event Bus pattern.
-
+// Every event must accept a visitor — enables type-safe dispatch without instanceof chains.
 public interface GameEvent {
+    void accept(EventVisitor visitor);
 }

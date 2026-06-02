@@ -1,7 +1,26 @@
 package com.ludot.events;
 
-// Receives every game event and delegates formatting to OutputFormatter before printing.
-public class ConsoleOutputListener implements GameEventListener {
+import com.ludot.events.block.BlockBreakEvent;
+import com.ludot.events.block.BlockFormEvent;
+import com.ludot.events.block.BlockMoveEvent;
+import com.ludot.events.dice.CoinTossEvent;
+import com.ludot.events.dice.DiceRollEvent;
+import com.ludot.events.dice.TripleSixEvent;
+import com.ludot.events.effect.EffectAppliedEvent;
+import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.RoundEndEvent;
+import com.ludot.events.flow.WinEvent;
+import com.ludot.events.home.HomeEntryEvent;
+import com.ludot.events.home.HomeReachEvent;
+import com.ludot.events.move.CaptureEvent;
+import com.ludot.events.move.MoveEvent;
+import com.ludot.events.move.SkipTurnEvent;
+import com.ludot.events.mystery.MysteryExpireEvent;
+import com.ludot.events.mystery.MysterySpawnEvent;
+import com.ludot.events.mystery.MysteryTeleportEvent;
+
+// Observer + Visitor: receives every event via EventBus and dispatches via accept() — no instanceof.
+public class ConsoleOutputListener implements GameEventListener, EventVisitor {
 
     private final OutputFormatter formatter;
 
@@ -11,27 +30,42 @@ public class ConsoleOutputListener implements GameEventListener {
 
     @Override
     public void onEvent(GameEvent event) {
-        String line = null;
+        event.accept(this); // Visitor double-dispatch — routes to the correct visit() below
+    }
 
-        if      (event instanceof DiceRollEvent e)        line = formatter.formatDiceRoll(e);
-        else if (event instanceof CoinTossEvent e)        line = formatter.formatCoinToss(e);
-        else if (event instanceof MoveEvent e)            line = formatter.formatMove(e);
-        else if (event instanceof CaptureEvent e)         line = formatter.formatCapture(e);
-        else if (event instanceof BlockFormEvent e)       line = formatter.formatBlockForm(e);
-        else if (event instanceof BlockMoveEvent e)       line = formatter.formatBlockMove(e);
-        else if (event instanceof BlockBreakEvent e)      line = formatter.formatBlockBreak(e);
-        else if (event instanceof HomeEntryEvent e)       line = formatter.formatHomeEntry(e);
-        else if (event instanceof HomeReachEvent e)       line = formatter.formatHomeReach(e);
-        else if (event instanceof MysterySpawnEvent e)    line = formatter.formatMysterySpawn(e);
-        else if (event instanceof MysteryExpireEvent e)   line = formatter.formatMysteryExpire(e);
-        else if (event instanceof MysteryTeleportEvent e) line = formatter.formatMysteryTeleport(e);
-        else if (event instanceof EffectAppliedEvent e)   line = formatter.formatEffectApplied(e);
-        else if (event instanceof EffectExpiredEvent e)   line = formatter.formatEffectExpired(e);
-        else if (event instanceof SkipTurnEvent e)        line = formatter.formatSkipTurn(e);
-        else if (event instanceof TripleSixEvent e)       line = formatter.formatTripleSix(e);
-        else if (event instanceof RoundEndEvent e)        line = formatter.formatRoundEnd(e);
-        else if (event instanceof WinEvent e)             line = formatter.formatWin(e);
+    // dice
+    @Override public void visit(DiceRollEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(CoinTossEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(TripleSixEvent e) { print(formatter.format(e)); }
 
-        if (line != null) System.out.println(line);
+    // movement
+    @Override public void visit(MoveEvent e)     { print(formatter.format(e)); }
+    @Override public void visit(CaptureEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(SkipTurnEvent e) { print(formatter.format(e)); }
+
+    // block
+    @Override public void visit(BlockFormEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(BlockMoveEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(BlockBreakEvent e) { print(formatter.format(e)); }
+
+    // home straight
+    @Override public void visit(HomeEntryEvent e) { print(formatter.format(e)); }
+    @Override public void visit(HomeReachEvent e) { print(formatter.format(e)); }
+
+    // mystery cell
+    @Override public void visit(MysterySpawnEvent e)   { print(formatter.format(e)); }
+    @Override public void visit(MysteryExpireEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(MysteryTeleportEvent e){ print(formatter.format(e)); }
+
+    // effects
+    @Override public void visit(EffectAppliedEvent e) { print(formatter.format(e)); }
+    @Override public void visit(EffectExpiredEvent e) { print(formatter.format(e)); }
+
+    // game flow
+    @Override public void visit(RoundEndEvent e) { print(formatter.format(e)); }
+    @Override public void visit(WinEvent e)      { print(formatter.format(e)); }
+
+    private void print(String line) {
+        System.out.println(line);
     }
 }
