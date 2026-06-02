@@ -21,8 +21,8 @@ public class Board {
         return instance;
     }
 
-    // package-private — only CellFactory calls this during board initialisation
-    static void resetInstance() {
+    // public so tests in any package can reset the singleton between test cases
+    public static void resetInstance() {
         instance = null;
     }
 
