@@ -1,4 +1,4 @@
-package com.ludot.rules;
+package com.ludot.rules.mystery;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.effects.TeleportDestination;

@@ -1,4 +1,4 @@
-package com.ludot.rules;
+package com.ludot.rules.dice;
 
 import com.ludot.model.Colour;
 import com.ludot.model.Player;

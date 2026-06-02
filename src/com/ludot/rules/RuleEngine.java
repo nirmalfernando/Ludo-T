@@ -1,17 +1,24 @@
 package com.ludot.rules;
 
 import com.ludot.command.BlockMove;
+import com.ludot.rules.mystery.EffectRule;
+import com.ludot.rules.mystery.MysteryRule;
+import com.ludot.rules.dice.BaseDiceRule;
+import com.ludot.rules.home.BaseHomeEntryRule;
+import com.ludot.rules.block.BlockRule;
+import com.ludot.rules.capture.BaseCaptureRule;
+import com.ludot.rules.move.BaseMoveValidator;
 import com.ludot.command.CaptureMove;
 import com.ludot.command.Move;
 import com.ludot.command.MoveFromBase;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.command.SkipMove;
 import com.ludot.effects.TeleportDestination;
-import com.ludot.model.AtBriefingState;
+import com.ludot.model.state.AtBriefingState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Direction;
-import com.ludot.model.InHomeStraightState;
+import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import java.util.ArrayList;

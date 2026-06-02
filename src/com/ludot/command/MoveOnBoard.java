@@ -1,9 +1,9 @@
 package com.ludot.command;
 
-import com.ludot.model.AtHomeState;
+import com.ludot.model.state.AtHomeState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
-import com.ludot.model.InHomeStraightState;
+import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
 import java.util.List;
 

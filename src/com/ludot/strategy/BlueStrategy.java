@@ -6,7 +6,7 @@ import com.ludot.model.Piece;
 import java.util.List;
 
 // Unpredictable: rotates through valid moves via a cycling index rather than any fixed heuristic.
-public class BlueStrategy implements PlayerStrategy {
+public class BlueStrategy extends AbstractPlayerStrategy {
 
     private int cycleIndex = 0;
 

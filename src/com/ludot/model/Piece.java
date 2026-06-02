@@ -2,6 +2,8 @@ package com.ludot.model;
 
 import com.ludot.effects.Effect;
 import com.ludot.effects.NoEffect;
+import com.ludot.model.state.PieceState;
+import com.ludot.model.state.AtBaseState;
 
 // Represents a single playing piece; delegates state-specific behaviour via the State pattern.
 public class Piece {

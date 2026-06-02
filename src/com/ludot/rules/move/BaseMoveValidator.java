@@ -1,10 +1,10 @@
-package com.ludot.rules;
+package com.ludot.rules.move;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Direction;
-import com.ludot.model.InHomeStraightState;
+import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
 import java.util.List;
 
@@ -40,13 +40,13 @@ public abstract class BaseMoveValidator {
         return Board.getInstance().getCell(newId);
     }
 
-    // base game: always clockwise
-    protected Direction assignDirection(Piece piece) {
+    // base game: always clockwise — public so RuleEngine (different sub-package) can call it
+    public Direction assignDirection(Piece piece) {
         return Direction.CLOCKWISE;
     }
 
     // base game: piece just needs to be at its approach cell
-    protected boolean canEnterHomeStraight(Piece piece) {
+    public boolean canEnterHomeStraight(Piece piece) {
         return piece.canEnterHomeStraight();
     }
 }

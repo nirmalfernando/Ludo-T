@@ -1,9 +1,9 @@
-package com.ludot.rules;
+package com.ludot.rules.mystery;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.effects.EnergisedEffect;
 import com.ludot.effects.SickEffect;
-import com.ludot.model.AtBriefingState;
+import com.ludot.model.state.AtBriefingState;
 import com.ludot.model.Direction;
 import com.ludot.model.Piece;
 import java.util.List;

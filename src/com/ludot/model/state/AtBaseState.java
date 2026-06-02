@@ -1,4 +1,5 @@
-package com.ludot.model;
+package com.ludot.model.state;
+import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
 import com.ludot.command.MoveFromBase;

@@ -1,4 +1,5 @@
-package com.ludot.rules;
+package com.ludot.rules.dice;
+import com.ludot.rules.block.BlockRule;
 
 import com.ludot.model.Player;
 

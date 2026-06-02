@@ -1,4 +1,4 @@
-package com.ludot.rules;
+package com.ludot.rules.move;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.model.Direction;
@@ -12,13 +12,13 @@ public class LudoTMoveValidator extends BaseMoveValidator {
 
     // T-1: direction assigned by coin toss when piece leaves base
     @Override
-    protected Direction assignDirection(Piece piece) {
+    public Direction assignDirection(Piece piece) {
         return random.tossCoin() ? Direction.CLOCKWISE : Direction.COUNTER_CLOCKWISE;
     }
 
     // T-1: CCW pieces must have passed the approach cell at least twice
     @Override
-    protected boolean canEnterHomeStraight(Piece piece) {
+    public boolean canEnterHomeStraight(Piece piece) {
         if (piece.getDirection() == Direction.COUNTER_CLOCKWISE) {
             return piece.canEnterHomeStraight() && piece.getApproachPassCount() >= 2;
         }

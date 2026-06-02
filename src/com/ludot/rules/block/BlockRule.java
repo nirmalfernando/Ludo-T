@@ -1,4 +1,4 @@
-package com.ludot.rules;
+package com.ludot.rules.block;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.model.Board;

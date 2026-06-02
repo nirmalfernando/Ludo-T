@@ -1,4 +1,7 @@
-package com.ludot.model;
+package com.ludot.model.state;
+import com.ludot.model.Piece;
+import com.ludot.model.Cell;
+import com.ludot.model.Board;
 
 import com.ludot.command.Move;
 import com.ludot.command.MoveOnBoard;

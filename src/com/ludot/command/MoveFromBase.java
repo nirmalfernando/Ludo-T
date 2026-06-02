@@ -2,7 +2,7 @@ package com.ludot.command;
 
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
-import com.ludot.model.OnBoardState;
+import com.ludot.model.state.OnBoardState;
 import com.ludot.model.Piece;
 
 public class MoveFromBase implements Move {

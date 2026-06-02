@@ -2,6 +2,12 @@ package com.ludot.model;
 
 import com.ludot.strategy.PlayerStrategy;
 import java.util.ArrayList;
+import com.ludot.model.state.PieceState;
+import com.ludot.model.state.OnBoardState;
+import com.ludot.model.state.InHomeStraightState;
+import com.ludot.model.state.AtHomeState;
+import com.ludot.model.state.AtBriefingState;
+import com.ludot.model.state.AtBaseState;
 import java.util.List;
 
 public class Player {

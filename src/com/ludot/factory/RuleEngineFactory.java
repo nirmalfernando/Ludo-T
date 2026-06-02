@@ -1,18 +1,29 @@
 package com.ludot.factory;
 
 import com.ludot.dice.RandomProvider;
-import com.ludot.rules.BaseCaptureRule;
-import com.ludot.rules.BaseDiceRule;
-import com.ludot.rules.BaseHomeEntryRule;
-import com.ludot.rules.BaseMoveValidator;
-import com.ludot.rules.BlockRule;
-import com.ludot.rules.EffectRule;
-import com.ludot.rules.LudoTCaptureRule;
-import com.ludot.rules.LudoTDiceRule;
-import com.ludot.rules.LudoTHomeEntryRule;
-import com.ludot.rules.LudoTMoveValidator;
-import com.ludot.rules.MysteryRule;
+
+
+
+
+
+
+
+
+
+
+
 import com.ludot.rules.RuleEngine;
+import com.ludot.rules.move.BaseMoveValidator;
+import com.ludot.rules.move.LudoTMoveValidator;
+import com.ludot.rules.capture.BaseCaptureRule;
+import com.ludot.rules.capture.LudoTCaptureRule;
+import com.ludot.rules.block.BlockRule;
+import com.ludot.rules.home.BaseHomeEntryRule;
+import com.ludot.rules.home.LudoTHomeEntryRule;
+import com.ludot.rules.dice.BaseDiceRule;
+import com.ludot.rules.dice.LudoTDiceRule;
+import com.ludot.rules.mystery.MysteryRule;
+import com.ludot.rules.mystery.EffectRule;
 
 // Abstract Factory — assembles different RuleEngine configurations (classic vs LudoT variant).
 public class RuleEngineFactory {

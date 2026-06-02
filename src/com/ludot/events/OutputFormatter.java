@@ -12,8 +12,9 @@ public class OutputFormatter {
     }
 
     public String formatMove(MoveEvent e) {
-        return e.piece().getName() + " moves from cell "
-                + e.from().getId() + " to cell " + e.to().getId();
+        String from = e.from() != null ? "cell " + e.from().getId() : "base";
+        String to   = e.to()   != null ? "cell " + e.to().getId()   : "base";
+        return e.piece().getName() + " moves from " + from + " to " + to;
     }
 
     public String formatCapture(CaptureEvent e) {
@@ -52,8 +53,9 @@ public class OutputFormatter {
     }
 
     public String formatMysteryTeleport(MysteryTeleportEvent e) {
-        return e.piece().getName() + " teleported from cell "
-                + e.from().getId() + " to cell " + e.to().getId()
+        String from = e.from() != null ? "cell " + e.from().getId() : "base";
+        String to   = e.to()   != null ? "cell " + e.to().getId()   : "base";
+        return e.piece().getName() + " teleported from " + from + " to " + to
                 + " [" + e.effectName() + "]";
     }
 
@@ -67,7 +69,7 @@ public class OutputFormatter {
     }
 
     public String formatSkipTurn(SkipTurnEvent e) {
-        return e.player().getColour() + " has no valid moves — turn skipped";
+        return e.player().getColour() + " has no valid moves - turn skipped";
     }
 
     public String formatTripleSix(TripleSixEvent e) {
