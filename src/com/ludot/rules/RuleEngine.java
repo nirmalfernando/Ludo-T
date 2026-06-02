@@ -127,14 +127,8 @@ public class RuleEngine {
         return Board.getInstance().getCell(newId);
     }
 
-    // applies mystery-cell and home-straight-entry effects after a piece lands on a cell
+    // home-straight entry only — mystery is handled separately by MysteryManager + applyMysteryEffect
     public RuleResult applyLandingEffects(Piece piece, Cell cell) {
-        if (cell.isMysteryCell()) {
-            TeleportDestination dest = mysteryRule.resolveTeleport(piece, Board.getInstance());
-            applyTeleport(piece, dest);
-            return RuleResult.valid();
-        }
-
         if (homeEntryRule.canEnterHomeStraight(piece)) {
             List<Cell> hs = Board.getInstance().getHomeStraight(piece.getColour());
             Cell first = hs.get(0);
@@ -142,10 +136,13 @@ public class RuleEngine {
             first.addPiece(piece);
             piece.setPosition(first);
             piece.setState(new InHomeStraightState());
-            return RuleResult.valid();
         }
-
         return RuleResult.valid();
+    }
+
+    // called by MoveExecutor after MysteryManager resolves the destination
+    public void applyMysteryEffect(Piece piece, TeleportDestination dest) {
+        applyTeleport(piece, dest);
     }
 
     private void applyTeleport(Piece piece, TeleportDestination dest) {

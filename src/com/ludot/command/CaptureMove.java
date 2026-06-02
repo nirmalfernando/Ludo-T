@@ -36,4 +36,8 @@ public class CaptureMove implements Move {
     public String describe() {
         return attacker.getName() + " captures " + victim.getName();
     }
+
+    public Piece getAttacker() { return attacker; }
+    public Cell getTargetCell() { return targetCell; }
+    public int getSteps() { return steps; }
 }
