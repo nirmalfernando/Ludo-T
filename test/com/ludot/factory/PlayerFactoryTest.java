@@ -1,9 +1,21 @@
 package com.ludot.factory;
+import com.ludot.model.*;
+import com.ludot.strategy.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("PlayerFactory")
 class PlayerFactoryTest {
-    @Test @DisplayName("createAll returns 4 players") void createAllFourPlayers() {}
-    @Test @DisplayName("each player has 4 pieces") void eachPlayerFourPieces() {}
-    @Test @DisplayName("piece names follow ColourN pattern") void pieceNamingPattern() {}
+    @Test @DisplayName("createAll returns 4 players") void createAllFourPlayers() {
+        assertEquals(4, PlayerFactory.createAll().size());
+    }
+    @Test @DisplayName("each player has 4 pieces") void eachPlayerFourPieces() {
+        for (Player p : PlayerFactory.createAll())
+            assertEquals(4, p.getPieces().size());
+    }
+    @Test @DisplayName("piece names follow ColourN pattern") void pieceNamingPattern() {
+        Player red = PlayerFactory.createPlayer(Colour.RED);
+        assertEquals("RED1", red.getPieces().get(0).getName());
+        assertEquals("RED4", red.getPieces().get(3).getName());
+    }
 }

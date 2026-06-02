@@ -12,10 +12,6 @@ import java.util.Map;
 // Factory Method — creates typed Cell instances and wires up the complete board layout.
 public class CellFactory {
 
-    // standard-path positions for each colour (start, approach)
-    private static final int[] STARTS    = {0,  13, 26, 39}; // YELLOW,BLUE,RED,GREEN
-    private static final int[] APPROACHES = {50, 11, 24, 37};
-
     private CellFactory() {}
 
     public static Cell createStandardCell(int id) {
@@ -36,34 +32,37 @@ public class CellFactory {
 
     // builds the full 52-cell standard path + 5-cell home straights for all colours
     public static void initializeBoard(Board board) {
-        Colour[] colours = Colour.values(); // YELLOW, BLUE, RED, GREEN (enum declaration order)
-
-        // standard 52-cell ring
         List<Cell> cells = new ArrayList<>(52);
         for (int id = 0; id < 52; id++) {
-            cells.add(buildStandardPathCell(id, colours));
+            cells.add(buildStandardPathCell(id));
         }
 
-        // home straights — 4 HOME_STRAIGHT cells then 1 HOME cell per colour
         Map<Colour, List<Cell>> homeStraights = new EnumMap<>(Colour.class);
         int hsId = 52;
-        for (Colour c : colours) {
+        for (Colour c : Colour.values()) {
             List<Cell> hs = new ArrayList<>(5);
             for (int j = 0; j < 4; j++) {
                 hs.add(createHomeStraightCell(hsId++, c));
             }
-            hs.add(new Cell(hsId++, CellType.HOME, c)); // last cell is HOME
+            hs.add(new Cell(hsId++, CellType.HOME, c));
             homeStraights.put(c, hs);
         }
 
         board.initialize(cells, homeStraights);
     }
 
-    private static Cell buildStandardPathCell(int id, Colour[] colours) {
-        for (int i = 0; i < colours.length; i++) {
-            if (id == STARTS[i])    return createStartCell(id, colours[i]);
-            if (id == APPROACHES[i]) return createApproachCell(id, colours[i]);
-        }
-        return createStandardCell(id);
+    // explicit colour mapping — avoids any dependence on Colour.values() enum order
+    private static Cell buildStandardPathCell(int id) {
+        return switch (id) {
+            case  0 -> createStartCell(id,    Colour.YELLOW);
+            case 13 -> createStartCell(id,    Colour.BLUE);
+            case 26 -> createStartCell(id,    Colour.RED);
+            case 39 -> createStartCell(id,    Colour.GREEN);
+            case 50 -> createApproachCell(id, Colour.YELLOW);
+            case 11 -> createApproachCell(id, Colour.BLUE);
+            case 24 -> createApproachCell(id, Colour.RED);
+            case 37 -> createApproachCell(id, Colour.GREEN);
+            default -> createStandardCell(id);
+        };
     }
 }

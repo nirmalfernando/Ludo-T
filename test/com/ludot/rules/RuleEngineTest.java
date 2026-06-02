@@ -1,17 +1,63 @@
 package com.ludot.rules;
+import com.ludot.command.*;
+import com.ludot.dice.FixedRandomProvider;
+import com.ludot.factory.*;
+import com.ludot.model.*;
+import com.ludot.model.state.*;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.ludot.model.Board;
+import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("RuleEngine")
 class RuleEngineTest {
-    @BeforeEach  void setUp()    { Board.resetInstance(); }
-    @AfterEach   void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("getValidMoves returns SkipMove when no moves") void skipMoveWhenNone() {}
-    @Test @DisplayName("getValidMoves upgrades to CaptureMove for lone opponent") void upgradeToCapture() {}
-    @Test @DisplayName("getValidMoves skips blocked destination") void blockedSkipped() {}
-    @Test @DisplayName("getValidMoves returns BlockMove for pieces in a block") void blockMoveForBlock() {}
-    @Test @DisplayName("applyLandingEffects transitions to InHomeStraightState") void homeEntry() {}
-    @Test @DisplayName("calculateEffectiveSteps delegates to piece effect") void effectiveStesDelegates() {}
+    private RuleEngine engine;
+    private FixedRandomProvider random;
+    @BeforeEach void setUp() {
+        Board.resetInstance();
+        CellFactory.initializeBoard(Board.getInstance());
+        random = new FixedRandomProvider();
+        engine = RuleEngineFactory.createLudoTRuleEngine(random);
+    }
+    @AfterEach void tearDown() { Board.resetInstance(); }
+    @Test @DisplayName("getValidMoves returns SkipMove when no moves available") void skipMoveWhenNone() {
+        Player player = new Player(Colour.RED, List.of(new Piece("R1", Colour.RED)),
+            (gs,r,ps,m)->m.get(0));
+        List<Move> moves = engine.getValidMoves(player, 3); // pieces at base, non-6 roll
+        assertEquals(1, moves.size());
+        assertInstanceOf(SkipMove.class, moves.get(0));
+    }
+    @Test @DisplayName("getValidMoves upgrades to CaptureMove for lone opponent") void upgradeToCapture() {
+        Piece red = new Piece("R1", Colour.RED);
+        Cell src = Board.getInstance().getCell(26);
+        src.addPiece(red); red.setPosition(src);
+        red.setState(new OnBoardState()); red.setDirection(Direction.CLOCKWISE);
+        Piece blue = new Piece("B1", Colour.BLUE);
+        Cell dest = Board.getInstance().getCell(29);
+        dest.addPiece(blue); blue.setPosition(dest); blue.setState(new OnBoardState());
+        Player player = new Player(Colour.RED, List.of(red), (gs,r,ps,m)->m.get(0));
+        List<Move> moves = engine.getValidMoves(player, 3);
+        assertTrue(moves.stream().anyMatch(m -> m instanceof CaptureMove));
+    }
+    @Test @DisplayName("getValidMoves returns SkipMove when destination is blocked") void blockedSkipped() {
+        Piece red = new Piece("R1", Colour.RED);
+        Cell src = Board.getInstance().getCell(26);
+        src.addPiece(red); red.setPosition(src);
+        red.setState(new OnBoardState()); red.setDirection(Direction.CLOCKWISE);
+        Piece b1 = new Piece("B1", Colour.BLUE);
+        Piece b2 = new Piece("B2", Colour.BLUE);
+        Cell dest = Board.getInstance().getCell(29);
+        dest.addPiece(b1); dest.addPiece(b2);
+        b1.setPosition(dest); b2.setPosition(dest);
+        Player player = new Player(Colour.RED, List.of(red), (gs,r,ps,m)->m.get(0));
+        List<Move> moves = engine.getValidMoves(player, 3);
+        // block at destination means no valid move for this piece
+        assertTrue(moves.stream().allMatch(m -> m instanceof SkipMove));
+    }
+    @Test @DisplayName("calculateEffectiveSteps delegates to piece effect") void effectiveStesDelegates() {
+        Piece p = new Piece("R1", Colour.RED);
+        p.setActiveEffect(new com.ludot.effects.EnergisedEffect(4));
+        assertEquals(6, engine.calculateEffectiveSteps(p, 3));
+    }
 }

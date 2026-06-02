@@ -63,12 +63,8 @@ public class RuleEngine {
                     mfb.getPiece().setDirection(dir);
                     Cell startCell = Board.getInstance().getStartCell(piece.getColour());
                     if (blockRule.isBlocked(piece, startCell)) continue;
-                    Piece opponent = singleOpponent(startCell, piece);
-                    if (opponent != null) {
-                        valid.add(new CaptureMove(piece, opponent, startCell, 0));
-                    } else {
-                        valid.add(mfb);
-                    }
+                    // piece is still at base (null position) — can't capture until it has landed
+                    valid.add(mfb);
 
                 } else if (candidate instanceof MoveOnBoard mob) {
                     Piece p = mob.getPiece();
