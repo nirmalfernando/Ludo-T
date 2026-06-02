@@ -61,6 +61,12 @@ public class Board {
         return Collections.unmodifiableList(cells);
     }
 
+    // called by CellFactory during startup — public so it can be reached from the factory package
+    public void initialize(List<Cell> cells, Map<Colour, List<Cell>> homeStraights) {
+        this.cells = cells;
+        this.homeStraights = homeStraights;
+    }
+
     void setCells(List<Cell> cells) {
         this.cells = cells;
     }

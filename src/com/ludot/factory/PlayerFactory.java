@@ -1,31 +1,50 @@
 package com.ludot.factory;
 
-import java.util.List;
 import com.ludot.model.Colour;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
+import com.ludot.strategy.BlueStrategy;
+import com.ludot.strategy.GreenStrategy;
 import com.ludot.strategy.PlayerStrategy;
+import com.ludot.strategy.RedStrategy;
+import com.ludot.strategy.YellowStrategy;
+import java.util.ArrayList;
+import java.util.List;
 
-// Factory Method class that assembles fully configured Player instances for each colour.
-
+// Factory Method — assembles fully configured Player instances for each colour.
 public class PlayerFactory {
 
-    private PlayerFactory() {
-    }
+    private static final int PIECES_PER_PLAYER = 4;
+
+    private PlayerFactory() {}
 
     public static Player createPlayer(Colour colour) {
-        return null;
+        return new Player(colour, createPieces(colour), createStrategy(colour));
     }
 
     public static List<Player> createAll() {
-        return List.of();
+        List<Player> players = new ArrayList<>();
+        for (Colour c : Colour.values()) {
+            players.add(createPlayer(c));
+        }
+        return players;
     }
 
     private static PlayerStrategy createStrategy(Colour colour) {
-        return null;
+        return switch (colour) {
+            case RED    -> new RedStrategy();
+            case GREEN  -> new GreenStrategy();
+            case YELLOW -> new YellowStrategy();
+            case BLUE   -> new BlueStrategy();
+        };
     }
 
     private static List<Piece> createPieces(Colour colour) {
-        return List.of();
+        List<Piece> pieces = new ArrayList<>(PIECES_PER_PLAYER);
+        String prefix = colour.name();
+        for (int i = 1; i <= PIECES_PER_PLAYER; i++) {
+            pieces.add(new Piece(prefix + i, colour));
+        }
+        return pieces;
     }
 }
