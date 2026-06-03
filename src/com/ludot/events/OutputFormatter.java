@@ -24,6 +24,9 @@ import com.ludot.events.mystery.MysteryTeleportEvent;
 import com.ludot.model.Cell;
 import com.ludot.model.CellType;
 import com.ludot.model.Colour;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
 import com.ludot.model.Direction;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
@@ -142,14 +145,39 @@ public class OutputFormatter {
     }
 
     public String format(TurnOrderEvent e) {
+        Map<Colour, Integer> rolls = e.rollResults();
         List<Player> order = e.order();
-        StringBuilder names = new StringBuilder();
-        for (int i = 0; i < order.size(); i++) {
-            if (i > 0) names.append(i == order.size() - 1 ? ", and " : ", ");
-            names.append(cap(order.get(i).getColour()));
+        long distinctValues = rolls.values().stream().distinct().count();
+        StringBuilder sb = new StringBuilder();
+
+        if (distinctValues == 1) {
+            // every player rolled the same value
+            int rolled = rolls.values().iterator().next();
+            sb.append("All players rolled ").append(rolled)
+              .append(". Play order is determined alphabetically.");
+        } else {
+            // at least one unique highest roll
+            sb.append(cap(e.first().getColour()))
+              .append(" player has the highest roll and will begin the game.");
+
+            // find and describe any tied groups (size >= 2)
+            rolls.values().stream().distinct().forEach(rollVal -> {
+                List<String> tied = order.stream()
+                        .filter(p -> rolls.get(p.getColour()) == rollVal)
+                        .map(p -> cap(p.getColour()))
+                        .collect(Collectors.toList());
+                if (tied.size() >= 2) {
+                    sb.append("\n").append(joinNames(tied))
+                      .append(" all rolled ").append(rollVal)
+                      .append(" and are ordered alphabetically.");
+                }
+            });
         }
-        return cap(e.first().getColour()) + " player has the highest roll and will begin the game.\n"
-            + "The order of play is " + names + ".";
+
+        sb.append("\nThe order of play is ").append(joinNames(
+                order.stream().map(p -> cap(p.getColour())).collect(Collectors.toList())
+        )).append(".");
+        return sb.toString();
     }
 
     // game flow — prints a position summary table for every player
@@ -210,6 +238,18 @@ public class OutputFormatter {
         long onBase = total - onBoard;
         return cap(player.getColour()) + " player now has " + onBoard + "/" + total
             + " on pieces on the board and " + onBase + "/" + total + " pieces on the base.";
+    }
+
+    // "A", "A and B", "A, B, and C" etc.
+    private String joinNames(List<String> names) {
+        if (names.size() == 1) return names.get(0);
+        if (names.size() == 2) return names.get(0) + " and " + names.get(1);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < names.size(); i++) {
+            if (i > 0) sb.append(i == names.size() - 1 ? ", and " : ", ");
+            sb.append(names.get(i));
+        }
+        return sb.toString();
     }
 
     private String cellId(Cell cell) {

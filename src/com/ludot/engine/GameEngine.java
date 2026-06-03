@@ -11,12 +11,15 @@ import com.ludot.events.flow.RoundEndEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
+import com.ludot.model.Colour;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Mediator orchestrating the full game loop: turn sequencing, win detection, and event publishing.
 public class GameEngine {
@@ -52,23 +55,26 @@ public class GameEngine {
         eventBus.publish(new WinEvent(winner, turnManager.getRoundCount()));
     }
 
-    // each player rolls once; play order is highest roll first, lowest last (ties keep original order)
+    // each player rolls once; play order is highest roll first, lowest last (ties broken alphabetically)
     public Player determineFirstPlayer() {
         List<int[]> rolls = new ArrayList<>(); // [originalIndex, roll]
+        Map<Colour, Integer> rollResults = new HashMap<>();
         for (int i = 0; i < players.size(); i++) {
             int roll = random.rollDice();
             eventBus.publish(new RollOffEvent(players.get(i), roll));
             rolls.add(new int[]{i, roll});
+            rollResults.put(players.get(i).getColour(), roll);
         }
-        // stable descending sort — ties preserve original list order
-        rolls.sort(Comparator.comparingInt((int[] r) -> r[1]).reversed());
+        // descending by roll; ties broken alphabetically by colour name (e.g. BLUE < GREEN < RED < YELLOW)
+        rolls.sort(Comparator.comparingInt((int[] r) -> r[1]).reversed()
+                .thenComparing(r -> players.get(r[0]).getColour().name()));
         List<Player> reordered = new ArrayList<>();
         for (int[] r : rolls) {
             reordered.add(players.get(r[0]));
         }
         players.clear();
         players.addAll(reordered);
-        eventBus.publish(new TurnOrderEvent(players.get(0), List.copyOf(players)));
+        eventBus.publish(new TurnOrderEvent(players.get(0), List.copyOf(players), Map.copyOf(rollResults)));
         return players.get(0);
     }
 
@@ -107,6 +113,8 @@ public class GameEngine {
     public boolean checkWinCondition() {
         return players.stream().anyMatch(Player::hasWon);
     }
+
+    public List<Player> getPlayers() { return List.copyOf(players); }
 
     private List<Piece> getAllPieces() {
         List<Piece> all = new ArrayList<>();

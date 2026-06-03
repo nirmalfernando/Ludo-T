@@ -1,5 +1,6 @@
 package com.ludot.factory;
 
+import com.ludot.dice.RandomProvider;
 import com.ludot.dice.SeededRandomProvider;
 import com.ludot.engine.GameEngine;
 import com.ludot.engine.MoveExecutor;
@@ -21,6 +22,8 @@ public class GameBuilder {
 
     private long seed = System.currentTimeMillis();
     private int playerCount = 4;
+    private RandomProvider customRandom = null;
+    private EventBus customEventBus = null;
 
     public GameBuilder withSeed(long seed) {
         this.seed = seed;
@@ -32,8 +35,18 @@ public class GameBuilder {
         return this;
     }
 
+    public GameBuilder withRandom(RandomProvider random) {
+        this.customRandom = random;
+        return this;
+    }
+
+    public GameBuilder withEventBus(EventBus eventBus) {
+        this.customEventBus = eventBus;
+        return this;
+    }
+
     public GameEngine build() {
-        SeededRandomProvider random = new SeededRandomProvider(seed);
+        RandomProvider random = customRandom != null ? customRandom : new SeededRandomProvider(seed);
 
         // fresh board every build
         Board board = Board.getInstance();
@@ -41,8 +54,10 @@ public class GameBuilder {
 
         List<Player> players = PlayerFactory.createAll().subList(0, playerCount);
 
-        EventBus eventBus = new EventBus();
-        eventBus.subscribe(new ConsoleOutputListener(new OutputFormatter()));
+        EventBus eventBus = customEventBus != null ? customEventBus : new EventBus();
+        if (customEventBus == null) {
+            eventBus.subscribe(new ConsoleOutputListener(new OutputFormatter()));
+        }
 
         RuleEngine ruleEngine = RuleEngineFactory.createLudoTRuleEngine(random);
 
