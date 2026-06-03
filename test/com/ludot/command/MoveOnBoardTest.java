@@ -35,6 +35,17 @@ class MoveOnBoardTest {
         new MoveOnBoard(piece, 1).execute();
         assertEquals(hs.get(1), piece.getPosition());
     }
+    @Test @DisplayName("CCW move wraps correctly across cell 0")
+    void ccwWrapsAtCellZero() {
+        // piece at cell 2, direction CCW, 3 steps: (2 - 3 + 52) % 52 = 51
+        Cell c2 = Board.getInstance().getCell(2);
+        piece.getPosition().removePiece(piece);
+        c2.addPiece(piece); piece.setPosition(c2);
+        piece.setDirection(Direction.COUNTER_CLOCKWISE);
+        new MoveOnBoard(piece, 3).execute();
+        assertEquals(51, piece.getPosition().getId());
+    }
+
     @Test @DisplayName("reaching last home cell sets AtHomeState") void setsAtHomeOnLast() {
         List<Cell> hs = Board.getInstance().getHomeStraight(Colour.RED);
         Cell penultimate = hs.get(3); // 1 step from HOME (index 4)

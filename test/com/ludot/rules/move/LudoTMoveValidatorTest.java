@@ -20,6 +20,19 @@ class LudoTMoveValidatorTest {
         LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider().addCoins(false));
         assertEquals(Direction.COUNTER_CLOCKWISE, v.assignDirection(new Piece("R1", Colour.RED)));
     }
+    @Test @DisplayName("CCW piece with exactly 1 pass is still blocked from home straight")
+    void onePassStillBlocked() {
+        LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider());
+        Piece p = new Piece("R1", Colour.RED);
+        Cell approachCell = Board.getInstance().getApproachCell(Colour.RED);
+        approachCell.addPiece(p);
+        p.setPosition(approachCell);
+        p.setDirection(Direction.COUNTER_CLOCKWISE);
+        p.incrementApproachPassCount(); // exactly 1 — must NOT be enough
+        assertFalse(v.canEnterHomeStraight(p),
+                "passCount=1 is below the >= 2 threshold and must be rejected");
+    }
+
     @Test @DisplayName("CCW piece requires 2 approach passes for home entry") void ccwRequiresTwoPasses() {
         LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider());
         Piece p = new Piece("R1", Colour.RED);

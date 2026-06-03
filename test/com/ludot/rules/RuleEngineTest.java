@@ -40,7 +40,9 @@ class RuleEngineTest {
         List<Move> moves = engine.getValidMoves(player, 3);
         assertTrue(moves.stream().anyMatch(m -> m instanceof CaptureMove));
     }
-    @Test @DisplayName("getValidMoves returns SkipMove when destination is blocked") void blockedSkipped() {
+    @Test @DisplayName("getValidMoves returns partial MoveOnBoard (one before block) when destination is blocked")
+    void blockedReturnsPartialMove() {
+        // T-3: piece at 26 CW, block at 29, roll 3 → partial move to 28 (3-1=2 steps)
         Piece red = new Piece("R1", Colour.RED);
         Cell src = Board.getInstance().getCell(26);
         src.addPiece(red); red.setPosition(src);
@@ -52,8 +54,11 @@ class RuleEngineTest {
         b1.setPosition(dest); b2.setPosition(dest);
         Player player = new Player(Colour.RED, List.of(red), (gs,r,ps,m)->m.get(0));
         List<Move> moves = engine.getValidMoves(player, 3);
-        // block at destination means no valid move for this piece
-        assertTrue(moves.stream().allMatch(m -> m instanceof SkipMove));
+        // piece should receive a partial MoveOnBoard (2 steps to cell 28), not a SkipMove
+        assertTrue(moves.stream().anyMatch(m -> m instanceof MoveOnBoard),
+                "Blocked piece must receive a partial move to the cell before the block");
+        assertFalse(moves.stream().allMatch(m -> m instanceof SkipMove),
+                "SkipMove must not be the only option when a partial move is available");
     }
     @Test @DisplayName("calculateEffectiveSteps delegates to piece effect") void effectiveStesDelegates() {
         Piece p = new Piece("R1", Colour.RED);

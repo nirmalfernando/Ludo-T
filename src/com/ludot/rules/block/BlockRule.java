@@ -1,10 +1,12 @@
 package com.ludot.rules.block;
 
+import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Direction;
 import com.ludot.model.Piece;
+import java.util.Comparator;
 import java.util.List;
 
 // T-3/4/5/6: encapsulates all block formation, movement, and forced-break logic.
@@ -27,9 +29,13 @@ public class BlockRule {
         return cell.getPieces().get(0).getColour() == piece.getColour();
     }
 
-    // T-5: block moves in the direction of its constituent pieces
+    // T-4: block moves in the direction of the piece furthest from its approach cell
     public Direction calcBlockMoveDir(List<Piece> block) {
-        return block.get(0).getDirection();
+        Board board = Board.getInstance();
+        return block.stream()
+                .max(Comparator.comparingInt(p -> distanceToApproach(p, board)))
+                .map(Piece::getDirection)
+                .orElse(block.get(0).getDirection());
     }
 
     // T-5: block steps = roll / blockSize rounded down
@@ -47,7 +53,12 @@ public class BlockRule {
         }
     }
 
-    public Cell getPartialMoveCell(List<Piece> block, Cell targetCell) {
-        return targetCell;
+    // cells remaining in the piece's current direction before reaching its approach cell
+    private int distanceToApproach(Piece piece, Board board) {
+        int cellId = piece.getPosition().getId();
+        int approachId = board.getApproachCell(piece.getColour()).getId();
+        return piece.getDirection() == Direction.CLOCKWISE
+                ? (approachId - cellId + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE
+                : (cellId - approachId + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
     }
 }

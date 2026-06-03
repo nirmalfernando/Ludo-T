@@ -40,6 +40,11 @@ public class Piece {
         position.removePiece(this);
         newCell.addPiece(this);
         position = newCell;
+        // T-1: CCW pieces must pass their approach cell twice before entering home straight
+        if (direction == Direction.COUNTER_CLOCKWISE
+                && newCell.equals(board.getApproachCell(colour))) {
+            incrementApproachPassCount();
+        }
     }
 
     public void sendToBase() {

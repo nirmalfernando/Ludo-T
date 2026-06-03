@@ -41,6 +41,10 @@ public class TurnManager {
     }
 
     public void executeTurn(Player player) {
+        executeTurn(player, 0);
+    }
+
+    private void executeTurn(Player player, int bonusDepth) {
         int roll = rollDice();
         eventBus.publish(new DiceRollEvent(player, roll));
 
@@ -63,8 +67,9 @@ public class TurnManager {
         MoveResult result = moveExecutor.execute(chosen, player);
 
         // T-2: capture grants a bonus roll; rolling 6 (non-triple) also grants one
-        if (result.grantsBonusRoll() || bonusRoll) {
-            handleBonusRoll(player);
+        // depth guard prevents runaway recursion on a very lucky streak
+        if ((result.grantsBonusRoll() || bonusRoll) && bonusDepth < GameConstants.MAX_BONUS_DEPTH) {
+            executeTurn(player, bonusDepth + 1);
         }
     }
 

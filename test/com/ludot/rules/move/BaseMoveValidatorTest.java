@@ -33,4 +33,23 @@ class BaseMoveValidatorTest {
     @Test @DisplayName("assignDirection always returns CLOCKWISE") void alwaysClockwise() {
         assertEquals(Direction.CLOCKWISE, validator.assignDirection(piece));
     }
+
+    @Test @DisplayName("CW destination wraps correctly at cell 51")
+    void cwWrapsAtCell51() {
+        // piece at cell 51, CW 3 steps: (51 + 3) % 52 = 2
+        Cell c51 = Board.getInstance().getCell(51);
+        piece.getPosition().removePiece(piece);
+        c51.addPiece(piece); piece.setPosition(c51);
+        assertEquals(2, validator.getDestinationCell(piece, 3).getId());
+    }
+
+    @Test @DisplayName("CCW destination wraps correctly at cell 0")
+    void ccwWrapsAtCellZero() {
+        // piece at cell 2, CCW 3 steps: (2 - 3 + 52) % 52 = 51
+        Cell c2 = Board.getInstance().getCell(2);
+        piece.getPosition().removePiece(piece);
+        c2.addPiece(piece); piece.setPosition(c2);
+        piece.setDirection(Direction.COUNTER_CLOCKWISE);
+        assertEquals(51, validator.getDestinationCell(piece, 3).getId());
+    }
 }

@@ -95,7 +95,14 @@ public class RuleEngine {
 
                     Cell dest = moveValidator.getDestinationCell(p, mob.getSteps());
                     if (dest == null) continue;
-                    if (blockRule.isBlocked(p, dest)) continue;
+                    if (blockRule.isBlocked(p, dest)) {
+                        // T-3: piece stops at the cell just before the block instead of being skipped
+                        int partialSteps = mob.getSteps() - 1;
+                        if (partialSteps > 0) {
+                            valid.add(new MoveOnBoard(p, partialSteps));
+                        }
+                        continue;
+                    }
                     Piece opponent = singleOpponent(dest, p);
                     if (opponent != null) {
                         valid.add(new CaptureMove(p, opponent, dest, mob.getSteps()));

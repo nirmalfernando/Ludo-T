@@ -48,6 +48,23 @@ class MoveExecutorTest {
         executor.execute(new CaptureMove(att, vic, c2, 3));
         assertTrue(published.stream().anyMatch(ev -> ev instanceof CaptureEvent));
     }
+    @Test @DisplayName("CaptureMove via executor: attacker lands on target cell, victim sent to base")
+    void captureFullPath() {
+        Piece att = new Piece("R1", Colour.RED);
+        Piece vic = new Piece("B1", Colour.BLUE);
+        Cell c1 = Board.getInstance().getCell(5);
+        Cell c2 = Board.getInstance().getCell(8);
+        c1.addPiece(att); att.setPosition(c1); att.setState(new OnBoardState()); att.setDirection(Direction.CLOCKWISE);
+        c2.addPiece(vic); vic.setPosition(c2); vic.setState(new OnBoardState());
+
+        executor.execute(new CaptureMove(att, vic, c2, 3));
+
+        assertEquals(c2, att.getPosition(), "Attacker must land on the target cell");
+        assertFalse(c1.getPieces().contains(att), "Attacker must leave its source cell");
+        assertNull(vic.getPosition(), "Victim must be sent to base (null position)");
+        assertInstanceOf(AtBaseState.class, vic.getState(), "Victim must be in AtBaseState");
+    }
+
     @Test @DisplayName("MoveOnBoard publishes HomeReachEvent on last home cell") void homeReachEvent() {
         Piece p = new Piece("R1", Colour.RED);
         List<Cell> hs = Board.getInstance().getHomeStraight(Colour.RED);

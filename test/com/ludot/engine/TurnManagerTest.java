@@ -1,9 +1,13 @@
 package com.ludot.engine;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.events.*;
+import com.ludot.events.block.BlockBreakEvent;
 import com.ludot.events.dice.DiceRollEvent;
+import com.ludot.events.dice.TripleSixEvent;
+import com.ludot.model.state.OnBoardState;
 import com.ludot.factory.*;
 import com.ludot.model.*;
+import com.ludot.model.Direction;
 import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +45,37 @@ class TurnManagerTest {
         Player third = tm.nextPlayer();
         assertEquals(players.get(2), third);
     }
+    @Test @DisplayName("handleTripleSix publishes TripleSixEvent")
+    void tripleSixPublishesEvent() {
+        tm.handleTripleSix(players.get(0));
+        assertTrue(published.stream().anyMatch(ev -> ev instanceof TripleSixEvent),
+                "TripleSixEvent must be published when triple-six fires");
+    }
+
+    @Test @DisplayName("handleTripleSix breaks an active block and publishes BlockBreakEvent")
+    void tripleSixBreaksBlock() {
+        Player red = players.get(0);
+        Cell cell20 = Board.getInstance().getCell(20);
+        Piece p1 = red.getPieces().get(0);
+        Piece p2 = red.getPieces().get(1);
+        // place two RED pieces on cell 20 to form a block
+        cell20.addPiece(p1); p1.setPosition(cell20); p1.setState(new OnBoardState()); p1.setDirection(Direction.CLOCKWISE);
+        cell20.addPiece(p2); p2.setPosition(cell20); p2.setState(new OnBoardState()); p2.setDirection(Direction.CLOCKWISE);
+
+        tm.handleTripleSix(red);
+
+        assertTrue(published.stream().anyMatch(ev -> ev instanceof BlockBreakEvent),
+                "BlockBreakEvent must be published when the block is dissolved");
+    }
+
+    @Test @DisplayName("handleBonusRoll executes an additional turn and publishes a DiceRollEvent")
+    void bonusRollExecutesTurn() {
+        long before = published.stream().filter(ev -> ev instanceof DiceRollEvent).count();
+        tm.handleBonusRoll(players.get(0));
+        long after = published.stream().filter(ev -> ev instanceof DiceRollEvent).count();
+        assertEquals(before + 1, after, "Bonus roll must trigger exactly one additional DiceRollEvent");
+    }
+
     @Test @DisplayName("incrementRound increments count") void incrementsRound() {
         tm.incrementRound();
         assertEquals(1, tm.getRoundCount());

@@ -35,4 +35,23 @@ class InHomeStraightStateTest {
     @Test @DisplayName("canMove returns true") void canMoveIsTrue() {
         assertTrue(new InHomeStraightState().canMove());
     }
+
+    @Test @DisplayName("exact steps to HOME cell (index 4) produces a valid move")
+    void exactStepsToHome() {
+        // piece at index 0, 4 steps reaches the HOME cell exactly — must be allowed
+        var moves = new InHomeStraightState().handleRoll(piece, 4);
+        assertEquals(1, moves.size(), "Exact roll to HOME must produce one move");
+        assertInstanceOf(MoveOnBoard.class, moves.get(0));
+    }
+
+    @Test @DisplayName("one step past HOME from penultimate cell is an overshoot")
+    void oneOverFromPenultimateIsEmpty() {
+        // move piece to index 3 (one step from HOME), then roll 2 — overshoots
+        List<Cell> hs = Board.getInstance().getHomeStraight(Colour.RED);
+        piece.getPosition().removePiece(piece);
+        hs.get(3).addPiece(piece);
+        piece.setPosition(hs.get(3));
+        var moves = new InHomeStraightState().handleRoll(piece, 2);
+        assertTrue(moves.isEmpty(), "Overshooting HOME must return empty list");
+    }
 }

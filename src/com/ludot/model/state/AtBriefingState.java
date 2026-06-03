@@ -25,7 +25,8 @@ public class AtBriefingState implements PieceState {
         }
 
         if (consecutiveThrees == GameConstants.BRIEFING_ESCAPE_COUNT) {
-            piece.sendToBase(); // sendToBase transitions state to AtBaseState internally
+            piece.resetInfo(); // T-9: clear direction, counts, effects before returning to base
+            piece.sendToBase();
             return List.of();
         }
 
