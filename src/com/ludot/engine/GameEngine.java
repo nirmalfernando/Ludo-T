@@ -2,6 +2,8 @@ package com.ludot.engine;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.events.EventBus;
+import com.ludot.events.flow.RollOffEvent;
+import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
 import com.ludot.events.mystery.MysteryTickEvent;
@@ -13,7 +15,7 @@ import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
 import java.util.List;
 
 // Mediator orchestrating the full game loop: turn sequencing, win detection, and event publishing.
@@ -50,24 +52,23 @@ public class GameEngine {
         eventBus.publish(new WinEvent(winner, turnManager.getRoundCount()));
     }
 
-    // each player rolls once; highest roll starts (ties broken by list order)
+    // each player rolls once; play order is highest roll first, lowest last (ties keep original order)
     public Player determineFirstPlayer() {
-        int bestRoll = -1;
-        int firstIndex = 0;
+        List<int[]> rolls = new ArrayList<>(); // [originalIndex, roll]
         for (int i = 0; i < players.size(); i++) {
             int roll = random.rollDice();
-            if (roll > bestRoll) {
-                bestRoll = roll;
-                firstIndex = i;
-            }
+            eventBus.publish(new RollOffEvent(players.get(i), roll));
+            rolls.add(new int[]{i, roll});
         }
-        // rotate players so the winner of the toss is at index 0
+        // stable descending sort — ties preserve original list order
+        rolls.sort(Comparator.comparingInt((int[] r) -> r[1]).reversed());
         List<Player> reordered = new ArrayList<>();
-        for (int i = 0; i < players.size(); i++) {
-            reordered.add(players.get((firstIndex + i) % players.size()));
+        for (int[] r : rolls) {
+            reordered.add(players.get(r[0]));
         }
         players.clear();
         players.addAll(reordered);
+        eventBus.publish(new TurnOrderEvent(players.get(0), List.copyOf(players)));
         return players.get(0);
     }
 

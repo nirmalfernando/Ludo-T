@@ -8,7 +8,9 @@ import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.events.effect.EffectAppliedEvent;
 import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.RoundEndEvent;
+import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.home.HomeEntryEvent;
 import com.ludot.events.home.HomeReachEvent;
@@ -132,6 +134,22 @@ public class OutputFormatter {
 
     public String format(EffectExpiredEvent e) {
         return e.piece().getName() + " " + e.effectName() + " effect expired.";
+    }
+
+    // game flow — roll-off and turn order
+    public String format(RollOffEvent e) {
+        return cap(e.player().getColour()) + " rolls " + e.roll() + ".";
+    }
+
+    public String format(TurnOrderEvent e) {
+        List<Player> order = e.order();
+        StringBuilder names = new StringBuilder();
+        for (int i = 0; i < order.size(); i++) {
+            if (i > 0) names.append(i == order.size() - 1 ? ", and " : ", ");
+            names.append(cap(order.get(i).getColour()));
+        }
+        return cap(e.first().getColour()) + " player has the highest roll and will begin the game.\n"
+            + "The order of play is " + names + ".";
     }
 
     // game flow — prints a position summary table for every player
