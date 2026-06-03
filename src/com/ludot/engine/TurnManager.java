@@ -12,28 +12,25 @@ import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
-import com.ludot.model.Colour;
+import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 // Manages turn sequencing, bonus rolls, and triple-six handling per player (T-2, T-6).
 public class TurnManager {
 
     private int currentPlayerIndex;
     private int roundCount;
-    private final Map<Colour, Integer> consecutiveSixes; // kept for potential external inspection
     private final RuleEngine ruleEngine;
     private final MoveExecutor moveExecutor;
     private final EventBus eventBus;
     private final RandomProvider random;
     private final List<Player> players;
 
-    public TurnManager(Map<Colour, Integer> consecutiveSixes, RuleEngine ruleEngine,
-                       MoveExecutor moveExecutor, EventBus eventBus,
+    public TurnManager(RuleEngine ruleEngine, MoveExecutor moveExecutor, EventBus eventBus,
                        RandomProvider random, List<Player> players) {
-        this.consecutiveSixes = consecutiveSixes;
         this.ruleEngine = ruleEngine;
         this.moveExecutor = moveExecutor;
         this.eventBus = eventBus;
@@ -80,7 +77,7 @@ public class TurnManager {
         eventBus.publish(new TripleSixEvent(player));
         for (Cell cell : Board.getInstance().getStandardPath()) {
             if (cell.hasBlock() && cell.getPieces().get(0).getColour() == player.getColour()) {
-                List<com.ludot.model.Piece> block = new java.util.ArrayList<>(cell.getPieces());
+                List<Piece> block = new ArrayList<>(cell.getPieces());
                 ruleEngine.getBlockRule().forceBreakBlock(block);
                 eventBus.publish(new BlockBreakEvent(block, cell));
                 break; // a player can only have one block at a time

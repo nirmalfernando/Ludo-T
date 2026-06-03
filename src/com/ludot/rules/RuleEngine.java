@@ -132,7 +132,7 @@ public class RuleEngine {
     }
 
     // home-straight entry only — mystery is handled separately by MysteryManager + applyMysteryEffect
-    public RuleResult applyLandingEffects(Piece piece, Cell cell) {
+    public void applyLandingEffects(Piece piece) {
         if (homeEntryRule.canEnterHomeStraight(piece)) {
             List<Cell> hs = Board.getInstance().getHomeStraight(piece.getColour());
             Cell first = hs.get(0);
@@ -141,7 +141,6 @@ public class RuleEngine {
             piece.setPosition(first);
             piece.setState(new InHomeStraightState());
         }
-        return RuleResult.valid();
     }
 
     // called by MoveExecutor after MysteryManager resolves the destination

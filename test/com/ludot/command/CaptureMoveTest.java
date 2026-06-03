@@ -17,14 +17,17 @@ class CaptureMoveTest {
         attackerCell.addPiece(attacker); attacker.setPosition(attackerCell);
         targetCell.addPiece(victim);     victim.setPosition(targetCell);
     }
-    @Test @DisplayName("execute sends victim to base") void victimSentToBase() {
+    @Test @DisplayName("execute moves attacker to target cell") void attackerMovesToTarget() {
         new CaptureMove(attacker, victim, targetCell, 1).execute();
-        assertNull(victim.getPosition());
-        assertInstanceOf(AtBaseState.class, victim.getState());
+        assertEquals(targetCell, attacker.getPosition());
+        assertFalse(attackerCell.getPieces().contains(attacker));
     }
-    @Test @DisplayName("execute increments attacker capture count") void incrementsCaptureCount() {
+    @Test @DisplayName("victim reset is delegated — victim still on cell until captureRule.capture() is called")
+    void victimResetDelegatedToCaptureRule() {
+        // CaptureMove only moves the attacker; victim reset is MoveExecutor's responsibility
         new CaptureMove(attacker, victim, targetCell, 1).execute();
-        assertEquals(1, attacker.getCaptureCount());
+        // victim is still at targetCell until captureRule.capture() is explicitly called
+        assertNotNull(victim.getPosition());
     }
     @Test @DisplayName("result grants bonus roll") void resultGrantsBonusRoll() {
         assertTrue(new CaptureMove(attacker, victim, targetCell, 1).execute().grantsBonusRoll());

@@ -23,12 +23,8 @@ public class CaptureMove implements Move {
         attacker.getPosition().removePiece(attacker);
         targetCell.addPiece(attacker);
         attacker.setPosition(targetCell);
-
-        // send victim back to base and record the capture
-        victim.sendToBase();
-        attacker.incrementCaptureCount();
-
-        // grantsBonusRoll = true triggers T-2 bonus roll in TurnManager
+        // victim reset (sendToBase, resetInfo, captureCount) handled by captureRule.capture()
+        // in MoveExecutor so the correct LudoT vs classic rule is applied
         return new MoveResult(true, victim, false, true, describe());
     }
 

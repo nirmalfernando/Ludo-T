@@ -18,4 +18,12 @@ class BaseCaptureRuleTest {
     @Test @DisplayName("capture returns true") void captureReturnsTrue() {
         assertTrue(new BaseCaptureRule().capture(new Piece("R1", Colour.RED), new Piece("B1", Colour.BLUE)));
     }
+    @Test @DisplayName("capture increments attacker capture count") void incrementsAttackerCount() {
+        Piece attacker = new Piece("R1", Colour.RED);
+        Piece victim   = new Piece("B1", Colour.BLUE);
+        Cell c = new Cell(5, CellType.STANDARD, null);
+        c.addPiece(victim); victim.setPosition(c);
+        new BaseCaptureRule().capture(attacker, victim);
+        assertEquals(1, attacker.getCaptureCount());
+    }
 }

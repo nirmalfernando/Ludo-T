@@ -7,6 +7,7 @@ import com.ludot.command.MoveFromBase;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.command.MoveResult;
 import com.ludot.command.SkipMove;
+import com.ludot.effects.EnergisedEffect;
 import com.ludot.effects.TeleportDestination;
 import com.ludot.events.block.BlockFormEvent;
 import com.ludot.events.block.BlockMoveEvent;
@@ -103,7 +104,9 @@ public class MoveExecutor {
         Piece attacker = cm.getAttacker();
         Cell from = attacker.getPosition();
         Cell targetCell = cm.getTargetCell();
-        Piece victim = cm.execute().getCaptured();
+        MoveResult cmdResult = cm.execute(); // moves attacker to target cell
+        Piece victim = cmdResult.getCaptured();
+        ruleEngine.getCaptureRule().capture(attacker, victim); // victim reset + T-9 + capture count
         Player victimPlayer = findPlayer(victim.getColour());
         eventBus.publish(new CaptureEvent(attacker, victim, targetCell, victimPlayer));
         eventBus.publish(new MoveEvent(player, attacker, from, attacker.getPosition(), cm.getSteps()));
@@ -144,28 +147,26 @@ public class MoveExecutor {
             String effectDesc = buildEffectDescription(piece, teleportDest, dirBefore);
             eventBus.publish(new MysteryTeleportEvent(piece, player, dest, newPos, destName, effectDesc));
         }
-        ruleEngine.applyLandingEffects(piece, piece.getPosition() != null ? piece.getPosition() : dest);
+        ruleEngine.applyLandingEffects(piece);
     }
 
     private String buildEffectDescription(Piece piece, TeleportDestination dest, Direction dirBefore) {
         if (dest == null) return "";
-        String name = cap(piece.getColour()) + " piece " + piece.getName();
+        String colour = piece.getColour().name();
+        String capColour = Character.toUpperCase(colour.charAt(0)) + colour.substring(1).toLowerCase();
+        String name = capColour + " piece " + piece.getName();
         return switch (dest) {
-            case ALPHA -> {
-                String effectClass = piece.getActiveEffect().getClass().getSimpleName();
-                yield effectClass.contains("Energis")
+            case ALPHA -> piece.getActiveEffect() instanceof EnergisedEffect
                     ? name + " feels energized, and movement speed doubles."
                     : name + " feels sick, and movement speed halves.";
-            }
             case GAMMA -> {
                 String oldDir = dirBefore == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
-                Direction newDir = piece.getDirection();
-                String newDirStr = newDir == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
+                String newDirStr = piece.getDirection() == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
                 yield name + ", which was moving " + oldDir + ", has changed to moving " + newDirStr + ".";
             }
-            case BETA         -> name + " is locked in the briefing room for 4 rounds.";
-            case BASE         -> name + " has been sent back to base.";
-            case START_CELL   -> name + " teleported to their start cell.";
+            case BETA          -> name + " attends briefing and cannot move for four rounds.";
+            case BASE          -> name + " has been sent back to base.";
+            case START_CELL    -> name + " teleported to their start cell.";
             case APPROACH_CELL -> name + " teleported to their approach cell.";
         };
     }
@@ -176,15 +177,4 @@ public class MoveExecutor {
         }
         return null;
     }
-
-    private String cap(Colour colour) {
-        String s = colour.name();
-        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
-    }
-
-    // legacy stubs retained for compatibility
-    public void moveFromBase(Piece piece) {}
-    public void moveOnBoard(Piece piece, int steps) {}
-    public void handleCapture(Piece attacker, Piece victim) {}
-    public void handleBlockMovement(List<Piece> block, int steps) {}
 }

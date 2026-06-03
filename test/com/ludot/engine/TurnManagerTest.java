@@ -6,7 +6,6 @@ import com.ludot.factory.*;
 import com.ludot.model.*;
 import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +28,7 @@ class TurnManagerTest {
         MysteryManager mm = new MysteryManager(random, Board.getInstance());
         MoveExecutor me = new MoveExecutor(Board.getInstance(), rules, mm, bus);
         players = PlayerFactory.createAll();
-        tm = new TurnManager(new HashMap<>(), rules, me, bus, random, players);
+        tm = new TurnManager(rules, me, bus, random, players);
     }
     @AfterEach void tearDown() { Board.resetInstance(); }
     @Test @DisplayName("executeTurn publishes DiceRollEvent") void publishesDiceRoll() {
