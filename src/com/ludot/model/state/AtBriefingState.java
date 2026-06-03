@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
@@ -17,13 +18,13 @@ public class AtBriefingState implements PieceState {
 
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
-        if (roll == 3) {
+        if (roll == GameConstants.BRIEFING_ESCAPE_ROLL) {
             consecutiveThrees++;
         } else {
-            consecutiveThrees = 0; // streak breaks on any non-3 roll
+            consecutiveThrees = 0; // streak breaks on any non-escape roll
         }
 
-        if (consecutiveThrees == 3) {
+        if (consecutiveThrees == GameConstants.BRIEFING_ESCAPE_COUNT) {
             piece.sendToBase(); // sendToBase transitions state to AtBaseState internally
             return List.of();
         }

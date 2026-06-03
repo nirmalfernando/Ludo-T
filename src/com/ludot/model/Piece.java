@@ -1,5 +1,6 @@
 package com.ludot.model;
 
+import com.ludot.GameConstants;
 import com.ludot.effects.Effect;
 import com.ludot.effects.NoEffect;
 import com.ludot.model.state.PieceState;
@@ -31,9 +32,9 @@ public class Piece {
         int currentId = position.getId();
         int newId;
         if (direction == Direction.CLOCKWISE) {
-            newId = (currentId + steps) % 52;
+            newId = (currentId + steps) % GameConstants.BOARD_SIZE;
         } else {
-            newId = ((currentId - steps) % 52 + 52) % 52;
+            newId = ((currentId - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
         }
         Cell newCell = board.getCell(newId);
         position.removePiece(this);

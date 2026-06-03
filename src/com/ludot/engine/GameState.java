@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.GameConstants;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Colour;
@@ -36,8 +37,8 @@ public class GameState {
         if (piece.getPosition() == null || piece.getDirection() == null) return false;
         int id = piece.getPosition().getId();
         int newId = piece.getDirection() == Direction.CLOCKWISE
-                ? (id + steps) % 52
-                : ((id - steps) % 52 + 52) % 52;
+                ? (id + steps) % GameConstants.BOARD_SIZE
+                : ((id - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
         Cell dest = board.getCell(newId);
         if (!dest.isOccupied() || dest.hasBlock()) return false;
         List<Piece> occ = dest.getPieces();

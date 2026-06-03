@@ -1,5 +1,6 @@
 package com.ludot.rules;
 
+import com.ludot.GameConstants;
 import com.ludot.command.BlockMove;
 import com.ludot.rules.mystery.EffectRule;
 import com.ludot.rules.mystery.MysteryRule;
@@ -125,8 +126,8 @@ public class RuleEngine {
     private Cell blockDestination(Cell source, Direction dir, int steps) {
         int id = source.getId();
         int newId = dir == Direction.CLOCKWISE
-                ? (id + steps) % 52
-                : ((id - steps) % 52 + 52) % 52;
+                ? (id + steps) % GameConstants.BOARD_SIZE
+                : ((id - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
         return Board.getInstance().getCell(newId);
     }
 

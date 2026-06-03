@@ -21,6 +21,7 @@ import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
 import com.ludot.events.mystery.MysteryTickEvent;
 import com.ludot.events.mystery.MysteryTeleportEvent;
+import com.ludot.GameConstants;
 import com.ludot.model.Cell;
 import com.ludot.model.CellType;
 import com.ludot.model.Colour;
@@ -110,7 +111,7 @@ public class OutputFormatter {
 
     public String format(MysteryTickEvent e) {
         return "The mystery cell is at " + e.cell().getId()
-            + " and will be at that location for the next " + e.roundsLeft() + " values.";
+            + " and will be at that location for the next " + e.roundsLeft() + " rounds.";
     }
 
     public String format(MysteryExpireEvent e) {
@@ -237,7 +238,7 @@ public class OutputFormatter {
         long total = player.getPieces().size();
         long onBase = total - onBoard;
         return cap(player.getColour()) + " player now has " + onBoard + "/" + total
-            + " on pieces on the board and " + onBase + "/" + total + " pieces on the base.";
+            + " pieces on the board and " + onBase + "/" + total + " pieces on the base.";
     }
 
     // "A", "A and B", "A, B, and C" etc.
@@ -262,7 +263,7 @@ public class OutputFormatter {
             return cap(cell.getColour()) + " Home";
         }
         if (cell.getCellType() == CellType.HOME_STRAIGHT) {
-            int slot = (cell.getId() - 52) % 5 + 1; // 1..4 counting from entry
+            int slot = (cell.getId() - GameConstants.BOARD_SIZE) % GameConstants.HOME_STRAIGHT_LENGTH + 1;
             return cap(cell.getColour()) + " Home Str. " + slot;
         }
         return String.valueOf(cell.getId());

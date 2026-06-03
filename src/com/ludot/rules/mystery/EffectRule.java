@@ -1,5 +1,6 @@
 package com.ludot.rules.mystery;
 
+import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;
 import com.ludot.effects.EnergisedEffect;
 import com.ludot.effects.SickEffect;
@@ -11,7 +12,7 @@ import java.util.List;
 // T-12/13/14: applies Alpha/Beta/Gamma mystery cell effects and ticks active effects each round.
 public class EffectRule {
 
-    private static final int EFFECT_DURATION = 4;
+    private static final int EFFECT_DURATION = GameConstants.EFFECT_DURATION;
     private final RandomProvider random;
 
     public EffectRule(RandomProvider random) {

@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.GameConstants;
 import com.ludot.command.Move;
 import com.ludot.command.MoveResult;
 import com.ludot.command.SkipMove;
@@ -49,7 +50,7 @@ public class TurnManager {
         // BaseDiceRule tracks consecutive sixes; returns false on triple-six, true on bonus
         boolean bonusRoll = ruleEngine.getDiceRule().handleRoll(player, roll);
 
-        if (roll == 6 && !bonusRoll) {
+        if (roll == GameConstants.LEAVE_BASE_ROLL && !bonusRoll) {
             handleTripleSix(player);
             return;
         }

@@ -1,5 +1,6 @@
 package com.ludot.factory;
 
+import com.ludot.GameConstants;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.CellType;
@@ -30,18 +31,18 @@ public class CellFactory {
         return new Cell(id, CellType.HOME_STRAIGHT, colour);
     }
 
-    // builds the full 52-cell standard path + 5-cell home straights for all colours
+    // builds the full BOARD_SIZE-cell standard path + HOME_STRAIGHT_LENGTH-cell home straights for all colours
     public static void initializeBoard(Board board) {
-        List<Cell> cells = new ArrayList<>(52);
-        for (int id = 0; id < 52; id++) {
+        List<Cell> cells = new ArrayList<>(GameConstants.BOARD_SIZE);
+        for (int id = 0; id < GameConstants.BOARD_SIZE; id++) {
             cells.add(buildStandardPathCell(id));
         }
 
         Map<Colour, List<Cell>> homeStraights = new EnumMap<>(Colour.class);
-        int hsId = 52;
+        int hsId = GameConstants.BOARD_SIZE;
         for (Colour c : Colour.values()) {
-            List<Cell> hs = new ArrayList<>(5);
-            for (int j = 0; j < 4; j++) {
+            List<Cell> hs = new ArrayList<>(GameConstants.HOME_STRAIGHT_LENGTH);
+            for (int j = 0; j < GameConstants.HOME_STRAIGHT_LENGTH - 1; j++) {
                 hs.add(createHomeStraightCell(hsId++, c));
             }
             hs.add(new Cell(hsId++, CellType.HOME, c));

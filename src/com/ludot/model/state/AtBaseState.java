@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
@@ -9,7 +10,7 @@ public class AtBaseState implements PieceState {
 
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
-        if (roll == 6) {
+        if (roll == GameConstants.LEAVE_BASE_ROLL) {
             return List.of(new MoveFromBase(piece));
         }
         return List.of();

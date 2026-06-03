@@ -1,5 +1,6 @@
 package com.ludot.rules.move;
 
+import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -35,8 +36,8 @@ public abstract class BaseMoveValidator {
         // standard 52-cell circular path
         int id = piece.getPosition().getId();
         int newId = piece.getDirection() == Direction.CLOCKWISE
-                ? (id + steps) % 52
-                : ((id - steps) % 52 + 52) % 52;
+                ? (id + steps) % GameConstants.BOARD_SIZE
+                : ((id - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
         return Board.getInstance().getCell(newId);
     }
 

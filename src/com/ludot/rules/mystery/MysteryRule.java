@@ -1,5 +1,6 @@
 package com.ludot.rules.mystery;
 
+import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;
 import com.ludot.effects.TeleportDestination;
 import com.ludot.model.Board;
@@ -27,7 +28,7 @@ public class MysteryRule {
     public Cell getRandomSpawnCell(Board board) {
         int cellId;
         do {
-            cellId = random.getRandomCell(52);
+            cellId = random.getRandomCell(GameConstants.BOARD_SIZE);
         } while (previousLocations.contains(cellId));
         previousLocations.clear();
         previousLocations.add(cellId);

@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;
 import com.ludot.effects.TeleportDestination;
 import com.ludot.model.Board;
@@ -11,7 +12,7 @@ import java.util.Set;
 // Manages the mystery-cell lifecycle: spawning, landing resolution, and expiry tracking (T-10/11/15).
 public class MysteryManager {
 
-    private static final int LIFESPAN = 3; // T-15: mystery cell expires after 3 rounds
+    private static final int LIFESPAN = GameConstants.MYSTERY_LIFESPAN; // T-10: mystery cell active for 4 rounds
 
     private Cell currentCell;
     private int roundsActive;
@@ -32,7 +33,7 @@ public class MysteryManager {
         if (currentCell != null || roundCount <= 2) return;
         int cellId;
         do {
-            cellId = random.getRandomCell(52);
+            cellId = random.getRandomCell(GameConstants.BOARD_SIZE);
         } while (previousLocations.contains(cellId));
         previousLocations.clear();
         previousLocations.add(cellId);

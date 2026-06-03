@@ -1,5 +1,6 @@
 package com.ludot.rules.dice;
 
+import com.ludot.GameConstants;
 import com.ludot.model.Colour;
 import com.ludot.model.Player;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ public class BaseDiceRule {
 
     // returns true if a bonus roll is granted (rolled 6 but not triple-six)
     public boolean handleRoll(Player player, int roll) {
-        if (roll == 6) {
+        if (roll == GameConstants.LEAVE_BASE_ROLL) {
             int count = consecutiveSixes.getOrDefault(player.getColour(), 0) + 1;
             consecutiveSixes.put(player.getColour(), count);
             if (isTripleSix(player, roll)) {
@@ -30,6 +31,6 @@ public class BaseDiceRule {
     }
 
     public boolean isTripleSix(Player player, int roll) {
-        return consecutiveSixes.getOrDefault(player.getColour(), 0) >= 3;
+        return consecutiveSixes.getOrDefault(player.getColour(), 0) >= GameConstants.CONSECUTIVE_SIXES_LIMIT;
     }
 }

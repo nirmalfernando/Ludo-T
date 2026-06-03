@@ -27,11 +27,13 @@ class MysteryManagerTest {
         assertTrue(m.isActive());
         assertTrue(m.getCurrentCell().isMysteryCell());
     }
-    @Test @DisplayName("tick expires cell after 3 rounds") void expiresAfterThreeRounds() {
+    @Test @DisplayName("tick expires cell after 4 rounds (MYSTERY_LIFESPAN)") void expiresAfterFourRounds() {
         MysteryManager m = new MysteryManager(new FixedRandomProvider().addCells(5), board);
         m.spawnMystery(3);
         m.tick(); m.tick(); m.tick();
-        assertFalse(m.isActive());
+        assertTrue(m.isActive(), "Cell should still be active after 3 ticks");
+        m.tick();
+        assertFalse(m.isActive(), "Cell should expire after 4 ticks");
     }
     @Test @DisplayName("handleLanding clears cell and returns destination") void handlesLanding() {
         FixedRandomProvider fp = new FixedRandomProvider().addCells(5).addMysteryEffects(1);
