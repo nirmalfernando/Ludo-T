@@ -11,14 +11,14 @@ class EventBusTest {
         EventBus bus = new EventBus();
         List<GameEvent> received = new ArrayList<>();
         bus.subscribe(received::add);
-        bus.publish(new RoundEndEvent(1));
+        bus.publish(new RoundEndEvent(1, List.of()));
         assertEquals(1, received.size());
     }
     @Test @DisplayName("publish calls onEvent on all subscribers") void publishCallsAll() {
         EventBus bus = new EventBus();
         int[] count = {0};
         bus.subscribe(e -> count[0]++);
-        bus.publish(new RoundEndEvent(1));
+        bus.publish(new RoundEndEvent(1, List.of()));
         assertEquals(1, count[0]);
     }
     @Test @DisplayName("multiple listeners each receive the event") void multipleListeners() {
@@ -26,7 +26,7 @@ class EventBusTest {
         int[] count = {0};
         bus.subscribe(e -> count[0]++);
         bus.subscribe(e -> count[0]++);
-        bus.publish(new RoundEndEvent(1));
+        bus.publish(new RoundEndEvent(1, List.of()));
         assertEquals(2, count[0]);
     }
 }

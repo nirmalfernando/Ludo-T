@@ -13,9 +13,9 @@ class PlayerFactoryTest {
         for (Player p : PlayerFactory.createAll())
             assertEquals(4, p.getPieces().size());
     }
-    @Test @DisplayName("piece names follow ColourN pattern") void pieceNamingPattern() {
+    @Test @DisplayName("piece names follow initial+N pattern") void pieceNamingPattern() {
         Player red = PlayerFactory.createPlayer(Colour.RED);
-        assertEquals("RED1", red.getPieces().get(0).getName());
-        assertEquals("RED4", red.getPieces().get(3).getName());
+        assertEquals("R1", red.getPieces().get(0).getName());
+        assertEquals("R4", red.getPieces().get(3).getName());
     }
 }

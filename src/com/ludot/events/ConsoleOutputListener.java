@@ -17,6 +17,7 @@ import com.ludot.events.move.MoveEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
+import com.ludot.events.mystery.MysteryTickEvent;
 import com.ludot.events.mystery.MysteryTeleportEvent;
 
 // Observer + Visitor: receives every event via EventBus and dispatches via accept() — no instanceof.
@@ -54,6 +55,7 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
 
     // mystery cell
     @Override public void visit(MysterySpawnEvent e)   { print(formatter.format(e)); }
+    @Override public void visit(MysteryTickEvent e)    { print(formatter.format(e)); }
     @Override public void visit(MysteryExpireEvent e)  { print(formatter.format(e)); }
     @Override public void visit(MysteryTeleportEvent e){ print(formatter.format(e)); }
 
@@ -66,6 +68,8 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
     @Override public void visit(WinEvent e)      { print(formatter.format(e)); }
 
     private void print(String line) {
-        System.out.println(line);
+        if (line != null && !line.isBlank()) {
+            System.out.println(line);
+        }
     }
 }

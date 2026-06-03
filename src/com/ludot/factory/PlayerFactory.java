@@ -41,7 +41,7 @@ public class PlayerFactory {
 
     private static List<Piece> createPieces(Colour colour) {
         List<Piece> pieces = new ArrayList<>(PIECES_PER_PLAYER);
-        String prefix = colour.name();
+        String prefix = String.valueOf(colour.name().charAt(0));
         for (int i = 1; i <= PIECES_PER_PLAYER; i++) {
             pieces.add(new Piece(prefix + i, colour));
         }

@@ -21,6 +21,8 @@ import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.model.state.AtHomeState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
+import com.ludot.model.Colour;
+import com.ludot.model.Direction;
 import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
 import com.ludot.model.state.PieceState;
@@ -35,48 +37,61 @@ public class MoveExecutor {
     private final RuleEngine ruleEngine;
     private final MysteryManager mysteryManager;
     private final EventBus eventBus;
+    private final List<Player> players;
 
+    // test-friendly constructor — no player lookup needed for unit tests
     public MoveExecutor(Board board, RuleEngine ruleEngine,
                         MysteryManager mysteryManager, EventBus eventBus) {
+        this(board, ruleEngine, mysteryManager, eventBus, List.of());
+    }
+
+    public MoveExecutor(Board board, RuleEngine ruleEngine,
+                        MysteryManager mysteryManager, EventBus eventBus, List<Player> players) {
         this.board = board;
         this.ruleEngine = ruleEngine;
         this.mysteryManager = mysteryManager;
         this.eventBus = eventBus;
+        this.players = players;
     }
 
+    // backward-compatible — no player context, board-count lines are skipped
     public MoveResult execute(Move move) {
-        if (move instanceof MoveFromBase mfb)  return executeFromBase(mfb);
-        if (move instanceof CaptureMove cm)    return executeCapture(cm);
+        return execute(move, null);
+    }
+
+    public MoveResult execute(Move move, Player player) {
+        if (move instanceof MoveFromBase mfb)  return executeFromBase(mfb, player);
+        if (move instanceof CaptureMove cm)    return executeCapture(cm, player);
         if (move instanceof BlockMove bm)      return executeBlock(bm);
-        if (move instanceof MoveOnBoard mob)   return executeOnBoard(mob);
+        if (move instanceof MoveOnBoard mob)   return executeOnBoard(mob, player);
         if (move instanceof SkipMove)          return executeSkip(move);
         return move.execute();
     }
 
-    private MoveResult executeFromBase(MoveFromBase mfb) {
+    private MoveResult executeFromBase(MoveFromBase mfb, Player player) {
         Piece piece = mfb.getPiece();
         eventBus.publish(new CoinTossEvent(piece, piece.getDirection()));
         MoveResult result = mfb.execute();
         Cell dest = piece.getPosition();
-        eventBus.publish(new MoveEvent(piece, null, dest, 0));
+        eventBus.publish(new MoveEvent(player, piece, null, dest, 0));
         checkBlockForm(piece, dest);
-        applyLanding(piece, dest);
+        applyLanding(piece, dest, player);
         return result;
     }
 
-    private MoveResult executeOnBoard(MoveOnBoard mob) {
+    private MoveResult executeOnBoard(MoveOnBoard mob, Player player) {
         Piece piece = mob.getPiece();
         Cell from = piece.getPosition();
         PieceState stateBefore = piece.getState();
         MoveResult result = mob.execute();
         Cell dest = piece.getPosition();
-        eventBus.publish(new MoveEvent(piece, from, dest, mob.getSteps()));
+        eventBus.publish(new MoveEvent(player, piece, from, dest, mob.getSteps()));
         if (piece.getState() instanceof AtHomeState) {
             eventBus.publish(new HomeReachEvent(piece));
             return result;
         }
         checkBlockForm(piece, dest);
-        applyLanding(piece, dest);
+        applyLanding(piece, dest, player);
         if (!(stateBefore instanceof InHomeStraightState)
                 && piece.getState() instanceof InHomeStraightState) {
             eventBus.publish(new HomeEntryEvent(piece));
@@ -84,17 +99,17 @@ public class MoveExecutor {
         return result;
     }
 
-    private MoveResult executeCapture(CaptureMove cm) {
+    private MoveResult executeCapture(CaptureMove cm, Player player) {
         Piece attacker = cm.getAttacker();
         Cell from = attacker.getPosition();
         Cell targetCell = cm.getTargetCell();
-        Piece victim = cm.execute().getCaptured(); // execute moves attacker and sends victim to base
-        eventBus.publish(new CaptureEvent(attacker, victim, targetCell));
-        eventBus.publish(new MoveEvent(attacker, from, attacker.getPosition(), cm.getSteps()));
-        // re-construct result with grantsBonusRoll=true
+        Piece victim = cm.execute().getCaptured();
+        Player victimPlayer = findPlayer(victim.getColour());
+        eventBus.publish(new CaptureEvent(attacker, victim, targetCell, victimPlayer));
+        eventBus.publish(new MoveEvent(player, attacker, from, attacker.getPosition(), cm.getSteps()));
         MoveResult result = new MoveResult(true, victim, false, true,
                 attacker.getName() + " captures " + victim.getName());
-        applyLanding(attacker, attacker.getPosition());
+        applyLanding(attacker, attacker.getPosition(), player);
         return result;
     }
 
@@ -108,12 +123,9 @@ public class MoveExecutor {
     }
 
     private MoveResult executeSkip(Move skip) {
-        MoveResult result = skip.execute();
-        // SkipTurnEvent is published by TurnManager which has the player reference
-        return result;
+        return skip.execute();
     }
 
-    // if the piece's destination now holds a block (just formed), publish BlockFormEvent
     private void checkBlockForm(Piece piece, Cell dest) {
         if (dest != null && dest.hasBlock() && dest.getPieces().contains(piece)
                 && dest.getBlockSize() >= 2) {
@@ -121,18 +133,53 @@ public class MoveExecutor {
         }
     }
 
-    // applies mystery effect if cell is/was mystery, then home-straight entry
-    private void applyLanding(Piece piece, Cell dest) {
+    private void applyLanding(Piece piece, Cell dest, Player player) {
         if (dest == null) return;
         if (dest.isMysteryCell()) {
-            Cell mysteryCell = dest;
+            Direction dirBefore = piece.getDirection();
             TeleportDestination teleportDest = mysteryManager.handleLanding(piece);
             ruleEngine.applyMysteryEffect(piece, teleportDest);
             Cell newPos = piece.getPosition();
-            String effectName = teleportDest != null ? teleportDest.name() : "NONE";
-            eventBus.publish(new MysteryTeleportEvent(piece, mysteryCell, newPos, effectName));
+            String destName = teleportDest != null ? teleportDest.name() : "NONE";
+            String effectDesc = buildEffectDescription(piece, teleportDest, dirBefore);
+            eventBus.publish(new MysteryTeleportEvent(piece, player, dest, newPos, destName, effectDesc));
         }
         ruleEngine.applyLandingEffects(piece, piece.getPosition() != null ? piece.getPosition() : dest);
+    }
+
+    private String buildEffectDescription(Piece piece, TeleportDestination dest, Direction dirBefore) {
+        if (dest == null) return "";
+        String name = cap(piece.getColour()) + " piece " + piece.getName();
+        return switch (dest) {
+            case ALPHA -> {
+                String effectClass = piece.getActiveEffect().getClass().getSimpleName();
+                yield effectClass.contains("Energis")
+                    ? name + " feels energized, and movement speed doubles."
+                    : name + " feels sick, and movement speed halves.";
+            }
+            case GAMMA -> {
+                String oldDir = dirBefore == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
+                Direction newDir = piece.getDirection();
+                String newDirStr = newDir == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
+                yield name + ", which was moving " + oldDir + ", has changed to moving " + newDirStr + ".";
+            }
+            case BETA         -> name + " is locked in the briefing room for 4 rounds.";
+            case BASE         -> name + " has been sent back to base.";
+            case START_CELL   -> name + " teleported to their start cell.";
+            case APPROACH_CELL -> name + " teleported to their approach cell.";
+        };
+    }
+
+    private Player findPlayer(Colour colour) {
+        for (Player p : players) {
+            if (p.getColour() == colour) return p;
+        }
+        return null;
+    }
+
+    private String cap(Colour colour) {
+        String s = colour.name();
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
     }
 
     // legacy stubs retained for compatibility

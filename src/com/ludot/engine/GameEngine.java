@@ -4,6 +4,7 @@ import com.ludot.dice.RandomProvider;
 import com.ludot.events.EventBus;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
+import com.ludot.events.mystery.MysteryTickEvent;
 import com.ludot.events.flow.RoundEndEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.model.Board;
@@ -12,6 +13,7 @@ import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.List;
 
 // Mediator orchestrating the full game loop: turn sequencing, win detection, and event publishing.
@@ -83,18 +85,22 @@ public class GameEngine {
         Cell cellBeforeSpawn = mysteryManager.getCurrentCell();
         mysteryManager.spawnMystery(round);
         if (mysteryManager.isActive() && cellBeforeSpawn == null) {
-            eventBus.publish(new MysterySpawnEvent(mysteryManager.getCurrentCell(), round));
+            eventBus.publish(new MysterySpawnEvent(mysteryManager.getCurrentCell(),
+                    mysteryManager.getLifespan()));
         }
         Cell cellBeforeTick = mysteryManager.getCurrentCell();
         mysteryManager.tick();
         if (cellBeforeTick != null && !mysteryManager.isActive()) {
             eventBus.publish(new MysteryExpireEvent(cellBeforeTick));
+        } else if (mysteryManager.isActive()) {
+            eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(),
+                    mysteryManager.getRoundsLeft()));
         }
 
         // tick active piece effects (Energised/Sick countdown)
         ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
 
-        eventBus.publish(new RoundEndEvent(round));
+        eventBus.publish(new RoundEndEvent(round, List.copyOf(players)));
     }
 
     public boolean checkWinCondition() {

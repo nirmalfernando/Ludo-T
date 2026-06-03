@@ -47,7 +47,7 @@ public class GameBuilder {
         RuleEngine ruleEngine = RuleEngineFactory.createLudoTRuleEngine(random);
 
         MysteryManager mysteryManager = new MysteryManager(random, board);
-        MoveExecutor moveExecutor = new MoveExecutor(board, ruleEngine, mysteryManager, eventBus);
+        MoveExecutor moveExecutor = new MoveExecutor(board, ruleEngine, mysteryManager, eventBus, players);
 
         Map<Colour, Integer> sixTracker = new HashMap<>();
         TurnManager turnManager = new TurnManager(sixTracker, ruleEngine,

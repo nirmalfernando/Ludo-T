@@ -74,4 +74,6 @@ public class MysteryManager {
     }
 
     public Cell getCurrentCell() { return currentCell; }
+    public int getRoundsLeft() { return Math.max(0, LIFESPAN - roundsActive); }
+    public int getLifespan() { return LIFESPAN; }
 }

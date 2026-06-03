@@ -62,7 +62,7 @@ public class TurnManager {
             eventBus.publish(new SkipTurnEvent(player));
         }
 
-        MoveResult result = moveExecutor.execute(chosen);
+        MoveResult result = moveExecutor.execute(chosen, player);
 
         // T-2: capture grants a bonus roll; rolling 6 (non-triple) also grants one
         if (result.grantsBonusRoll() || bonusRoll) {

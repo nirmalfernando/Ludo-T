@@ -17,6 +17,7 @@ import com.ludot.events.move.MoveEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
+import com.ludot.events.mystery.MysteryTickEvent;
 import com.ludot.events.mystery.MysteryTeleportEvent;
 
 // Visitor pattern — one visit() per event type; implementors handle each event with full type safety.
@@ -43,6 +44,7 @@ public interface EventVisitor {
 
     // mystery cell
     void visit(MysterySpawnEvent e);
+    void visit(MysteryTickEvent e);
     void visit(MysteryExpireEvent e);
     void visit(MysteryTeleportEvent e);
 
