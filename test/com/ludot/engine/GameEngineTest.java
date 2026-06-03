@@ -7,7 +7,6 @@ import com.ludot.events.GameEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.flow.WinEvent;
-import com.ludot.model.Colour;
 import com.ludot.factory.GameBuilder;
 import com.ludot.model.Board;
 import com.ludot.model.Colour;
@@ -266,11 +265,21 @@ class GameEngineTest {
 
     // ── game completion ──────────────────────────────────────────────────────
 
-    @Test @DisplayName("run completes without exception and publishes WinEvent")
+    @Test @DisplayName("run completes, publishes WinEvent with a valid winner and positive round count")
     void runPublishesWinEvent() {
         Board.resetInstance();
         GameEngine engine = new GameBuilder().withSeed(42).withEventBus(bus).withPlayers(4).build();
         assertDoesNotThrow(engine::run);
-        assertTrue(events.stream().anyMatch(e -> e instanceof WinEvent));
+
+        WinEvent win = events.stream()
+                .filter(e -> e instanceof WinEvent)
+                .map(e -> (WinEvent) e)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(win, "A WinEvent must be published when the game ends");
+        assertNotNull(win.winner(), "WinEvent must carry a non-null winner");
+        assertTrue(win.totalRounds() > 0, "Game must last at least one round");
+        assertTrue(engine.checkWinCondition(), "Win condition must be true after run() completes");
     }
 }

@@ -23,8 +23,9 @@ class BaseDiceRuleTest {
     @Test @DisplayName("third consecutive 6 is triple-six — no bonus") void thirdSixIsTriple() {
         rule.handleRoll(player, 6);
         rule.handleRoll(player, 6);
-        assertFalse(rule.handleRoll(player, 6)); // triple-six: return false
-        assertTrue(rule.isTripleSix(player, 6) || !rule.handleRoll(player, 6) || true);
+        assertFalse(rule.handleRoll(player, 6)); // triple-six: no bonus roll
+        // counter resets after triple-six — the very next 6 should grant a bonus again
+        assertTrue(rule.handleRoll(player, 6));
     }
     @Test @DisplayName("non-6 resets consecutive count") void countResetsOnNonSix() {
         rule.handleRoll(player, 6);
