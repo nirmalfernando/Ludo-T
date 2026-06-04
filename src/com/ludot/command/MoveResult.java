@@ -1,8 +1,7 @@
-package com.ludot.command;
+﻿package com.ludot.command;
 
 import com.ludot.model.Piece;
 
-// Immutable value object carrying the outcome of a move execution.
 public class MoveResult {
 
     private final boolean success;
@@ -11,6 +10,7 @@ public class MoveResult {
     private final boolean grantsBonusRoll;  // T-2: true after a capture
     private final String message;
 
+    
     public MoveResult(boolean success, Piece captured, boolean teleported,
                       boolean grantsBonusRoll, String message) {
         this.success = success;
@@ -20,10 +20,21 @@ public class MoveResult {
         this.message = message;
     }
 
+    
     public boolean isSuccess() { return success; }
+
+    
     public Piece getCaptured() { return captured; }
+
+    
     public boolean isTeleported() { return teleported; }
+
+    
     public boolean grantsBonusRoll() { return grantsBonusRoll; }
+
+    
     public String getMessage() { return message; }
+
+    
     public boolean hasCaptured() { return captured != null; }
 }

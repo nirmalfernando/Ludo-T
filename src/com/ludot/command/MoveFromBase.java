@@ -1,4 +1,4 @@
-package com.ludot.command;
+﻿package com.ludot.command;
 
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -9,6 +9,7 @@ public class MoveFromBase implements Move {
 
     private final Piece piece;
 
+    
     public MoveFromBase(Piece piece) {
         this.piece = piece;
     }
@@ -30,5 +31,6 @@ public class MoveFromBase implements Move {
         return piece.getName() + " moves out of base";
     }
 
+    
     public Piece getPiece() { return piece; }
 }

@@ -1,4 +1,4 @@
-package com.ludot.command;
+﻿package com.ludot.command;
 
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;
@@ -10,6 +10,7 @@ public class CaptureMove implements Move {
     private final Cell targetCell;
     private final int steps;
 
+    
     public CaptureMove(Piece attacker, Piece victim, Cell targetCell, int steps) {
         this.attacker = attacker;
         this.victim = victim;
@@ -33,7 +34,12 @@ public class CaptureMove implements Move {
         return attacker.getName() + " captures " + victim.getName();
     }
 
+    
     public Piece getAttacker() { return attacker; }
+
+    
     public Cell getTargetCell() { return targetCell; }
+
+    
     public int getSteps() { return steps; }
 }

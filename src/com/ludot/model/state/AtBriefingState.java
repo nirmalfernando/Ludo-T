@@ -1,16 +1,16 @@
-package com.ludot.model.state;
+﻿package com.ludot.model.state;
 import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
 import java.util.List;
 
-// T-13: piece is locked after landing on Beta mystery cell; triple-3 sends it back to base early
 public class AtBriefingState implements PieceState {
 
     private int roundsLeft;
     private int consecutiveThrees;
 
+    
     public AtBriefingState(int duration) {
         this.roundsLeft = duration;
         this.consecutiveThrees = 0;
@@ -48,6 +48,7 @@ public class AtBriefingState implements PieceState {
         return "AT_BRIEFING";
     }
 
+    
     public int getRoundsLeft() {
         return roundsLeft;
     }

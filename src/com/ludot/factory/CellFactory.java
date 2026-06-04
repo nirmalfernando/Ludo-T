@@ -54,16 +54,14 @@ public class CellFactory {
 
     // explicit colour mapping — avoids any dependence on Colour.values() enum order
     private static Cell buildStandardPathCell(int id) {
-        return switch (id) {
-            case  0 -> createStartCell(id,    Colour.YELLOW);
-            case 13 -> createStartCell(id,    Colour.BLUE);
-            case 26 -> createStartCell(id,    Colour.RED);
-            case 39 -> createStartCell(id,    Colour.GREEN);
-            case 50 -> createApproachCell(id, Colour.YELLOW);
-            case 11 -> createApproachCell(id, Colour.BLUE);
-            case 24 -> createApproachCell(id, Colour.RED);
-            case 37 -> createApproachCell(id, Colour.GREEN);
-            default -> createStandardCell(id);
-        };
+        if (id == GameConstants.YELLOW_START_CELL_ID)    return createStartCell(id,    Colour.YELLOW);
+        if (id == GameConstants.BLUE_START_CELL_ID)      return createStartCell(id,    Colour.BLUE);
+        if (id == GameConstants.RED_START_CELL_ID)       return createStartCell(id,    Colour.RED);
+        if (id == GameConstants.GREEN_START_CELL_ID)     return createStartCell(id,    Colour.GREEN);
+        if (id == GameConstants.YELLOW_APPROACH_CELL_ID) return createApproachCell(id, Colour.YELLOW);
+        if (id == GameConstants.BLUE_APPROACH_CELL_ID)   return createApproachCell(id, Colour.BLUE);
+        if (id == GameConstants.RED_APPROACH_CELL_ID)    return createApproachCell(id, Colour.RED);
+        if (id == GameConstants.GREEN_APPROACH_CELL_ID)  return createApproachCell(id, Colour.GREEN);
+        return createStandardCell(id);
     }
 }

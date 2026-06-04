@@ -1,6 +1,4 @@
-package com.ludot.effects;
-
-// Enumerates the possible teleport outcomes produced by a mystery cell landing (T-10/11).
+﻿package com.ludot.effects;
 
 public enum TeleportDestination {
     ALPHA,

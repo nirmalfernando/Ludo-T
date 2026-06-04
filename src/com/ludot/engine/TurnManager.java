@@ -20,7 +20,10 @@ import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
 import java.util.List;
 
-// Manages turn sequencing, bonus rolls, and triple-six handling per player (T-2, T-6).
+/**
+ * Manages per-player turn sequencing, bonus rolls, and triple-six penalty handling.
+ * Implements Rules T-2 (bonus roll on capture or six) and T-6 (triple-six forces block break).
+ */
 public class TurnManager {
 
     private int currentPlayerIndex;
@@ -32,6 +35,7 @@ public class TurnManager {
     private final RandomProvider random;
     private final List<Player> players;
 
+    /** Constructs a TurnManager with all rule and engine collaborators injected by the caller. */
     public TurnManager(RuleEngine ruleEngine, MoveExecutor moveExecutor, EventBus eventBus,
                        RandomProvider random, List<Player> players) {
         this.ruleEngine = ruleEngine;
@@ -43,6 +47,7 @@ public class TurnManager {
         this.roundCount = 0;
     }
 
+    /** Executes a full turn for the given player, including roll, move selection, and bonus-roll handling. */
     public void executeTurn(Player player) {
         executeTurn(player, 0);
     }
@@ -80,11 +85,12 @@ public class TurnManager {
         }
     }
 
+    /** Rolls the dice once and returns the result via the injected RandomProvider. */
     public int rollDice() {
         return random.rollDice();
     }
 
-    // T-6: triple-six forces a block break if the player has an active block
+    /** Handles a triple-six penalty by forcing a block break and moving each freed piece six cells (Rule T-6). */
     public void handleTripleSix(Player player) {
         eventBus.publish(new TripleSixEvent(player));
         for (Cell cell : Board.getInstance().getStandardPath()) {
@@ -103,19 +109,22 @@ public class TurnManager {
         }
     }
 
-    // T-2: a bonus roll is a full new turn for the same player
+    /** Grants the given player an additional full turn as a bonus roll reward (Rule T-2). */
     public void handleBonusRoll(Player player) {
         executeTurn(player);
     }
 
+    /** Advances the internal index and returns the next player in the rotation. */
     public Player nextPlayer() {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         return players.get(currentPlayerIndex);
     }
 
+    /** Increments the round counter after all players have taken their turns. */
     public void incrementRound() {
         roundCount++;
     }
 
+    /** Returns the total number of completed rounds so far. */
     public int getRoundCount() { return roundCount; }
 }

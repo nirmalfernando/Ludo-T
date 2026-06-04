@@ -1,4 +1,4 @@
-package com.ludot.model.state;
+﻿package com.ludot.model.state;
 import com.ludot.model.Piece;
 import com.ludot.model.Cell;
 import com.ludot.model.Board;
@@ -23,7 +23,7 @@ public class InHomeStraightState implements PieceState {
         return List.of(new MoveOnBoard(piece, steps));
     }
 
-    // State-owned transition: called by MoveOnBoard after placing the piece on its target cell.
+    
     public void transitionToHomeIfReached(Piece piece, int targetIndex, int lastIndex) {
         if (targetIndex == lastIndex) {
             piece.setState(new AtHomeState());

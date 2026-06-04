@@ -1,10 +1,10 @@
-package com.ludot.command;
-
-// Command interface representing an executable game move (Command pattern).
+﻿package com.ludot.command;
 
 public interface Move {
 
+    
     MoveResult execute();
 
+    
     String describe();
 }

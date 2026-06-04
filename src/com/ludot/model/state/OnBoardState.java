@@ -1,4 +1,4 @@
-package com.ludot.model.state;
+﻿package com.ludot.model.state;
 import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
@@ -13,7 +13,7 @@ public class OnBoardState implements PieceState {
         return List.of(new MoveOnBoard(piece, steps));
     }
 
-    // State-owned transition: called by RuleEngine after physically placing the piece in the home straight.
+    
     public void transitionToHomeStraight(Piece piece) {
         piece.setState(new InHomeStraightState());
     }

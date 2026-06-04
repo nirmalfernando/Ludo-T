@@ -1,4 +1,4 @@
-package com.ludot.rules;
+﻿package com.ludot.rules;
 
 import com.ludot.GameConstants;
 import com.ludot.command.BlockCaptureMove;
@@ -26,9 +26,9 @@ import com.ludot.model.Player;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-// Mediator that coordinates all rule objects and exposes a unified query API to the game engine.
 public class RuleEngine {
 
     private final BaseMoveValidator moveValidator;
@@ -39,6 +39,7 @@ public class RuleEngine {
     private final MysteryRule mysteryRule;
     private final EffectRule effectRule;
 
+    
     public RuleEngine(BaseMoveValidator moveValidator, BaseCaptureRule captureRule,
                       BlockRule blockRule, BaseHomeEntryRule homeEntryRule,
                       BaseDiceRule diceRule, MysteryRule mysteryRule, EffectRule effectRule) {
@@ -51,6 +52,7 @@ public class RuleEngine {
         this.effectRule = effectRule;
     }
 
+    
     public List<Move> getValidMoves(Player player, int roll) {
         List<Move> valid = new ArrayList<>();
         // tracks block source cells already handled to avoid duplicate BlockMoves
@@ -97,8 +99,9 @@ public class RuleEngine {
                         continue;
                     }
 
-                    Cell dest = moveValidator.getDestinationCell(p, mob.getSteps());
-                    if (dest == null) continue;
+                    Optional<Cell> destOpt = moveValidator.getDestinationCell(p, mob.getSteps());
+                    if (destOpt.isEmpty()) continue;
+                    Cell dest = destOpt.get();
                     if (blockRule.isBlocked(p, dest)) {
                         // T-3: walk the path to find how many steps land on the cell immediately
                         // before the block. Using effectiveSteps-1 was wrong for Energised pieces
@@ -159,7 +162,7 @@ public class RuleEngine {
         return Board.getInstance().getCell(newId);
     }
 
-    // home-straight entry only — mystery is handled separately by MysteryManager + applyMysteryEffect
+    
     public void applyLandingEffects(Piece piece) {
         if (homeEntryRule.canEnterHomeStraight(piece)) {
             List<Cell> hs = Board.getInstance().getHomeStraight(piece.getColour());
@@ -174,7 +177,7 @@ public class RuleEngine {
         }
     }
 
-    // called by MoveExecutor after MysteryManager resolves the destination
+    
     public void applyMysteryEffect(Piece piece, TeleportDestination dest) {
         applyTeleport(piece, dest);
     }
@@ -205,15 +208,24 @@ public class RuleEngine {
         piece.setPosition(target);
     }
 
-    public int calculateEffectiveSteps(Piece piece, int roll) {
-        return piece.getEffectiveSteps(roll);
-    }
-
+    
     public BaseMoveValidator getMoveValidator() { return moveValidator; }
+
+    
     public BaseCaptureRule getCaptureRule() { return captureRule; }
+
+    
     public BlockRule getBlockRule() { return blockRule; }
+
+    
     public BaseHomeEntryRule getHomeEntryRule() { return homeEntryRule; }
+
+    
     public BaseDiceRule getDiceRule() { return diceRule; }
+
+    
     public MysteryRule getMysteryRule() { return mysteryRule; }
+
+    
     public EffectRule getEffectRule() { return effectRule; }
 }

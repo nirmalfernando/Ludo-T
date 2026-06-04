@@ -1,10 +1,9 @@
-package com.ludot.command;
+﻿package com.ludot.command;
 
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;
 import java.util.List;
 
-// T-3/T-4: moves all pieces in a same-colour block together as a single unit
 public class BlockMove implements Move {
 
     private final List<Piece> block;
@@ -12,6 +11,7 @@ public class BlockMove implements Move {
     private final int steps;
     private final int originalRoll; // stored so the T-4 output line can show "roll X / size"
 
+    
     public BlockMove(List<Piece> block, Cell targetCell, int steps, int originalRoll) {
         this.block = block;
         this.targetCell = targetCell;
@@ -35,7 +35,12 @@ public class BlockMove implements Move {
         return "Block of " + block.size() + " moves " + steps + " steps";
     }
 
+    
     public List<Piece> getBlock() { return block; }
+
+    
     public int getSteps() { return steps; }
+
+    
     public int getOriginalRoll() { return originalRoll; }
 }

@@ -1,6 +1,5 @@
-package com.ludot.effects;
+﻿package com.ludot.effects;
 
-// Null Object — default state when no effect is active; steps pass through unchanged.
 public class NoEffect implements Effect {
 
     @Override

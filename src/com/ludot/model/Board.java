@@ -1,10 +1,10 @@
-package com.ludot.model;
+﻿package com.ludot.model;
 
+import com.ludot.GameConstants;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-// Singleton pattern — one shared board instance for the entire game.
 public class Board {
 
     private static Board instance;
@@ -14,6 +14,7 @@ public class Board {
 
     private Board() {}
 
+    
     public static Board getInstance() {
         if (instance == null) {
             instance = new Board();
@@ -21,11 +22,12 @@ public class Board {
         return instance;
     }
 
-    // public so tests in any package can reset the singleton between test cases
+    
     public static void resetInstance() {
         instance = null;
     }
 
+    
     public Cell getCell(int id) {
         if (id < 0 || id >= cells.size()) {
             throw new IllegalArgumentException("Cell id out of range: " + id);
@@ -33,35 +35,37 @@ public class Board {
         return cells.get(id);
     }
 
+    
     public List<Cell> getHomeStraight(Colour colour) {
         return Collections.unmodifiableList(homeStraights.get(colour));
     }
 
-    // fixed approach cell positions from the board layout spec
+    
     public Cell getApproachCell(Colour colour) {
         return switch (colour) {
-            case YELLOW -> cells.get(50);
-            case BLUE   -> cells.get(11);
-            case RED    -> cells.get(24);
-            case GREEN  -> cells.get(37);
+            case YELLOW -> cells.get(GameConstants.YELLOW_APPROACH_CELL_ID);
+            case BLUE   -> cells.get(GameConstants.BLUE_APPROACH_CELL_ID);
+            case RED    -> cells.get(GameConstants.RED_APPROACH_CELL_ID);
+            case GREEN  -> cells.get(GameConstants.GREEN_APPROACH_CELL_ID);
         };
     }
 
-    // fixed start cell positions from the board layout spec
+    
     public Cell getStartCell(Colour colour) {
         return switch (colour) {
-            case YELLOW -> cells.get(0);
-            case BLUE   -> cells.get(13);
-            case RED    -> cells.get(26);
-            case GREEN  -> cells.get(39);
+            case YELLOW -> cells.get(GameConstants.YELLOW_START_CELL_ID);
+            case BLUE   -> cells.get(GameConstants.BLUE_START_CELL_ID);
+            case RED    -> cells.get(GameConstants.RED_START_CELL_ID);
+            case GREEN  -> cells.get(GameConstants.GREEN_START_CELL_ID);
         };
     }
 
+    
     public List<Cell> getStandardPath() {
         return Collections.unmodifiableList(cells);
     }
 
-    // called by CellFactory during startup — public so it can be reached from the factory package
+    
     public void initialize(List<Cell> cells, Map<Colour, List<Cell>> homeStraights) {
         this.cells = cells;
         this.homeStraights = homeStraights;

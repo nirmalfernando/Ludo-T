@@ -1,4 +1,4 @@
-package com.ludot.engine;
+﻿package com.ludot.engine;
 
 import com.ludot.command.BlockCaptureMove;
 import com.ludot.command.BlockMove;
@@ -8,8 +8,8 @@ import com.ludot.command.MoveFromBase;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.command.MoveResult;
 import com.ludot.command.SkipMove;
-import com.ludot.effects.EnergisedEffect;
 import com.ludot.effects.TeleportDestination;
+import com.ludot.events.OutputFormatter;
 import com.ludot.events.block.BlockFormEvent;
 import com.ludot.events.block.BlockMoveEvent;
 import com.ludot.events.move.CaptureEvent;
@@ -31,8 +31,8 @@ import com.ludot.model.state.PieceState;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
 import java.util.List;
+import java.util.Optional;
 
-// Executes validated Command objects and coordinates board state updates via the rule engine.
 public class MoveExecutor {
 
     private final Board board;
@@ -41,12 +41,13 @@ public class MoveExecutor {
     private final EventBus eventBus;
     private final List<Player> players;
 
-    // test-friendly constructor — no player lookup needed for unit tests
+    
     public MoveExecutor(Board board, RuleEngine ruleEngine,
                         MysteryManager mysteryManager, EventBus eventBus) {
         this(board, ruleEngine, mysteryManager, eventBus, List.of());
     }
 
+    
     public MoveExecutor(Board board, RuleEngine ruleEngine,
                         MysteryManager mysteryManager, EventBus eventBus, List<Player> players) {
         this.board = board;
@@ -56,11 +57,12 @@ public class MoveExecutor {
         this.players = players;
     }
 
-    // backward-compatible — no player context, board-count lines are skipped
+    
     public MoveResult execute(Move move) {
         return execute(move, null);
     }
 
+    
     public MoveResult execute(Move move, Player player) {
         if (move instanceof MoveFromBase mfb)     return executeFromBase(mfb, player);
         if (move instanceof CaptureMove cm)        return executeCapture(cm, player);
@@ -109,7 +111,7 @@ public class MoveExecutor {
         MoveResult cmdResult = cm.execute(); // moves attacker to target cell
         Piece victim = cmdResult.getCaptured();
         ruleEngine.getCaptureRule().capture(attacker, victim); // victim reset + T-9 + capture count
-        Player victimPlayer = findPlayer(victim.getColour());
+        Player victimPlayer = findPlayer(victim.getColour()).orElse(null);
         eventBus.publish(new CaptureEvent(attacker, victim, targetCell, victimPlayer));
         eventBus.publish(new MoveEvent(player, attacker, from, attacker.getPosition(), cm.getSteps()));
         MoveResult result = new MoveResult(true, victim, false, true,
@@ -140,7 +142,7 @@ public class MoveExecutor {
             Piece attacker = attackers.get(i % attackers.size());
             Piece victim   = victims.get(i);
             ruleEngine.getCaptureRule().capture(attacker, victim);
-            Player victimPlayer = findPlayer(victim.getColour());
+            Player victimPlayer = findPlayer(victim.getColour()).orElse(null);
             eventBus.publish(new CaptureEvent(attacker, victim, dest, victimPlayer));
         }
         eventBus.publish(new BlockMoveEvent(attackers, from, dest, bcm.getSteps(), 0));
@@ -170,41 +172,19 @@ public class MoveExecutor {
         if (dest == null) return;
         if (dest.isMysteryCell()) {
             Direction dirBefore = piece.getDirection();
-            TeleportDestination teleportDest = mysteryManager.handleLanding(piece);
-            ruleEngine.applyMysteryEffect(piece, teleportDest);
+            Optional<TeleportDestination> teleportOpt = mysteryManager.handleLanding(piece);
+            teleportOpt.ifPresent(td -> ruleEngine.applyMysteryEffect(piece, td));
             Cell newPos = piece.getPosition();
-            String destName = teleportDest != null ? teleportDest.name() : "NONE";
-            String effectDesc = buildEffectDescription(piece, teleportDest, dirBefore);
+            String destName = teleportOpt.map(TeleportDestination::name).orElse("NONE");
+            String effectDesc = teleportOpt
+                    .map(td -> OutputFormatter.buildEffectDescription(piece, td, dirBefore))
+                    .orElse("");
             eventBus.publish(new MysteryTeleportEvent(piece, player, dest, newPos, destName, effectDesc));
         }
         ruleEngine.applyLandingEffects(piece);
     }
 
-    private String buildEffectDescription(Piece piece, TeleportDestination dest, Direction dirBefore) {
-        if (dest == null) return "";
-        String colour = piece.getColour().name();
-        String capColour = Character.toUpperCase(colour.charAt(0)) + colour.substring(1).toLowerCase();
-        String name = capColour + " piece " + piece.getName();
-        return switch (dest) {
-            case ALPHA -> piece.getActiveEffect() instanceof EnergisedEffect
-                    ? name + " feels energized, and movement speed doubles."
-                    : name + " feels sick, and movement speed halves.";
-            case GAMMA -> {
-                String oldDir = dirBefore == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
-                String newDirStr = piece.getDirection() == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
-                yield name + ", which was moving " + oldDir + ", has changed to moving " + newDirStr + ".";
-            }
-            case BETA          -> name + " attends briefing and cannot move for four rounds.";
-            case BASE          -> name + " has been sent back to base.";
-            case START_CELL    -> name + " teleported to their start cell.";
-            case APPROACH_CELL -> name + " teleported to their approach cell.";
-        };
-    }
-
-    private Player findPlayer(Colour colour) {
-        for (Player p : players) {
-            if (p.getColour() == colour) return p;
-        }
-        return null;
+    private Optional<Player> findPlayer(Colour colour) {
+        return players.stream().filter(p -> p.getColour() == colour).findFirst();
     }
 }

@@ -1,4 +1,4 @@
-package com.ludot.model.state;
+﻿package com.ludot.model.state;
 import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 
@@ -16,7 +16,7 @@ public class AtBaseState implements PieceState {
         return List.of();
     }
 
-    // State-owned transition: called by MoveFromBase after the piece is physically placed on board.
+    
     public void onExitedBase(Piece piece) {
         piece.setState(new OnBoardState());
     }

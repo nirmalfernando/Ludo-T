@@ -1,4 +1,4 @@
-package com.ludot.command;
+﻿package com.ludot.command;
 
 import com.ludot.model.Player;
 
@@ -6,6 +6,7 @@ public class SkipMove implements Move {
 
     private final Player player;
 
+    
     public SkipMove(Player player) {
         this.player = player;
     }

@@ -1,4 +1,4 @@
-package com.ludot.factory;
+﻿package com.ludot.factory;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.dice.SeededRandomProvider;
@@ -14,7 +14,6 @@ import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
 import java.util.List;
 
-// Builder — constructs and wires a fully playable GameEngine from a seed and player count.
 public class GameBuilder {
 
     private long seed = System.currentTimeMillis();
@@ -23,26 +22,31 @@ public class GameBuilder {
     private EventBus customEventBus = null;
     private RuleEngineFactory ruleEngineFactory = new LudoTRuleEngineFactory();
 
+    
     public GameBuilder withSeed(long seed) {
         this.seed = seed;
         return this;
     }
 
+    
     public GameBuilder withPlayers(int playerCount) {
         this.playerCount = playerCount;
         return this;
     }
 
+    
     public GameBuilder withRandom(RandomProvider random) {
         this.customRandom = random;
         return this;
     }
 
+    
     public GameBuilder withEventBus(EventBus eventBus) {
         this.customEventBus = eventBus;
         return this;
     }
 
+    
     public GameBuilder withRuleEngineFactory(RuleEngineFactory factory) {
         this.ruleEngineFactory = factory;
         return this;

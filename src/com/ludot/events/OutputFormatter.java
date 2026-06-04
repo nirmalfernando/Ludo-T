@@ -24,6 +24,8 @@ import com.ludot.events.mystery.MysterySpawnEvent;
 import com.ludot.events.mystery.MysteryTickEvent;
 import com.ludot.events.mystery.MysteryTeleportEvent;
 import com.ludot.GameConstants;
+import com.ludot.effects.EnergisedEffect;
+import com.ludot.effects.TeleportDestination;
 import com.ludot.model.Cell;
 import com.ludot.model.CellType;
 import com.ludot.model.Colour;
@@ -263,5 +265,28 @@ public class OutputFormatter {
             sb.append(names.get(i));
         }
         return sb.toString();
+    }
+
+    // Builds the effect description line for a mystery teleport event.
+    // Static so MoveExecutor can call it without holding an OutputFormatter instance.
+    public static String buildEffectDescription(Piece piece, TeleportDestination dest, Direction dirBefore) {
+        if (dest == null) return "";
+        String colour = piece.getColour().name();
+        String capColour = Character.toUpperCase(colour.charAt(0)) + colour.substring(1).toLowerCase();
+        String name = capColour + " piece " + piece.getName();
+        return switch (dest) {
+            case ALPHA -> piece.getActiveEffect() instanceof EnergisedEffect
+                    ? name + " feels energized, and movement speed doubles."
+                    : name + " feels sick, and movement speed halves.";
+            case GAMMA -> {
+                String oldDir = dirBefore == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
+                String newDir = piece.getDirection() == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
+                yield name + ", which was moving " + oldDir + ", has changed to moving " + newDir + ".";
+            }
+            case BETA          -> name + " attends briefing and cannot move for four rounds.";
+            case BASE          -> name + " has been sent back to base.";
+            case START_CELL    -> name + " teleported to their start cell.";
+            case APPROACH_CELL -> name + " teleported to their approach cell.";
+        };
     }
 }

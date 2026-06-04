@@ -1,10 +1,9 @@
-package com.ludot.model.state;
+﻿package com.ludot.model.state;
 import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
 import java.util.List;
 
-// terminal state — piece has finished the game, no further movement ever
 public class AtHomeState implements PieceState {
 
     @Override

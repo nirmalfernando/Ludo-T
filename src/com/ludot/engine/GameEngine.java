@@ -22,7 +22,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Mediator orchestrating the full game loop: turn sequencing, win detection, and event publishing.
+/**
+ * Orchestrates the full game loop including turn sequencing, win detection, and event publishing.
+ * Implements the Mediator pattern, coordinating TurnManager, MoveExecutor, MysteryManager, and the EventBus.
+ */
 public class GameEngine {
 
     private final Board board;
@@ -34,6 +37,7 @@ public class GameEngine {
     private final EventBus eventBus;
     private final RandomProvider random;
 
+    /** Constructs a GameEngine with all collaborators wired in by the caller (GameBuilder). */
     public GameEngine(Board board, List<Player> players, TurnManager turnManager,
                       MoveExecutor moveExecutor, MysteryManager mysteryManager,
                       RuleEngine ruleEngine, EventBus eventBus, RandomProvider random) {
@@ -47,6 +51,7 @@ public class GameEngine {
         this.random = random;
     }
 
+    /** Starts and drives the game loop until a winner is found, then publishes a WinEvent. */
     public void run() {
         eventBus.publish(new GameStartEvent(List.copyOf(players)));
         determineFirstPlayer();
@@ -57,7 +62,7 @@ public class GameEngine {
         eventBus.publish(new WinEvent(winner, turnManager.getRoundCount()));
     }
 
-    // each player rolls once; play order is highest roll first, lowest last (ties broken alphabetically)
+    /** Conducts the roll-off to determine play order; highest roll goes first, ties broken alphabetically. */
     public Player determineFirstPlayer() {
         List<int[]> rolls = new ArrayList<>(); // [originalIndex, roll]
         Map<Colour, Integer> rollResults = new HashMap<>();
@@ -80,7 +85,7 @@ public class GameEngine {
         return players.get(0);
     }
 
-    public void playRound() {
+    private void playRound() {
         boolean winMidRound = false;
         for (Player player : players) {
             if (!player.hasWon()) {
@@ -126,10 +131,12 @@ public class GameEngine {
         if (winMidRound) return;
     }
 
+    /** Returns true if any player has moved all pieces to the home position. */
     public boolean checkWinCondition() {
         return players.stream().anyMatch(Player::hasWon);
     }
 
+    /** Returns an unmodifiable snapshot of the current player list in play order. */
     public List<Player> getPlayers() { return List.copyOf(players); }
 
     private List<Piece> getAllPieces() {

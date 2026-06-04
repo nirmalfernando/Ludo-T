@@ -1,4 +1,4 @@
-package com.ludot.command;
+﻿package com.ludot.command;
 
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -11,6 +11,7 @@ public class MoveOnBoard implements Move {
     private final Piece piece;
     private final int steps;
 
+    
     public MoveOnBoard(Piece piece, int steps) {
         this.piece = piece;
         this.steps = steps;
@@ -48,6 +49,9 @@ public class MoveOnBoard implements Move {
         return piece.getName() + " moves " + steps + " steps";
     }
 
+    
     public Piece getPiece() { return piece; }
+
+    
     public int getSteps() { return steps; }
 }

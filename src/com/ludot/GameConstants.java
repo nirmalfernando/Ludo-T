@@ -10,6 +10,18 @@ public final class GameConstants {
     public static final int BOARD_SIZE           = 52; // standard circular path cell count
     public static final int HOME_STRAIGHT_LENGTH = 5;  // cells per colour including the HOME cell
 
+    // Start cell IDs — shared between Board and CellFactory to avoid duplication
+    public static final int YELLOW_START_CELL_ID =  0;
+    public static final int BLUE_START_CELL_ID   = 13;
+    public static final int RED_START_CELL_ID    = 26;
+    public static final int GREEN_START_CELL_ID  = 39;
+
+    // Approach cell IDs — the cell just before each colour's home straight entry
+    public static final int YELLOW_APPROACH_CELL_ID = 50;
+    public static final int BLUE_APPROACH_CELL_ID   = 11;
+    public static final int RED_APPROACH_CELL_ID    = 24;
+    public static final int GREEN_APPROACH_CELL_ID  = 37;
+
     // Dice mechanics
     public static final int LEAVE_BASE_ROLL          = 6; // roll needed to leave base / trigger bonus
     public static final int CONSECUTIVE_SIXES_LIMIT  = 3; // three consecutive 6s = triple-six penalty
