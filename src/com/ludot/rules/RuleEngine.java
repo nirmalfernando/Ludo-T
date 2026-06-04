@@ -17,10 +17,10 @@ import com.ludot.command.MoveOnBoard;
 import com.ludot.command.SkipMove;
 import com.ludot.effects.TeleportDestination;
 import com.ludot.model.state.AtBriefingState;
+import com.ludot.model.state.OnBoardState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Direction;
-import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import java.util.ArrayList;
@@ -167,7 +167,10 @@ public class RuleEngine {
             piece.getPosition().removePiece(piece);
             first.addPiece(piece);
             piece.setPosition(first);
-            piece.setState(new InHomeStraightState());
+            // OnBoardState owns the transition to InHomeStraightState (State pattern)
+            if (piece.getState() instanceof OnBoardState obs) {
+                obs.transitionToHomeStraight(piece);
+            }
         }
     }
 

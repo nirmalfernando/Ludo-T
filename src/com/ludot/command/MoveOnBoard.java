@@ -1,6 +1,5 @@
 package com.ludot.command;
 
-import com.ludot.model.state.AtHomeState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.state.InHomeStraightState;
@@ -31,15 +30,16 @@ public class MoveOnBoard implements Move {
     private void moveInHomeStraight() {
         List<Cell> homeStraight = Board.getInstance().getHomeStraight(piece.getColour());
         int currentIndex = homeStraight.indexOf(piece.getPosition());
-        Cell target = homeStraight.get(currentIndex + steps);
+        int targetIndex  = currentIndex + steps;
+        Cell target = homeStraight.get(targetIndex);
 
         piece.getPosition().removePiece(piece);
         target.addPiece(piece);
         piece.setPosition(target);
 
-        // last cell in the home straight is the HOME cell
-        if (currentIndex + steps == homeStraight.size() - 1) {
-            piece.setState(new AtHomeState());
+        // InHomeStraightState owns the transition to AtHomeState (State pattern)
+        if (piece.getState() instanceof InHomeStraightState hs) {
+            hs.transitionToHomeIfReached(piece, targetIndex, homeStraight.size() - 1);
         }
     }
 

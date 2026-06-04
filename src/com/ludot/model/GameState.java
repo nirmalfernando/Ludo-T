@@ -9,10 +9,17 @@ public class GameState {
 
     private final List<Player> players;
     private final Board board;
+    private final int turnNumber; // monotonically increasing — strategies use this for stateless cycling
 
+    // Convenience constructor for tests and legacy callers that don't need cycle count.
     public GameState(List<Player> players, Board board) {
+        this(players, board, 0);
+    }
+
+    public GameState(List<Player> players, Board board, int turnNumber) {
         this.players = players;
         this.board = board;
+        this.turnNumber = turnNumber;
     }
 
     // all pieces belonging to players other than the given colour
@@ -52,4 +59,5 @@ public class GameState {
 
     public List<Player> getPlayers() { return players; }
     public Board getBoard() { return board; }
+    public int getTurnNumber() { return turnNumber; }
 }

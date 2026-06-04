@@ -16,6 +16,11 @@ public class AtBaseState implements PieceState {
         return List.of();
     }
 
+    // State-owned transition: called by MoveFromBase after the piece is physically placed on board.
+    public void onExitedBase(Piece piece) {
+        piece.setState(new OnBoardState());
+    }
+
     @Override
     public boolean canMove() {
         return false; // only a roll of 6 unlocks movement, handled in handleRoll

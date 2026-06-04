@@ -25,6 +25,7 @@ public class TurnManager {
 
     private int currentPlayerIndex;
     private int roundCount;
+    private int turnCount; // increments on every real (non-bonus) turn; used by BlueStrategy for cycling
     private final RuleEngine ruleEngine;
     private final MoveExecutor moveExecutor;
     private final EventBus eventBus;
@@ -49,6 +50,7 @@ public class TurnManager {
     private void executeTurn(Player player, int bonusDepth) {
         if (bonusDepth == 0) {
             eventBus.publish(new TurnStartEvent(player));
+            turnCount++;
         }
         int roll = rollDice();
         eventBus.publish(new DiceRollEvent(player, roll));
@@ -61,7 +63,7 @@ public class TurnManager {
             return;
         }
 
-        GameState gameState = new GameState(players, Board.getInstance());
+        GameState gameState = new GameState(players, Board.getInstance(), turnCount);
         List<Move> validMoves = ruleEngine.getValidMoves(player, roll);
         Move chosen = player.getStrategy().decideMoves(gameState, roll, player.getPieces(), validMoves);
 

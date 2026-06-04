@@ -2,7 +2,7 @@ package com.ludot.command;
 
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
-import com.ludot.model.state.OnBoardState;
+import com.ludot.model.state.AtBaseState;
 import com.ludot.model.Piece;
 
 public class MoveFromBase implements Move {
@@ -18,7 +18,10 @@ public class MoveFromBase implements Move {
         Cell startCell = Board.getInstance().getStartCell(piece.getColour());
         startCell.addPiece(piece);
         piece.setPosition(startCell);
-        piece.setState(new OnBoardState());
+        // AtBaseState owns the transition to OnBoardState (State pattern)
+        if (piece.getState() instanceof AtBaseState atBase) {
+            atBase.onExitedBase(piece);
+        }
         return new MoveResult(true, null, false, false, describe());
     }
 

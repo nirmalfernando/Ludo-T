@@ -23,6 +23,13 @@ public class InHomeStraightState implements PieceState {
         return List.of(new MoveOnBoard(piece, steps));
     }
 
+    // State-owned transition: called by MoveOnBoard after placing the piece on its target cell.
+    public void transitionToHomeIfReached(Piece piece, int targetIndex, int lastIndex) {
+        if (targetIndex == lastIndex) {
+            piece.setState(new AtHomeState());
+        }
+    }
+
     @Override
     public boolean canMove() {
         return true;

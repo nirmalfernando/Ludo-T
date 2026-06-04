@@ -5,15 +5,13 @@ import com.ludot.model.GameState;
 import com.ludot.model.Piece;
 import java.util.List;
 
-// Unpredictable: rotates through valid moves via a cycling index rather than any fixed heuristic.
+// Unpredictable: cycles through valid moves using the game-wide turn counter.
+// Fully stateless — no mutable fields; the cycle index is derived from GameState.getTurnNumber()
+// so the selection is a pure function of game state, not accumulated strategy-side state.
 public class BlueStrategy extends AbstractPlayerStrategy {
-
-    private int cycleIndex = 0;
 
     @Override
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
-        Move chosen = validMoves.get(cycleIndex % validMoves.size());
-        cycleIndex++;
-        return chosen;
+        return validMoves.get(gameState.getTurnNumber() % validMoves.size());
     }
 }

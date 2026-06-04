@@ -28,11 +28,8 @@ public class BlockCaptureMove implements Move {
             attacker.setPosition(targetCell);
             attacker.incrementCaptureCount();
         }
-        // T-9: reset all victim info before sending to base
-        for (Piece victim : victims) {
-            victim.resetInfo();
-            victim.sendToBase();
-        }
+        // Victim reset is intentionally NOT done here — MoveExecutor delegates to CaptureRule
+        // so that rule-variant-specific reset logic (e.g., T-9 full reset) applies correctly.
         return new MoveResult(true, null, false, true, describe());
     }
 

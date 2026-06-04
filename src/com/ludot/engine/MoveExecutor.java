@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.command.BlockCaptureMove;
 import com.ludot.command.BlockMove;
 import com.ludot.command.CaptureMove;
 import com.ludot.command.Move;
@@ -61,11 +62,12 @@ public class MoveExecutor {
     }
 
     public MoveResult execute(Move move, Player player) {
-        if (move instanceof MoveFromBase mfb)  return executeFromBase(mfb, player);
-        if (move instanceof CaptureMove cm)    return executeCapture(cm, player);
-        if (move instanceof BlockMove bm)      return executeBlock(bm);
-        if (move instanceof MoveOnBoard mob)   return executeOnBoard(mob, player);
-        if (move instanceof SkipMove)          return executeSkip(move);
+        if (move instanceof MoveFromBase mfb)     return executeFromBase(mfb, player);
+        if (move instanceof CaptureMove cm)        return executeCapture(cm, player);
+        if (move instanceof BlockCaptureMove bcm)  return executeBlockCapture(bcm, player);
+        if (move instanceof BlockMove bm)          return executeBlock(bm);
+        if (move instanceof MoveOnBoard mob)       return executeOnBoard(mob, player);
+        if (move instanceof SkipMove)              return executeSkip(move);
         return move.execute();
     }
 
@@ -123,6 +125,27 @@ public class MoveExecutor {
         Cell dest = block.get(0).getPosition();
         eventBus.publish(new BlockMoveEvent(block, from, dest, bm.getSteps(), bm.getOriginalRoll()));
         return result;
+    }
+
+    // T-8: block-vs-block capture — attacker movement done by the command; victim reset delegated
+    // to CaptureRule so rule-variant logic (T-9 full reset vs classic send-to-base) is respected.
+    private MoveResult executeBlockCapture(BlockCaptureMove bcm, Player player) {
+        Cell from = bcm.getAttackers().get(0).getPosition();
+        bcm.execute(); // moves all attackers, increments their captureCount
+        Cell dest = bcm.getTargetCell();
+        // apply capture rule to each victim, paired with the corresponding attacker
+        List<Piece> attackers = bcm.getAttackers();
+        List<Piece> victims   = bcm.getVictims();
+        for (int i = 0; i < victims.size(); i++) {
+            Piece attacker = attackers.get(i % attackers.size());
+            Piece victim   = victims.get(i);
+            ruleEngine.getCaptureRule().capture(attacker, victim);
+            Player victimPlayer = findPlayer(victim.getColour());
+            eventBus.publish(new CaptureEvent(attacker, victim, dest, victimPlayer));
+        }
+        eventBus.publish(new BlockMoveEvent(attackers, from, dest, bcm.getSteps(), 0));
+        return new MoveResult(true, null, false, true,
+                "Block of " + attackers.size() + " captures opposing block");
     }
 
     private MoveResult executeSkip(Move skip) {

@@ -15,8 +15,8 @@ public class BaseDiceRule {
         this.consecutiveSixes = new HashMap<>();
     }
 
-    // returns true if a bonus roll is granted (rolled 6 but not triple-six)
-    public boolean handleRoll(Player player, int roll) {
+    // final: the algorithm for bonus-roll and triple-six detection must not be changed by subclasses
+    public final boolean handleRoll(Player player, int roll) {
         if (roll == GameConstants.LEAVE_BASE_ROLL) {
             int count = consecutiveSixes.getOrDefault(player.getColour(), 0) + 1;
             consecutiveSixes.put(player.getColour(), count);
@@ -30,7 +30,8 @@ public class BaseDiceRule {
         return false;
     }
 
-    public boolean isTripleSix(Player player, int roll) {
+    // protected hook: subclasses can change how triple-six is detected (e.g., LudoT checks blockades)
+    protected boolean isTripleSix(Player player, int roll) {
         return consecutiveSixes.getOrDefault(player.getColour(), 0) >= GameConstants.CONSECUTIVE_SIXES_LIMIT;
     }
 }
