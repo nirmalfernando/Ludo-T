@@ -30,41 +30,66 @@ import com.ludot.events.mystery.MysteryTeleportEvent;
 public interface EventVisitor {
 
     // dice
+
     void visit(DiceRollEvent e);
+
     void visit(CoinTossEvent e);
+
     void visit(TripleSixEvent e);
 
     // movement
+
     void visit(MoveEvent e);
+
     void visit(CaptureEvent e);
+
     void visit(SkipTurnEvent e);
+
     void visit(ApproachPassEvent e);
 
     // block
+
     void visit(BlockFormEvent e);
+
     void visit(BlockMoveEvent e);
+
     void visit(BlockBreakEvent e);
 
     // home straight
+
     void visit(HomeEntryEvent e);
+
     void visit(HomeReachEvent e);
+
     void visit(HomeEntryRejectedEvent e);
 
     // mystery cell
+
     void visit(MysterySpawnEvent e);
+
     void visit(MysteryTickEvent e);
+
     void visit(MysteryExpireEvent e);
+
     void visit(MysteryTeleportEvent e);
 
     // effects
+
     void visit(EffectAppliedEvent e);
+
     void visit(EffectExpiredEvent e);
 
     // game flow
+
     void visit(GameStartEvent e);
+
     void visit(TurnStartEvent e);
+
     void visit(RollOffEvent e);
+
     void visit(TurnOrderEvent e);
+
     void visit(RoundEndEvent e);
+
     void visit(WinEvent e);
 }

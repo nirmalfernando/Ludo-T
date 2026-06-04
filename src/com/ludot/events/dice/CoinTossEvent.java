@@ -6,5 +6,8 @@ import com.ludot.model.Direction;
 import com.ludot.model.Piece;
 
 public record CoinTossEvent(Piece piece, Direction direction) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

@@ -9,14 +9,15 @@ import java.util.Map;
  * Represents the Ludo game board, providing access to standard path cells and colour-specific home straights.
  * Implements the Singleton pattern to ensure one shared board instance exists for the entire game.
  */
-public class Board {
+public final class Board {
 
     private static Board instance;
 
     private List<Cell> cells;                        // 52-cell standard path (indices 0–51)
     private Map<Colour, List<Cell>> homeStraights;   // 5 home-straight cells per colour
 
-    private Board() {}
+    private Board() {
+    }
 
     /** Returns the singleton Board instance, creating it lazily on first call. */
     public static Board getInstance() {

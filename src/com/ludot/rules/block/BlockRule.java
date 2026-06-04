@@ -28,14 +28,20 @@ public class BlockRule implements GameRule {
 
     
     public boolean canCaptureBlock(List<Piece> attackers, Cell target) {
-        if (!target.hasBlock()) return false;
-        if (target.getPieces().get(0).getColour() == attackers.get(0).getColour()) return false;
+        if (!target.hasBlock()) {
+            return false;
+        }
+        if (target.getPieces().get(0).getColour() == attackers.get(0).getColour()) {
+            return false;
+        }
         return attackers.size() == target.getBlockSize();
     }
 
     
     public boolean canFormBlock(Piece piece, Cell cell) {
-        if (!cell.isOccupied()) return false;
+        if (!cell.isOccupied()) {
+            return false;
+        }
         return cell.getPieces().get(0).getColour() == piece.getColour();
     }
 
@@ -76,7 +82,9 @@ public class BlockRule implements GameRule {
     }
 
     @Override
-    public int getPriority() { return 50; }
+    public int getPriority() {
+        return 50;
+    }
 
     // cells remaining in the piece's current direction before reaching its approach cell
     private int distanceToApproach(Piece piece, Board board) {

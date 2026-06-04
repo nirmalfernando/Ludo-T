@@ -8,5 +8,8 @@ import com.ludot.model.Player;
 
 public record MysteryTeleportEvent(Piece piece, Player player, Cell from, Cell to,
                                    String effectName, String effectDescription) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

@@ -50,8 +50,12 @@ public class MoveOnBoard implements Move {
     }
 
     
-    public Piece getPiece() { return piece; }
+    public Piece getPiece() {
+        return piece;
+    }
 
     
-    public int getSteps() { return steps; }
+    public int getSteps() {
+        return steps;
+    }
 }

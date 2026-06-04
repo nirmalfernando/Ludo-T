@@ -66,5 +66,7 @@ public class EffectRule implements GameRule {
     }
 
     @Override
-    public int getPriority() { return 10; }
+    public int getPriority() {
+        return 10;
+    }
 }

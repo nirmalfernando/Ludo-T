@@ -13,15 +13,21 @@ public class GreenStrategy implements PlayerStrategy {
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
         // 1. Always exit base on 6 — keeps pieces flowing onto the board to enable block formation
         Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
-        if (fromBase.isPresent()) return fromBase.get();
+        if (fromBase.isPresent()) {
+            return fromBase.get();
+        }
 
         // 2. Form a new blockade or advance an existing one (T-3/T-4)
         Optional<Move> block = StrategyHelper.findBlock(validMoves);
-        if (block.isPresent()) return block.get();
+        if (block.isPresent()) {
+            return block.get();
+        }
 
         // 3. Capture if no block opportunity exists
         Optional<Move> capture = StrategyHelper.findCapture(validMoves);
-        if (capture.isPresent()) return capture.get();
+        if (capture.isPresent()) {
+            return capture.get();
+        }
 
         // 4. Any remaining move
         return StrategyHelper.firstOf(validMoves);

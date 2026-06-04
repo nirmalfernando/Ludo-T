@@ -4,7 +4,8 @@ package com.ludot;
 // Every magic number in the codebase should trace back to a declaration here.
 public final class GameConstants {
 
-    private GameConstants() {}
+    private GameConstants() {
+    }
 
     // Board layout
     public static final int BOARD_SIZE           = 52; // standard circular path cell count

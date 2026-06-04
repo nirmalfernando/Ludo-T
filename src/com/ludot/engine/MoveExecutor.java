@@ -21,7 +21,6 @@ import com.ludot.events.home.HomeEntryRejectedEvent;
 import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.MoveEvent;
 import com.ludot.events.mystery.MysteryTeleportEvent;
-import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.model.state.AtHomeState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -70,12 +69,24 @@ public class MoveExecutor {
 
     /** Dispatches the given Move to the appropriate handler and returns the resulting MoveResult. */
     public MoveResult execute(Move move, Player player) {
-        if (move instanceof MoveFromBase mfb)     return executeFromBase(mfb, player);
-        if (move instanceof CaptureMove cm)        return executeCapture(cm, player);
-        if (move instanceof BlockCaptureMove bcm)  return executeBlockCapture(bcm, player);
-        if (move instanceof BlockMove bm)          return executeBlock(bm);
-        if (move instanceof MoveOnBoard mob)       return executeOnBoard(mob, player);
-        if (move instanceof SkipMove)              return executeSkip(move);
+        if (move instanceof MoveFromBase mfb) {
+            return executeFromBase(mfb, player);
+        }
+        if (move instanceof CaptureMove cm) {
+            return executeCapture(cm, player);
+        }
+        if (move instanceof BlockCaptureMove bcm) {
+            return executeBlockCapture(bcm, player);
+        }
+        if (move instanceof BlockMove bm) {
+            return executeBlock(bm);
+        }
+        if (move instanceof MoveOnBoard mob) {
+            return executeOnBoard(mob, player);
+        }
+        if (move instanceof SkipMove) {
+            return executeSkip(move);
+        }
         return move.execute();
     }
 
@@ -179,7 +190,9 @@ public class MoveExecutor {
     }
 
     private void applyLanding(Piece piece, Cell dest, Player player) {
-        if (dest == null) return;
+        if (dest == null) {
+            return;
+        }
         if (dest.isMysteryCell()) {
             Direction dirBefore = piece.getDirection();
             Optional<TeleportDestination> teleportOpt = mysteryManager.handleLanding(piece);

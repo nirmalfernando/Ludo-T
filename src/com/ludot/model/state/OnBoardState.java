@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+
 import com.ludot.model.Piece;
 
 import com.ludot.command.Move;
@@ -24,5 +25,7 @@ public class OnBoardState implements PieceState {
     }
 
     @Override
-    public String getStateName() { return "OnBoard"; }
+    public String getStateName() {
+        return "OnBoard";
+    }
 }

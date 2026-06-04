@@ -36,11 +36,17 @@ public class BlockMove implements Move {
     }
 
     
-    public List<Piece> getBlock() { return block; }
+    public List<Piece> getBlock() {
+        return block;
+    }
 
     
-    public int getSteps() { return steps; }
+    public int getSteps() {
+        return steps;
+    }
 
     
-    public int getOriginalRoll() { return originalRoll; }
+    public int getOriginalRoll() {
+        return originalRoll;
+    }
 }

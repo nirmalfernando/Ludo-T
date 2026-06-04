@@ -131,5 +131,7 @@ public class TurnManager {
     }
 
     /** Returns the total number of completed rounds so far. */
-    public int getRoundCount() { return roundCount; }
+    public int getRoundCount() {
+        return roundCount;
+    }
 }

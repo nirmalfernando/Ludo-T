@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+
 import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 
@@ -48,5 +49,7 @@ public class AtBriefingState implements PieceState {
     }
 
     @Override
-    public String getStateName() { return "AtBriefing"; }
+    public String getStateName() {
+        return "AtBriefing";
+    }
 }

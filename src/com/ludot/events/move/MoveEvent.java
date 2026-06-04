@@ -7,5 +7,8 @@ import com.ludot.model.Piece;
 import com.ludot.model.Player;
 
 public record MoveEvent(Player player, Piece piece, Cell from, Cell to, int steps) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+
 import com.ludot.model.Piece;
 
 import java.util.List;

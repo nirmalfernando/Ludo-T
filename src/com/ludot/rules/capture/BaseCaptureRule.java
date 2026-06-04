@@ -23,12 +23,15 @@ public class BaseCaptureRule implements GameRule {
     }
 
     
-    protected void postCapture(Piece attacker) {}
+    protected void postCapture(Piece attacker) {
+    }
 
     @Override
     public boolean isApplicable(MoveContext ctx) {
         Cell dest = ctx.destination();
-        if (dest == null || !dest.isOccupied() || dest.hasBlock()) return false;
+        if (dest == null || !dest.isOccupied() || dest.hasBlock()) {
+            return false;
+        }
         List<Piece> occupants = dest.getPieces();
         return occupants.size() == 1 && occupants.get(0).getColour() != ctx.piece().getColour();
     }
@@ -40,5 +43,7 @@ public class BaseCaptureRule implements GameRule {
     }
 
     @Override
-    public int getPriority() { return 40; }
+    public int getPriority() {
+        return 40;
+    }
 }

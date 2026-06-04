@@ -37,47 +37,147 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
 
     @Override
     public void onEvent(GameEvent event) {
-        event.accept(this); // Visitor double-dispatch — routes to the correct visit() below
+        event.accept(this);
     }
 
     // dice
-    @Override public void visit(DiceRollEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(CoinTossEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(TripleSixEvent e) { print(formatter.format(e)); }
+
+    @Override
+    public void visit(DiceRollEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(CoinTossEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(TripleSixEvent e) {
+        print(formatter.format(e));
+    }
 
     // movement
-    @Override public void visit(MoveEvent e)         { print(formatter.format(e)); }
-    @Override public void visit(CaptureEvent e)      { print(formatter.format(e)); }
-    @Override public void visit(SkipTurnEvent e)     { print(formatter.format(e)); }
-    @Override public void visit(ApproachPassEvent e) { print(formatter.format(e)); }
+
+    @Override
+    public void visit(MoveEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(CaptureEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(SkipTurnEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(ApproachPassEvent e) {
+        print(formatter.format(e));
+    }
 
     // block
-    @Override public void visit(BlockFormEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(BlockMoveEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(BlockBreakEvent e) { print(formatter.format(e)); }
+
+    @Override
+    public void visit(BlockFormEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(BlockMoveEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(BlockBreakEvent e) {
+        print(formatter.format(e));
+    }
 
     // home straight
-    @Override public void visit(HomeEntryEvent e)         { print(formatter.format(e)); }
-    @Override public void visit(HomeReachEvent e)         { print(formatter.format(e)); }
-    @Override public void visit(HomeEntryRejectedEvent e) { print(formatter.format(e)); }
+
+    @Override
+    public void visit(HomeEntryEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(HomeReachEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(HomeEntryRejectedEvent e) {
+        print(formatter.format(e));
+    }
 
     // mystery cell
-    @Override public void visit(MysterySpawnEvent e)   { print(formatter.format(e)); }
-    @Override public void visit(MysteryTickEvent e)    { print(formatter.format(e)); }
-    @Override public void visit(MysteryExpireEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(MysteryTeleportEvent e){ print(formatter.format(e)); }
+
+    @Override
+    public void visit(MysterySpawnEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(MysteryTickEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(MysteryExpireEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(MysteryTeleportEvent e) {
+        print(formatter.format(e));
+    }
 
     // effects
-    @Override public void visit(EffectAppliedEvent e) { print(formatter.format(e)); }
-    @Override public void visit(EffectExpiredEvent e) { print(formatter.format(e)); }
+
+    @Override
+    public void visit(EffectAppliedEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(EffectExpiredEvent e) {
+        print(formatter.format(e));
+    }
 
     // game flow
-    @Override public void visit(GameStartEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(TurnStartEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(RollOffEvent e)    { print(formatter.format(e)); }
-    @Override public void visit(TurnOrderEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(RoundEndEvent e)   { print(formatter.format(e)); }
-    @Override public void visit(WinEvent e)        { print(formatter.format(e)); }
+
+    @Override
+    public void visit(GameStartEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(TurnStartEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(RollOffEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(TurnOrderEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(RoundEndEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(WinEvent e) {
+        print(formatter.format(e));
+    }
 
     private void print(String line) {
         if (line != null && !line.isBlank()) {

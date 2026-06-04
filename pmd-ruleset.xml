@@ -10,6 +10,8 @@
     <rule ref="category/java/bestpractices.xml">
         <exclude name="GuardLogStatement"/>
         <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <!-- Console output is intentional in this console game -->
+        <exclude name="SystemPrintln"/>
     </rule>
 
     <!-- Code style -->
@@ -20,6 +22,9 @@
         <exclude name="CallSuperInConstructor"/>
         <exclude name="LongVariable"/>
         <exclude name="ShortVariable"/>
+        <!-- Adding final to every parameter and local variable is noisy and adds no safety here -->
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
     </rule>
 
     <!-- Design -->

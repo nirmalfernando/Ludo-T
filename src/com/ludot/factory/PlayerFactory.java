@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Factory Method — assembles fully configured Player instances for each colour.
-public class PlayerFactory {
+public final class PlayerFactory {
 
     private static final int PIECES_PER_PLAYER = 4;
 
-    private PlayerFactory() {}
+    private PlayerFactory() {
+    }
 
     public static Player createPlayer(Colour colour) {
         return new Player(colour, createPieces(colour), createStrategy(colour));

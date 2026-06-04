@@ -5,5 +5,8 @@ import com.ludot.events.GameEvent;
 import com.ludot.model.Piece;
 
 public record EffectAppliedEvent(Piece piece, String effectName, int duration) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

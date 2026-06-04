@@ -5,5 +5,8 @@ import com.ludot.events.GameEvent;
 import com.ludot.model.Piece;
 
 public record EffectExpiredEvent(Piece piece, String effectName) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

@@ -64,11 +64,17 @@ public class Player {
     }
 
     
-    public Colour getColour() { return colour; }
+    public Colour getColour() {
+        return colour;
+    }
 
     
-    public List<Piece> getPieces() { return pieces; }
+    public List<Piece> getPieces() {
+        return pieces;
+    }
 
     
-    public PlayerStrategy getStrategy() { return strategy; }
+    public PlayerStrategy getStrategy() {
+        return strategy;
+    }
 }

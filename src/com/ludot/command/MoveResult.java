@@ -21,20 +21,32 @@ public class MoveResult {
     }
 
     
-    public boolean isSuccess() { return success; }
+    public boolean isSuccess() {
+        return success;
+    }
 
     
-    public Piece getCaptured() { return captured; }
+    public Piece getCaptured() {
+        return captured;
+    }
 
     
-    public boolean isTeleported() { return teleported; }
+    public boolean isTeleported() {
+        return teleported;
+    }
 
     
-    public boolean grantsBonusRoll() { return grantsBonusRoll; }
+    public boolean grantsBonusRoll() {
+        return grantsBonusRoll;
+    }
 
     
-    public String getMessage() { return message; }
+    public String getMessage() {
+        return message;
+    }
 
     
-    public boolean hasCaptured() { return captured != null; }
+    public boolean hasCaptured() {
+        return captured != null;
+    }
 }

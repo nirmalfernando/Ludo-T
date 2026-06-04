@@ -3,7 +3,10 @@ package com.ludot;
 import com.ludot.engine.GameEngine;
 import com.ludot.factory.GameBuilder;
 
-public class Main {
+public final class Main {
+
+    private Main() {
+    }
 
     public static void main(String[] args) {
         long seed = parseSeed(args);

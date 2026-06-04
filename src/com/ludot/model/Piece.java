@@ -72,7 +72,9 @@ public class Piece {
 
     
     public boolean canEnterHomeStraight() {
-        if (position == null) return false;
+        if (position == null) {
+            return false;
+        }
         return position.getCellType() == CellType.APPROACH
                 && position.getColour() == colour;
     }

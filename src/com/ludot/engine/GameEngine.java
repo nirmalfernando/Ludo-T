@@ -99,38 +99,37 @@ public class GameEngine {
         turnManager.incrementRound();
         int round = turnManager.getRoundCount();
 
-        // mystery cell lifecycle
+        tickMysteryLifecycle(round);
+
+        if (ruleEngine.getEffectRule() != null) {
+            ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
+        }
+
+        eventBus.publish(new RoundEndEvent(round, List.copyOf(players)));
+
+        if (winMidRound) {
+            return;
+        }
+    }
+
+    // T-10: spawn on the first eligible round; do not tick on the same round the cell spawns.
+    private void tickMysteryLifecycle(int round) {
         Cell cellBeforeSpawn = mysteryManager.getCurrentCell();
         mysteryManager.spawnMystery(round);
         boolean justSpawned = cellBeforeSpawn == null && mysteryManager.isActive();
         if (justSpawned) {
             eventBus.publish(new MysterySpawnEvent(mysteryManager.getCurrentCell(),
                     mysteryManager.getLifespan()));
+            return;
         }
-
-        // T-10: do not tick on the same round the cell spawns — the lifespan is 4 full rounds,
-        // ticking on the spawn round would silently reduce it to 3.
-        if (!justSpawned) {
-            Cell cellBeforeTick = mysteryManager.getCurrentCell();
-            mysteryManager.tick();
-            if (cellBeforeTick != null && !mysteryManager.isActive()) {
-                eventBus.publish(new MysteryExpireEvent(cellBeforeTick));
-            } else if (mysteryManager.isActive()) {
-                eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(),
-                        mysteryManager.getRoundsLeft()));
-            }
+        Cell cellBeforeTick = mysteryManager.getCurrentCell();
+        mysteryManager.tick();
+        if (cellBeforeTick != null && !mysteryManager.isActive()) {
+            eventBus.publish(new MysteryExpireEvent(cellBeforeTick));
+        } else if (mysteryManager.isActive()) {
+            eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(),
+                    mysteryManager.getRoundsLeft()));
         }
-
-        // tick active piece effects (Energised/Sick countdown) — only in LudoT (classic has no effects)
-        if (ruleEngine.getEffectRule() != null) {
-            ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
-        }
-
-        // always publish round-end status, even when someone won mid-round
-        eventBus.publish(new RoundEndEvent(round, List.copyOf(players)));
-
-        // exit after publishing round status so the final board state is visible
-        if (winMidRound) return;
     }
 
     /** Returns true if any player has moved all pieces to the home position. */
@@ -139,7 +138,9 @@ public class GameEngine {
     }
 
     /** Returns an unmodifiable snapshot of the current player list in play order. */
-    public List<Player> getPlayers() { return List.copyOf(players); }
+    public List<Player> getPlayers() {
+        return List.copyOf(players);
+    }
 
     private List<Piece> getAllPieces() {
         List<Piece> all = new ArrayList<>();

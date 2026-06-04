@@ -35,13 +35,17 @@ public class GameState {
 
     
     public boolean canCapture(Piece piece, int steps) {
-        if (piece.getPosition() == null || piece.getDirection() == null) return false;
+        if (piece.getPosition() == null || piece.getDirection() == null) {
+            return false;
+        }
         int id = piece.getPosition().getId();
         int newId = piece.getDirection() == Direction.CLOCKWISE
                 ? (id + steps) % GameConstants.BOARD_SIZE
                 : ((id - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
         Cell dest = board.getCell(newId);
-        if (!dest.isOccupied() || dest.hasBlock()) return false;
+        if (!dest.isOccupied() || dest.hasBlock()) {
+            return false;
+        }
         List<Piece> occ = dest.getPieces();
         return occ.size() == 1 && occ.get(0).getColour() != piece.getColour();
     }
@@ -58,11 +62,17 @@ public class GameState {
     }
 
     
-    public List<Player> getPlayers() { return players; }
+    public List<Player> getPlayers() {
+        return players;
+    }
 
     
-    public Board getBoard() { return board; }
+    public Board getBoard() {
+        return board;
+    }
 
     
-    public int getTurnNumber() { return turnNumber; }
+    public int getTurnNumber() {
+        return turnNumber;
+    }
 }

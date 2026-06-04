@@ -7,5 +7,8 @@ import com.ludot.model.Piece;
 import java.util.List;
 
 public record BlockFormEvent(List<Piece> block, Cell cell) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

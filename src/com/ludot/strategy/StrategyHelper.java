@@ -18,7 +18,8 @@ import java.util.Optional;
 // Strategies implement PlayerStrategy directly and call these as needed — no shared base class.
 final class StrategyHelper {
 
-    private StrategyHelper() {}
+    private StrategyHelper() {
+    }
 
     static Optional<Move> findCapture(List<Move> moves) {
         return moves.stream().filter(m -> m instanceof CaptureMove).findFirst();
@@ -55,7 +56,9 @@ final class StrategyHelper {
     // Computes the destination cell for a piece moving the given steps in its current direction,
     // without actually moving the piece. Returns null if position or direction is unset.
     static Cell computeDest(Piece piece, int steps) {
-        if (piece.getPosition() == null || piece.getDirection() == null) return null;
+        if (piece.getPosition() == null || piece.getDirection() == null) {
+            return null;
+        }
         int id = piece.getPosition().getId();
         for (int i = 0; i < steps; i++) {
             if (piece.getDirection() == Direction.CLOCKWISE) {

@@ -11,9 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 // Factory Method — creates typed Cell instances and wires up the complete board layout.
-public class CellFactory {
+public final class CellFactory {
 
-    private CellFactory() {}
+    private CellFactory() {
+    }
 
     public static Cell createStandardCell(int id) {
         return new Cell(id, CellType.STANDARD, null);
@@ -54,14 +55,30 @@ public class CellFactory {
 
     // explicit colour mapping — avoids any dependence on Colour.values() enum order
     private static Cell buildStandardPathCell(int id) {
-        if (id == GameConstants.YELLOW_START_CELL_ID)    return createStartCell(id,    Colour.YELLOW);
-        if (id == GameConstants.BLUE_START_CELL_ID)      return createStartCell(id,    Colour.BLUE);
-        if (id == GameConstants.RED_START_CELL_ID)       return createStartCell(id,    Colour.RED);
-        if (id == GameConstants.GREEN_START_CELL_ID)     return createStartCell(id,    Colour.GREEN);
-        if (id == GameConstants.YELLOW_APPROACH_CELL_ID) return createApproachCell(id, Colour.YELLOW);
-        if (id == GameConstants.BLUE_APPROACH_CELL_ID)   return createApproachCell(id, Colour.BLUE);
-        if (id == GameConstants.RED_APPROACH_CELL_ID)    return createApproachCell(id, Colour.RED);
-        if (id == GameConstants.GREEN_APPROACH_CELL_ID)  return createApproachCell(id, Colour.GREEN);
+        if (id == GameConstants.YELLOW_START_CELL_ID) {
+            return createStartCell(id, Colour.YELLOW);
+        }
+        if (id == GameConstants.BLUE_START_CELL_ID) {
+            return createStartCell(id, Colour.BLUE);
+        }
+        if (id == GameConstants.RED_START_CELL_ID) {
+            return createStartCell(id, Colour.RED);
+        }
+        if (id == GameConstants.GREEN_START_CELL_ID) {
+            return createStartCell(id, Colour.GREEN);
+        }
+        if (id == GameConstants.YELLOW_APPROACH_CELL_ID) {
+            return createApproachCell(id, Colour.YELLOW);
+        }
+        if (id == GameConstants.BLUE_APPROACH_CELL_ID) {
+            return createApproachCell(id, Colour.BLUE);
+        }
+        if (id == GameConstants.RED_APPROACH_CELL_ID) {
+            return createApproachCell(id, Colour.RED);
+        }
+        if (id == GameConstants.GREEN_APPROACH_CELL_ID) {
+            return createApproachCell(id, Colour.GREEN);
+        }
         return createStandardCell(id);
     }
 }

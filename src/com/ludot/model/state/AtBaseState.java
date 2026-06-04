@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+
 import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 
@@ -27,5 +28,7 @@ public class AtBaseState implements PieceState {
     }
 
     @Override
-    public String getStateName() { return "AtBase"; }
+    public String getStateName() {
+        return "AtBase";
+    }
 }

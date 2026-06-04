@@ -24,12 +24,16 @@ public class BaseHomeEntryRule implements GameRule {
 
     @Override
     public RuleResult apply(MoveContext ctx) {
-        if (!isApplicable(ctx)) return RuleResult.notApplicable();
+        if (!isApplicable(ctx)) {
+            return RuleResult.notApplicable();
+        }
         return canEnterHomeStraight(ctx.piece())
                 ? RuleResult.success("Home straight entry allowed")
                 : RuleResult.failure("Home straight entry denied: capture requirement not met (T-7)");
     }
 
     @Override
-    public int getPriority() { return 60; }
+    public int getPriority() {
+        return 60;
+    }
 }

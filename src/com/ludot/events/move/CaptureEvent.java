@@ -7,5 +7,8 @@ import com.ludot.model.Piece;
 import com.ludot.model.Player;
 
 public record CaptureEvent(Piece attacker, Piece victim, Cell cell, Player victimPlayer) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

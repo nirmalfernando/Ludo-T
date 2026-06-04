@@ -55,19 +55,29 @@ public class Cell {
     }
 
     /** Returns the unique integer identifier of this cell. */
-    public int getId() { return id; }
+    public int getId() {
+        return id;
+    }
 
     /** Returns the type classification of this cell (e.g. STANDARD, START, APPROACH). */
-    public CellType getCellType() { return cellType; }
+    public CellType getCellType() {
+        return cellType;
+    }
 
     /** Returns the colour associated with this cell, or null for standard cells. */
-    public Colour getColour() { return colour; }
+    public Colour getColour() {
+        return colour;
+    }
 
     /** Returns true if this cell is currently designated as the active mystery cell. */
-    public boolean isMysteryCell() { return isMysteryCell; }
+    public boolean isMysteryCell() {
+        return isMysteryCell;
+    }
 
     /** Marks or clears this cell as the active mystery cell. */
-    public void setMysteryCell(boolean isMysteryCell) { this.isMysteryCell = isMysteryCell; }
+    public void setMysteryCell(boolean isMysteryCell) {
+        this.isMysteryCell = isMysteryCell;
+    }
 
     /** Returns an unmodifiable view of the pieces currently occupying this cell. */
     public List<Piece> getPieces() {

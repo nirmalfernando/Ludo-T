@@ -22,11 +22,15 @@ public class YellowStrategy implements PlayerStrategy {
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
         // 1. Exit base to get more pieces working toward home
         Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
-        if (fromBase.isPresent()) return fromBase.get();
+        if (fromBase.isPresent()) {
+            return fromBase.get();
+        }
 
         // 2. Advance pieces already in the home straight — they are closest to winning
         Optional<Move> homeStraight = StrategyHelper.findHomeStraight(validMoves);
-        if (homeStraight.isPresent()) return homeStraight.get();
+        if (homeStraight.isPresent()) {
+            return homeStraight.get();
+        }
 
         // 3. Capture only if the attacker still needs one capture to satisfy T-7 (captureCount == 0)
         Optional<Move> capture = StrategyHelper.findCapture(validMoves);
@@ -55,7 +59,9 @@ public class YellowStrategy implements PlayerStrategy {
 
     // Remaining path length to the approach cell in the piece's travel direction.
     private int distToApproach(Piece piece, Colour colour) {
-        if (piece.getPosition() == null || piece.getDirection() == null) return Integer.MAX_VALUE;
+        if (piece.getPosition() == null || piece.getDirection() == null) {
+            return Integer.MAX_VALUE;
+        }
         int pieceId    = piece.getPosition().getId();
         int approachId = approachCellId(colour);
         if (piece.getDirection() == Direction.CLOCKWISE) {

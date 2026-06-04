@@ -86,7 +86,9 @@ public class BlueStrategy implements PlayerStrategy {
 
     private Cell findMysteryCell(GameState state) {
         for (Cell cell : state.getBoard().getStandardPath()) {
-            if (cell.isMysteryCell()) return cell;
+            if (cell.isMysteryCell()) {
+                return cell;
+            }
         }
         return null;
     }

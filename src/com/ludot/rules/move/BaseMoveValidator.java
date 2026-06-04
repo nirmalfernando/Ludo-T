@@ -29,13 +29,17 @@ public abstract class BaseMoveValidator implements GameRule {
 
     
     public Optional<Cell> getDestinationCell(Piece piece, int steps) {
-        if (piece.getPosition() == null) return Optional.empty();
+        if (piece.getPosition() == null) {
+            return Optional.empty();
+        }
 
         if (piece.getState() instanceof InHomeStraightState) {
             List<Cell> hs = Board.getInstance().getHomeStraight(piece.getColour());
             int idx = hs.indexOf(piece.getPosition());
             int target = idx + steps;
-            if (target >= hs.size()) return Optional.empty(); // overshooting home is not allowed
+            if (target >= hs.size()) {
+                return Optional.empty(); // overshooting home is not allowed
+            }
             return Optional.of(hs.get(target));
         }
 
@@ -70,5 +74,7 @@ public abstract class BaseMoveValidator implements GameRule {
     }
 
     @Override
-    public int getPriority() { return 30; }
+    public int getPriority() {
+        return 30;
+    }
 }

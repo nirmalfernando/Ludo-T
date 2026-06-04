@@ -35,11 +35,17 @@ public class CaptureMove implements Move {
     }
 
     
-    public Piece getAttacker() { return attacker; }
+    public Piece getAttacker() {
+        return attacker;
+    }
 
     
-    public Cell getTargetCell() { return targetCell; }
+    public Cell getTargetCell() {
+        return targetCell;
+    }
 
     
-    public int getSteps() { return steps; }
+    public int getSteps() {
+        return steps;
+    }
 }

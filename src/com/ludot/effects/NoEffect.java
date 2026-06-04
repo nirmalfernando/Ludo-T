@@ -13,7 +13,8 @@ public class NoEffect implements Effect {
     }
 
     @Override
-    public void tick() {}
+    public void tick() {
+    }
 
     @Override
     public String getName() {

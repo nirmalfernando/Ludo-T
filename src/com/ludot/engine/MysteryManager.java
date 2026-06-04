@@ -32,7 +32,9 @@ public class MysteryManager {
 
     /** Spawns a mystery cell after round 2 on a randomly selected, non-repeated empty cell (Rule T-10). */
     public void spawnMystery(int roundCount) {
-        if (currentCell != null || !mysteryRule.shouldSpawn(roundCount)) return;
+        if (currentCell != null || !mysteryRule.shouldSpawn(roundCount)) {
+            return;
+        }
         currentCell = mysteryRule.getRandomSpawnCell(board);
         currentCell.setMysteryCell(true);
         roundsActive = 0;
@@ -40,7 +42,9 @@ public class MysteryManager {
 
     /** Resolves a mystery-cell landing into a TeleportDestination and clears the active cell (Rule T-11). */
     public Optional<TeleportDestination> handleLanding(Piece piece) {
-        if (currentCell == null) return Optional.empty();
+        if (currentCell == null) {
+            return Optional.empty();
+        }
         TeleportDestination dest = mysteryRule.resolveTeleport(piece, board);
         currentCell.setMysteryCell(false);
         currentCell = null;
@@ -55,7 +59,9 @@ public class MysteryManager {
 
     /** Advances the mystery-cell lifespan counter and clears the cell once it expires (Rule T-15). */
     public void tick() {
-        if (currentCell == null) return;
+        if (currentCell == null) {
+            return;
+        }
         roundsActive++;
         if (roundsActive >= LIFESPAN) {
             currentCell.setMysteryCell(false);
@@ -65,11 +71,17 @@ public class MysteryManager {
     }
 
     /** Returns the currently active mystery cell, or null if none is present. */
-    public Cell getCurrentCell() { return currentCell; }
+    public Cell getCurrentCell() {
+        return currentCell;
+    }
 
     /** Returns the number of rounds remaining before the active mystery cell expires. */
-    public int getRoundsLeft() { return Math.max(0, LIFESPAN - roundsActive); }
+    public int getRoundsLeft() {
+        return Math.max(0, LIFESPAN - roundsActive);
+    }
 
     /** Returns the total configured lifespan in rounds for a mystery cell. */
-    public int getLifespan() { return LIFESPAN; }
+    public int getLifespan() {
+        return LIFESPAN;
+    }
 }

@@ -5,5 +5,8 @@ import com.ludot.events.GameEvent;
 import com.ludot.model.Player;
 
 public record DiceRollEvent(Player player, int roll) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

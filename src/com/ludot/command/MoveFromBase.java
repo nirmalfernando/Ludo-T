@@ -32,5 +32,7 @@ public class MoveFromBase implements Move {
     }
 
     
-    public Piece getPiece() { return piece; }
+    public Piece getPiece() {
+        return piece;
+    }
 }

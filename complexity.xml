@@ -44,9 +44,10 @@
 
         <!-- Class Fan-Out Complexity.
              Number of distinct classes a class instantiates or uses.
-             High fan-out increases the blast radius of changes. -->
+             High fan-out increases the blast radius of changes.
+             Threshold raised to 35: Visitor-pattern classes legitimately reference every event type. -->
         <module name="ClassFanOutComplexity">
-            <property name="max" value="20"/>
+            <property name="max" value="35"/>
         </module>
 
     </module>

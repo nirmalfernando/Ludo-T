@@ -1,4 +1,5 @@
 package com.ludot.rules.dice;
+
 import com.ludot.rules.block.BlockRule;
 
 public class LudoTDiceRule extends BaseDiceRule {
@@ -12,5 +13,7 @@ public class LudoTDiceRule extends BaseDiceRule {
     }
 
     
-    public BlockRule getBlockRule() { return blockRule; }
+    public BlockRule getBlockRule() {
+        return blockRule;
+    }
 }

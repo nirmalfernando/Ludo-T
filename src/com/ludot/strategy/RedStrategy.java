@@ -21,14 +21,18 @@ public class RedStrategy implements PlayerStrategy {
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
         // 1. Capture takes absolute priority
         Optional<Move> capture = StrategyHelper.findCapture(validMoves);
-        if (capture.isPresent()) return capture.get();
+        if (capture.isPresent()) {
+            return capture.get();
+        }
 
         long onBoard = pieces.stream().filter(p -> p.getPosition() != null).count();
 
         // 2. No pieces on board — exit base to maintain at least one on the path
         if (onBoard == 0) {
             Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
-            if (fromBase.isPresent()) return fromBase.get();
+            if (fromBase.isPresent()) {
+                return fromBase.get();
+            }
         }
 
         // 3. Move the piece that is currently closest to any opponent (non-block board moves)
@@ -55,7 +59,9 @@ public class RedStrategy implements PlayerStrategy {
 
     private int minDistToOpponent(Move m, List<Piece> opponents) {
         Cell dest = destinationOf(m);
-        if (dest == null) return Integer.MAX_VALUE;
+        if (dest == null) {
+            return Integer.MAX_VALUE;
+        }
         return opponents.stream()
                 .filter(op -> op.getPosition() != null)
                 .mapToInt(op -> StrategyHelper.circularDist(dest.getId(), op.getPosition().getId()))

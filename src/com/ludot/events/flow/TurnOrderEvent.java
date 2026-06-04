@@ -8,5 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 public record TurnOrderEvent(Player first, List<Player> order, Map<Colour, Integer> rollResults) implements GameEvent {
-    public void accept(EventVisitor v) { v.visit(this); }
+
+    public void accept(EventVisitor v) {
+        v.visit(this);
+    }
 }

@@ -1,4 +1,5 @@
 package com.ludot.model.state;
+
 import com.ludot.model.Piece;
 import com.ludot.model.Cell;
 import com.ludot.model.Board;
@@ -36,5 +37,7 @@ public class InHomeStraightState implements PieceState {
     }
 
     @Override
-    public String getStateName() { return "InHomeStraight"; }
+    public String getStateName() {
+        return "InHomeStraight";
+    }
 }
