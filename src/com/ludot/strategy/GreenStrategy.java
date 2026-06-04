@@ -1,6 +1,9 @@
 package com.ludot.strategy;
 
 import com.ludot.command.Move;
+import com.ludot.command.MoveOnBoard;
+import com.ludot.model.Cell;
+import com.ludot.model.Colour;
 import com.ludot.model.GameState;
 import com.ludot.model.Piece;
 import java.util.List;
@@ -11,9 +14,15 @@ public class GreenStrategy implements PlayerStrategy {
 
     @Override
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
-        // 1. Always exit base on 6 — keeps pieces flowing onto the board to enable block formation
         Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
+
+        // 1. S-G1: exit base on 6, UNLESS a board move would form a new block this turn.
+        //    Block formation is more valuable than adding a fresh piece from base.
         if (fromBase.isPresent()) {
+            Optional<Move> blockForming = findBlockFormingMove(validMoves, pieces);
+            if (blockForming.isPresent()) {
+                return blockForming.get();
+            }
             return fromBase.get();
         }
 
@@ -31,5 +40,20 @@ public class GreenStrategy implements PlayerStrategy {
 
         // 4. Any remaining move
         return StrategyHelper.firstOf(validMoves);
+    }
+
+    // A MoveOnBoard is "block-forming" when its destination already holds a friendly piece.
+    private Optional<Move> findBlockFormingMove(List<Move> validMoves, List<Piece> pieces) {
+        if (pieces.isEmpty()) return Optional.empty();
+        Colour colour = pieces.get(0).getColour();
+        return validMoves.stream()
+                .filter(m -> m instanceof MoveOnBoard mob && isBlockForming(mob, colour))
+                .findFirst();
+    }
+
+    private boolean isBlockForming(MoveOnBoard mob, Colour colour) {
+        Cell dest = StrategyHelper.computeDest(mob.getPiece(), mob.getSteps());
+        if (dest == null) return false;
+        return dest.getPieces().stream().anyMatch(p -> p.getColour() == colour);
     }
 }
