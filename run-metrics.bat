@@ -37,7 +37,7 @@ set CP=!CP:~1!
 
 echo.
 echo ============================================================
-echo  Step 1/5  --  Compile production sources
+echo  Step 1/7  --  Compile production sources
 echo ============================================================
 
 for /r "%SRC%" %%f in (*.java) do echo %%f >> "%OUT%\src_files.txt"
@@ -50,7 +50,7 @@ echo     OK.
 
 echo.
 echo ============================================================
-echo  Step 2/5  --  Compile test sources
+echo  Step 2/7  --  Compile test sources
 echo ============================================================
 set TEST_CP=%OUT%\classes;!CP!
 for /r "%TEST_SRC%" %%f in (*.java) do echo %%f >> "%OUT%\test_files.txt"
@@ -63,7 +63,7 @@ echo     OK.
 
 echo.
 echo ============================================================
-echo  Step 3/5  --  [TOOL 1] JaCoCo  --  Run tests + coverage
+echo  Step 3/7  --  [TOOL 1] JaCoCo  --  Run tests + coverage
 echo ============================================================
 set FULL_CP=%OUT%\test-classes;%OUT%\classes;!CP!
 java -javaagent:"%TOOLS%\jacocoagent.jar=destfile=%OUT%\jacoco.exec,includes=com.ludot.*" ^
@@ -83,7 +83,7 @@ echo     JaCoCo HTML report --^> %REPORT_DIR%\jacoco\index.html
 
 echo.
 echo ============================================================
-echo  Step 4/5  --  [TOOL 2] Checkstyle  --  Code style
+echo  Step 4/7  --  [TOOL 2] Checkstyle  --  Code style
 echo ============================================================
 java -jar "%TOOLS%\checkstyle.jar" ^
      -c "%ROOT%checkstyle.xml" ^
@@ -102,7 +102,7 @@ echo     Checkstyle reports --^> %REPORT_DIR%\checkstyle\
 
 echo.
 echo ============================================================
-echo  Step 5/6  --  [TOOL 3] PMD  --  Static analysis
+echo  Step 5/7  --  [TOOL 3] PMD  --  Static analysis
 echo ============================================================
 call "%TOOLS%\pmd\bin\pmd.bat" check ^
      -d "%SRC%" ^
@@ -115,7 +115,7 @@ echo     PMD report         --^> %REPORT_DIR%\pmd\pmd-result.xml
 
 echo.
 echo ============================================================
-echo  Step 6/6  --  [TOOL 4] SpotBugs  --  Bug pattern detection
+echo  Step 6/7  --  [TOOL 4] SpotBugs  --  Bug pattern detection
 echo ============================================================
 java -jar "%TOOLS%\spotbugs\lib\spotbugs.jar" ^
      -textui ^
@@ -130,10 +130,24 @@ echo     SpotBugs report    --^> %REPORT_DIR%\spotbugs\spotbugs-result.xml
 
 echo.
 echo ============================================================
+echo  Step 7/7  --  [TOOL 5] Cyclomatic Complexity
+echo ============================================================
+mkdir "%REPORT_DIR%\complexity"
+java -jar "%TOOLS%\checkstyle.jar" ^
+     -c "%ROOT%complexity.xml" ^
+     -f xml ^
+     -o "%REPORT_DIR%\complexity\complexity-result.xml" ^
+     "%SRC%"
+if errorlevel 1 echo     [WARN] Methods exceed complexity thresholds -- see report.
+echo     Complexity report  --^> %REPORT_DIR%\complexity\complexity-result.xml
+
+echo.
+echo ============================================================
 echo  All metrics complete.  Reports:
-echo    reports\jacoco\index.html      (open in browser)
-echo    reports\checkstyle\*.xml
-echo    reports\pmd\pmd-result.xml
-echo    reports\spotbugs\spotbugs-result.xml
+echo    reports\jacoco\index.html           (open in browser)
+echo    reports\checkstyle\*.xml            (code style)
+echo    reports\pmd\pmd-result.xml          (static analysis)
+echo    reports\spotbugs\spotbugs-result.xml (bug patterns)
+echo    reports\complexity\complexity-result.xml (cyclomatic complexity)
 echo ============================================================
 endlocal
