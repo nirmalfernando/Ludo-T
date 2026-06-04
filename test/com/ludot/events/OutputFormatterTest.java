@@ -241,10 +241,16 @@ class OutputFormatterTest {
         assertEquals("Red rolls 4", msg);
     }
 
-    @Test @DisplayName("TripleSixEvent format: exact spec text with colour and '6s'")
-    void tripleSixFormat() {
-        String msg = formatter.format(new TripleSixEvent(player(Colour.YELLOW)));
+    @Test @DisplayName("TripleSixEvent format: turn forfeited when no block present")
+    void tripleSixFormatNoBlock() {
+        String msg = formatter.format(new TripleSixEvent(player(Colour.YELLOW), false));
         assertEquals("Yellow rolled three consecutive 6s! Turn forfeited.", msg);
+    }
+
+    @Test @DisplayName("TripleSixEvent format: forced block break message when block present")
+    void tripleSixFormatWithBlock() {
+        String msg = formatter.format(new TripleSixEvent(player(Colour.YELLOW), true));
+        assertEquals("Yellow rolled three consecutive 6s! Forced block break! (T-6)", msg);
     }
 
     @Test @DisplayName("CoinTossEvent format: Heads for Clockwise, piece name included")

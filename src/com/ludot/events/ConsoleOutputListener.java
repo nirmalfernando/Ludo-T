@@ -15,7 +15,9 @@ import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.home.HomeEntryEvent;
+import com.ludot.events.home.HomeEntryRejectedEvent;
 import com.ludot.events.home.HomeReachEvent;
+import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
 import com.ludot.events.move.SkipTurnEvent;
@@ -44,9 +46,10 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
     @Override public void visit(TripleSixEvent e) { print(formatter.format(e)); }
 
     // movement
-    @Override public void visit(MoveEvent e)     { print(formatter.format(e)); }
-    @Override public void visit(CaptureEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(SkipTurnEvent e) { print(formatter.format(e)); }
+    @Override public void visit(MoveEvent e)         { print(formatter.format(e)); }
+    @Override public void visit(CaptureEvent e)      { print(formatter.format(e)); }
+    @Override public void visit(SkipTurnEvent e)     { print(formatter.format(e)); }
+    @Override public void visit(ApproachPassEvent e) { print(formatter.format(e)); }
 
     // block
     @Override public void visit(BlockFormEvent e)  { print(formatter.format(e)); }
@@ -54,8 +57,9 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
     @Override public void visit(BlockBreakEvent e) { print(formatter.format(e)); }
 
     // home straight
-    @Override public void visit(HomeEntryEvent e) { print(formatter.format(e)); }
-    @Override public void visit(HomeReachEvent e) { print(formatter.format(e)); }
+    @Override public void visit(HomeEntryEvent e)         { print(formatter.format(e)); }
+    @Override public void visit(HomeReachEvent e)         { print(formatter.format(e)); }
+    @Override public void visit(HomeEntryRejectedEvent e) { print(formatter.format(e)); }
 
     // mystery cell
     @Override public void visit(MysterySpawnEvent e)   { print(formatter.format(e)); }

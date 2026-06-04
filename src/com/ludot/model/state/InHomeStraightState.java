@@ -34,4 +34,7 @@ public class InHomeStraightState implements PieceState {
     public boolean canMove() {
         return true;
     }
+
+    @Override
+    public String getStateName() { return "InHomeStraight"; }
 }

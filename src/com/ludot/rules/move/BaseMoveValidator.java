@@ -7,10 +7,13 @@ import com.ludot.model.Cell;
 import com.ludot.model.Direction;
 import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
+import com.ludot.rules.GameRule;
+import com.ludot.rules.MoveContext;
+import com.ludot.rules.RuleResult;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class BaseMoveValidator {
+public abstract class BaseMoveValidator implements GameRule {
 
     protected final RandomProvider random;
 
@@ -53,4 +56,19 @@ public abstract class BaseMoveValidator {
     public boolean canEnterHomeStraight(Piece piece) {
         return piece.canEnterHomeStraight();
     }
+
+    @Override
+    public boolean isApplicable(MoveContext ctx) {
+        return ctx.piece() != null && ctx.piece().getPosition() != null;
+    }
+
+    @Override
+    public RuleResult apply(MoveContext ctx) {
+        boolean valid = isValidMove(ctx.piece(), ctx.roll());
+        return valid ? RuleResult.success("Move destination is valid")
+                     : RuleResult.failure("No valid move destination");
+    }
+
+    @Override
+    public int getPriority() { return 30; }
 }

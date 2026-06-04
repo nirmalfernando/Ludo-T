@@ -15,7 +15,9 @@ import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.home.HomeEntryEvent;
+import com.ludot.events.home.HomeEntryRejectedEvent;
 import com.ludot.events.home.HomeReachEvent;
+import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
 import com.ludot.events.move.SkipTurnEvent;
@@ -36,6 +38,7 @@ public interface EventVisitor {
     void visit(MoveEvent e);
     void visit(CaptureEvent e);
     void visit(SkipTurnEvent e);
+    void visit(ApproachPassEvent e);
 
     // block
     void visit(BlockFormEvent e);
@@ -45,6 +48,7 @@ public interface EventVisitor {
     // home straight
     void visit(HomeEntryEvent e);
     void visit(HomeReachEvent e);
+    void visit(HomeEntryRejectedEvent e);
 
     // mystery cell
     void visit(MysterySpawnEvent e);

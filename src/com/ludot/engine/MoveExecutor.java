@@ -12,10 +12,12 @@ import com.ludot.effects.TeleportDestination;
 import com.ludot.events.OutputFormatter;
 import com.ludot.events.block.BlockFormEvent;
 import com.ludot.events.block.BlockMoveEvent;
+import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.dice.CoinTossEvent;
 import com.ludot.events.EventBus;
 import com.ludot.events.home.HomeEntryEvent;
+import com.ludot.events.home.HomeEntryRejectedEvent;
 import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.MoveEvent;
 import com.ludot.events.mystery.MysteryTeleportEvent;
@@ -91,9 +93,13 @@ public class MoveExecutor {
     private MoveResult executeOnBoard(MoveOnBoard mob, Player player) {
         Piece piece = mob.getPiece();
         Cell from = piece.getPosition();
+        int passCountBefore = piece.getApproachPassCount();
         PieceState stateBefore = piece.getState();
         MoveResult result = mob.execute();
         Cell dest = piece.getPosition();
+        if (piece.getApproachPassCount() > passCountBefore) {
+            eventBus.publish(new ApproachPassEvent(piece, piece.getApproachPassCount()));
+        }
         eventBus.publish(new MoveEvent(player, piece, from, dest, mob.getSteps()));
         if (piece.getState() instanceof AtHomeState) {
             eventBus.publish(new HomeReachEvent(piece));
@@ -184,6 +190,13 @@ public class MoveExecutor {
                     .map(td -> OutputFormatter.buildEffectDescription(piece, td, dirBefore))
                     .orElse("");
             eventBus.publish(new MysteryTeleportEvent(piece, player, dest, newPos, destName, effectDesc));
+        }
+        // T-7: piece reached its approach cell but lacks the required capture count
+        if (piece.canEnterHomeStraight()
+                && ruleEngine.getHomeEntryRule() != null
+                && !ruleEngine.getHomeEntryRule().canEnterHomeStraight(piece)) {
+            int capturesNeeded = Math.max(1 - piece.getCaptureCount(), 1);
+            eventBus.publish(new HomeEntryRejectedEvent(piece, capturesNeeded));
         }
         ruleEngine.applyLandingEffects(piece);
     }

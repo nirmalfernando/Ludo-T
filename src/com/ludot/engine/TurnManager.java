@@ -14,6 +14,7 @@ import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
+import com.ludot.model.GameState;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
@@ -92,7 +93,11 @@ public class TurnManager {
 
     /** Handles a triple-six penalty by forcing a block break and moving each freed piece six cells (Rule T-6). */
     public void handleTripleSix(Player player) {
-        eventBus.publish(new TripleSixEvent(player));
+        boolean hasBlock = Board.getInstance().getStandardPath().stream()
+                .anyMatch(cell -> cell.hasBlock()
+                              && !cell.getPieces().isEmpty()
+                              && cell.getPieces().get(0).getColour() == player.getColour());
+        eventBus.publish(new TripleSixEvent(player, hasBlock));
         for (Cell cell : Board.getInstance().getStandardPath()) {
             if (cell.hasBlock() && cell.getPieces().get(0).getColour() == player.getColour()) {
                 List<Piece> block = new ArrayList<>(cell.getPieces());

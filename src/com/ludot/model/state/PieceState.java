@@ -10,4 +10,6 @@ public interface PieceState {
     List<Move> handleRoll(Piece piece, int roll);
 
     boolean canMove();
+
+    String getStateName();
 }

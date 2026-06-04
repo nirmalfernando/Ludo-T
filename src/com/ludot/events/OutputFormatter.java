@@ -15,7 +15,9 @@ import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.home.HomeEntryEvent;
+import com.ludot.events.home.HomeEntryRejectedEvent;
 import com.ludot.events.home.HomeReachEvent;
+import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
 import com.ludot.events.move.SkipTurnEvent;
@@ -79,6 +81,9 @@ public class OutputFormatter {
     }
 
     public String format(TripleSixEvent e) {
+        if (e.hasBlock()) {
+            return cap(e.player().getColour()) + " rolled three consecutive 6s! Forced block break! (T-6)";
+        }
         return cap(e.player().getColour()) + " rolled three consecutive 6s! Turn forfeited.";
     }
 
@@ -99,6 +104,10 @@ public class OutputFormatter {
 
     public String format(SkipTurnEvent e) {
         return cap(e.player().getColour()) + " has no valid moves. Turn skipped.";
+    }
+
+    public String format(ApproachPassEvent e) {
+        return e.piece().getName() + " passes approach cell (pass count: " + e.passCount() + ")";
     }
 
     // block
@@ -130,6 +139,11 @@ public class OutputFormatter {
 
     public String format(HomeReachEvent e) {
         return e.piece().getName() + " reaches Home!";
+    }
+
+    public String format(HomeEntryRejectedEvent e) {
+        return e.piece().getName() + " cannot enter home straight (needs "
+                + e.capturesNeeded() + " more capture(s)) (T-7)";
     }
 
     // mystery cell

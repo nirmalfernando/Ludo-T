@@ -6,10 +6,13 @@ import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Direction;
 import com.ludot.model.Piece;
+import com.ludot.rules.GameRule;
+import com.ludot.rules.MoveContext;
+import com.ludot.rules.RuleResult;
 import java.util.Comparator;
 import java.util.List;
 
-public class BlockRule {
+public class BlockRule implements GameRule {
 
     private final RandomProvider random;
 
@@ -59,6 +62,21 @@ public class BlockRule {
             }
         }
     }
+
+    @Override
+    public boolean isApplicable(MoveContext ctx) {
+        Cell dest = ctx.destination();
+        return dest != null && isBlocked(ctx.piece(), dest);
+    }
+
+    @Override
+    public RuleResult apply(MoveContext ctx) {
+        return isApplicable(ctx) ? RuleResult.failure("Destination is blocked by an opponent blockade")
+                                 : RuleResult.notApplicable();
+    }
+
+    @Override
+    public int getPriority() { return 50; }
 
     // cells remaining in the piece's current direction before reaching its approach cell
     private int distanceToApproach(Piece piece, Board board) {

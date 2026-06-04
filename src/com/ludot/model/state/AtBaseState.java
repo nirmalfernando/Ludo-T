@@ -26,4 +26,6 @@ public class AtBaseState implements PieceState {
         return false; // only a roll of 6 unlocks movement, handled in handleRoll
     }
 
+    @Override
+    public String getStateName() { return "AtBase"; }
 }

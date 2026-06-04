@@ -46,4 +46,7 @@ public class AtBriefingState implements PieceState {
     public int getRoundsLeft() {
         return roundsLeft;
     }
+
+    @Override
+    public String getStateName() { return "AtBriefing"; }
 }
