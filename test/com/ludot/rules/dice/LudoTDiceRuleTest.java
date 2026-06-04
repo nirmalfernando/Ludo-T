@@ -1,6 +1,7 @@
 package com.ludot.rules.dice;
 import com.ludot.dice.FixedRandomProvider;
-import com.ludot.model.*;
+import com.ludot.model.Colour;
+import com.ludot.model.Player;
 import com.ludot.rules.block.BlockRule;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

@@ -1,5 +1,6 @@
 package com.ludot.command;
-import com.ludot.model.*;
+import com.ludot.model.Colour;
+import com.ludot.model.Player;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

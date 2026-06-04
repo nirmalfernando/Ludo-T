@@ -1,5 +1,8 @@
 package com.ludot.factory;
-import com.ludot.model.*;
+import com.ludot.model.Board;
+import com.ludot.model.Cell;
+import com.ludot.model.CellType;
+import com.ludot.model.Colour;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

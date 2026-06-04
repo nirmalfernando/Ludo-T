@@ -1,5 +1,6 @@
 package com.ludot.rules.dice;
-import com.ludot.model.*;
+import com.ludot.model.Colour;
+import com.ludot.model.Player;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

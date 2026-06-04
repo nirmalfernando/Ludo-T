@@ -1,7 +1,11 @@
 package com.ludot.rules.mystery;
 import com.ludot.dice.FixedRandomProvider;
-import com.ludot.effects.*;
-import com.ludot.model.*;
+import com.ludot.effects.EnergisedEffect;
+import com.ludot.effects.NoEffect;
+import com.ludot.effects.SickEffect;
+import com.ludot.model.Colour;
+import com.ludot.model.Direction;
+import com.ludot.model.Piece;
 import com.ludot.model.state.AtBriefingState;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

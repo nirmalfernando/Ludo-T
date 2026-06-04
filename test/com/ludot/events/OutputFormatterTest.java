@@ -1,23 +1,44 @@
 package com.ludot.events;
 
+import com.ludot.events.dice.CoinTossEvent;
+import com.ludot.events.dice.DiceRollEvent;
+import com.ludot.events.dice.TripleSixEvent;
+import com.ludot.events.block.BlockFormEvent;
+import com.ludot.events.flow.GameStartEvent;
+import com.ludot.events.flow.RoundEndEvent;
 import com.ludot.events.flow.TurnOrderEvent;
+import com.ludot.events.flow.TurnStartEvent;
+import com.ludot.events.flow.WinEvent;
+import com.ludot.events.move.CaptureEvent;
+import com.ludot.events.move.SkipTurnEvent;
+import com.ludot.factory.CellFactory;
+import com.ludot.model.Board;
+import com.ludot.model.Cell;
+import com.ludot.model.CellType;
 import com.ludot.model.Colour;
+import com.ludot.model.Direction;
+import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("OutputFormatter - TurnOrderEvent messages")
+@DisplayName("OutputFormatter — all message formats")
 class OutputFormatterTest {
 
     private OutputFormatter formatter;
 
     @BeforeEach void setUp() {
+        Board.resetInstance();
+        CellFactory.initializeBoard(Board.getInstance());
         formatter = new OutputFormatter();
     }
+
+    @AfterEach void tearDown() { Board.resetInstance(); }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
@@ -210,5 +231,98 @@ class OutputFormatterTest {
                 .count();
         assertEquals(2, alphaCount,
                 "Should have two separate alphabetical notes, one per tie group");
+    }
+
+    // ── dice event formats ────────────────────────────────────────────────────
+
+    @Test @DisplayName("DiceRollEvent format: '[colour] rolls [value]'")
+    void diceRollFormat() {
+        String msg = formatter.format(new DiceRollEvent(player(Colour.RED), 4));
+        assertEquals("Red rolls 4", msg);
+    }
+
+    @Test @DisplayName("TripleSixEvent format: exact spec text with colour and '6s'")
+    void tripleSixFormat() {
+        String msg = formatter.format(new TripleSixEvent(player(Colour.YELLOW)));
+        assertEquals("Yellow rolled three consecutive 6s! Turn forfeited.", msg);
+    }
+
+    @Test @DisplayName("CoinTossEvent format: Heads for Clockwise, piece name included")
+    void coinTossHeadsFormat() {
+        Piece p = new Piece("R1", Colour.RED);
+        String msg = formatter.format(new CoinTossEvent(p, Direction.CLOCKWISE));
+        assertEquals("R1 exits base. Coin toss: Heads → Clockwise", msg);
+    }
+
+    @Test @DisplayName("CoinTossEvent format: Tails for Counter-Clockwise")
+    void coinTossTailsFormat() {
+        Piece p = new Piece("G2", Colour.GREEN);
+        String msg = formatter.format(new CoinTossEvent(p, Direction.COUNTER_CLOCKWISE));
+        assertEquals("G2 exits base. Coin toss: Tails → Counter-Clockwise", msg);
+    }
+
+    // ── move / capture formats ────────────────────────────────────────────────
+
+    @Test @DisplayName("SkipTurnEvent format: '[colour] has no valid moves. Turn skipped.'")
+    void skipTurnFormat() {
+        String msg = formatter.format(new SkipTurnEvent(player(Colour.BLUE)));
+        assertEquals("Blue has no valid moves. Turn skipped.", msg);
+    }
+
+    @Test @DisplayName("CaptureEvent format: three lines — capture, sent to base, bonus roll")
+    void captureEventThreeLines() {
+        Piece attacker = new Piece("R1", Colour.RED);
+        Piece victim   = new Piece("B1", Colour.BLUE);
+        Cell cell = Board.getInstance().getCell(9);
+        String msg = formatter.format(new CaptureEvent(attacker, victim, cell, null));
+        String[] lines = msg.split("\n");
+        assertEquals(3, lines.length, "CaptureEvent must produce exactly 3 lines");
+        assertEquals("R1 captures B1 at cell 9!", lines[0]);
+        assertEquals("B1 is sent to base.", lines[1]);
+        assertEquals("Red receives a bonus roll! (T-2)", lines[2]);
+    }
+
+    // ── block formats ─────────────────────────────────────────────────────────
+
+    @Test @DisplayName("BlockFormEvent format: '[piece] forms a blockade with [piece] at cell [id] (T-3)'")
+    void blockFormFormat() {
+        Piece p1 = new Piece("R1", Colour.RED);
+        Piece p2 = new Piece("R2", Colour.RED);
+        Cell cell = Board.getInstance().getCell(9);
+        String msg = formatter.format(new BlockFormEvent(List.of(p1, p2), cell));
+        assertEquals("R1 forms a blockade with R2 at cell 9 (T-3)", msg);
+    }
+
+    // ── game flow formats ─────────────────────────────────────────────────────
+
+    @Test @DisplayName("GameStartEvent format: starts with '=== LUDO-T GAME START ==='")
+    void gameStartBanner() {
+        String msg = formatter.format(new GameStartEvent(List.of(player(Colour.RED))));
+        assertTrue(msg.startsWith("=== LUDO-T GAME START ==="),
+                "GameStartEvent must start with the banner");
+        assertTrue(msg.contains("Determining first player..."),
+                "GameStartEvent must include roll-off prompt");
+    }
+
+    @Test @DisplayName("TurnStartEvent format: '--- [colour]'s turn ---'")
+    void turnStartFormat() {
+        String msg = formatter.format(new TurnStartEvent(player(Colour.GREEN)));
+        assertTrue(msg.contains("--- Green's turn ---"));
+    }
+
+    @Test @DisplayName("WinEvent format: two lines — banner and round count")
+    void winEventFormat() {
+        String msg = formatter.format(new WinEvent(player(Colour.RED), 15));
+        String[] lines = msg.split("\n");
+        assertEquals(2, lines.length, "WinEvent must produce exactly 2 lines");
+        assertEquals("=== RED WINS! ===", lines[0]);
+        assertEquals("Game finished in 15 rounds.", lines[1]);
+    }
+
+    @Test @DisplayName("RoundEndEvent format: first line is '=== Round N Status ==='")
+    void roundEndHeaderPresent() {
+        String msg = formatter.format(new RoundEndEvent(3, List.of(player(Colour.RED))));
+        assertTrue(msg.startsWith("=== Round 3 Status ==="),
+                "RoundEndEvent must start with the round-status header");
     }
 }

@@ -1,6 +1,12 @@
 package com.ludot.engine;
 import com.ludot.factory.CellFactory;
-import com.ludot.model.*;
+import com.ludot.model.Board;
+import com.ludot.model.Cell;
+import com.ludot.model.Colour;
+import com.ludot.model.Direction;
+import com.ludot.model.GameState;
+import com.ludot.model.Piece;
+import com.ludot.model.Player;
 import com.ludot.model.state.OnBoardState;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;

@@ -1,15 +1,26 @@
 package com.ludot.engine;
-import com.ludot.command.*;
+import com.ludot.command.CaptureMove;
+import com.ludot.command.MoveFromBase;
+import com.ludot.command.MoveOnBoard;
 import com.ludot.dice.FixedRandomProvider;
-import com.ludot.events.*;
+import com.ludot.events.EventBus;
+import com.ludot.events.GameEvent;
 import com.ludot.events.dice.CoinTossEvent;
 import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
-import com.ludot.factory.*;
-import com.ludot.model.*;
-import com.ludot.model.state.*;
+import com.ludot.factory.CellFactory;
+import com.ludot.factory.RuleEngineFactory;
+import com.ludot.model.Board;
+import com.ludot.model.Cell;
+import com.ludot.model.Colour;
+import com.ludot.model.Direction;
+import com.ludot.model.Piece;
+import com.ludot.model.state.AtBaseState;
+import com.ludot.model.state.InHomeStraightState;
+import com.ludot.model.state.OnBoardState;
 import com.ludot.rules.RuleEngine;
+import com.ludot.rules.block.BlockRule;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -72,5 +83,51 @@ class MoveExecutorTest {
         penultimate.addPiece(p); p.setPosition(penultimate); p.setState(new InHomeStraightState());
         executor.execute(new MoveOnBoard(p, 1));
         assertTrue(published.stream().anyMatch(ev -> ev instanceof HomeReachEvent));
+    }
+
+    // ── T-5: block formation must save originalDirection ─────────────────────
+
+    @Test @DisplayName("T-5: block formation saves originalDirection for all pieces in the block")
+    void blockFormationSavesOriginalDirection() {
+        Piece resident = new Piece("R1", Colour.RED);
+        Piece mover    = new Piece("R2", Colour.RED);
+        Cell cell5 = Board.getInstance().getCell(5);
+        Cell cell3 = Board.getInstance().getCell(3);
+
+        cell5.addPiece(resident); resident.setPosition(cell5);
+        resident.setState(new OnBoardState()); resident.setDirection(Direction.CLOCKWISE);
+
+        cell3.addPiece(mover); mover.setPosition(cell3);
+        mover.setState(new OnBoardState()); mover.setDirection(Direction.CLOCKWISE);
+
+        executor.execute(new MoveOnBoard(mover, 2)); // lands on cell5 → forms block
+
+        assertEquals(Direction.CLOCKWISE, mover.getOriginalDirection(),
+                "T-5: mover's originalDirection must be saved when block forms");
+        assertEquals(Direction.CLOCKWISE, resident.getOriginalDirection(),
+                "T-5: resident's originalDirection must be saved when block forms");
+    }
+
+    @Test @DisplayName("T-5: full cycle — block forms, directions saved, break restores them")
+    void blockFormationAndBreakCycle_T5() {
+        Piece p1 = new Piece("R1", Colour.RED);
+        Piece p2 = new Piece("R2", Colour.RED);
+        Cell cell5 = Board.getInstance().getCell(5);
+        Cell cell3 = Board.getInstance().getCell(3);
+
+        cell5.addPiece(p1); p1.setPosition(cell5);
+        p1.setState(new OnBoardState()); p1.setDirection(Direction.CLOCKWISE);
+        cell3.addPiece(p2); p2.setPosition(cell3);
+        p2.setState(new OnBoardState()); p2.setDirection(Direction.CLOCKWISE);
+
+        executor.execute(new MoveOnBoard(p2, 2)); // forms block, originalDirections saved
+
+        // simulate break (BlockRule.forceBreakBlock restores originalDirection)
+        new BlockRule(new FixedRandomProvider()).forceBreakBlock(List.of(p1, p2));
+
+        assertEquals(Direction.CLOCKWISE, p1.getDirection(), "T-5: p1 direction must be restored");
+        assertEquals(Direction.CLOCKWISE, p2.getDirection(), "T-5: p2 direction must be restored");
+        assertNull(p1.getOriginalDirection(), "T-5: originalDirection must be cleared after break");
+        assertNull(p2.getOriginalDirection(), "T-5: originalDirection must be cleared after break");
     }
 }

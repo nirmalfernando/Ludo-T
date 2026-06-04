@@ -1,7 +1,9 @@
 package com.ludot.events;
 
 import com.ludot.events.dice.DiceRollEvent;
+import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
+import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
@@ -96,14 +98,32 @@ class ConsoleOutputListenerTest {
         assertFalse(output().isBlank(), "MysteryExpireEvent must produce output");
     }
 
-    // ── CoinTossEvent is suppressed (returns blank) ──────────────────────────
+    // ── CoinTossEvent is printed (Phase 3: no longer suppressed) ────────────
 
-    @Test @DisplayName("CoinTossEvent produces no console output (intentionally suppressed)")
-    void coinTossSuppressed() {
+    @Test @DisplayName("CoinTossEvent produces non-blank output with coin toss result")
+    void coinTossProducesOutput() {
         com.ludot.model.Piece piece = new com.ludot.model.Piece("R1", Colour.RED);
+        piece.setDirection(com.ludot.model.Direction.CLOCKWISE);
         bus.publish(new com.ludot.events.dice.CoinTossEvent(piece, com.ludot.model.Direction.CLOCKWISE));
-        assertTrue(output().isBlank(),
-                "CoinTossEvent must not produce any console output (suppressed in formatter)");
+        assertFalse(output().isBlank(), "CoinTossEvent must produce console output");
+        assertTrue(output().contains("R1"), "Output must contain piece name");
+        assertTrue(output().contains("Heads"), "Output must show Heads for Clockwise direction");
+    }
+
+    // ── GameStartEvent and TurnStartEvent ────────────────────────────────────
+
+    @Test @DisplayName("GameStartEvent produces the game-start banner")
+    void gameStartBannerPrinted() {
+        bus.publish(new GameStartEvent(List.of(player)));
+        assertTrue(output().contains("=== LUDO-T GAME START ==="),
+                "GameStartEvent must print the LUDO-T banner");
+    }
+
+    @Test @DisplayName("TurnStartEvent produces the turn header with player colour")
+    void turnStartHeaderPrinted() {
+        bus.publish(new TurnStartEvent(player));
+        assertTrue(output().contains("Red"), "TurnStartEvent must include player colour");
+        assertTrue(output().contains("turn"), "TurnStartEvent must include 'turn'");
     }
 
     // ── multiple events through one bus ──────────────────────────────────────

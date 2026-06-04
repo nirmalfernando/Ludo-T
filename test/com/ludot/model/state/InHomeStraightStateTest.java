@@ -1,7 +1,10 @@
 package com.ludot.model.state;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.factory.CellFactory;
-import com.ludot.model.*;
+import com.ludot.model.Board;
+import com.ludot.model.Cell;
+import com.ludot.model.Colour;
+import com.ludot.model.Piece;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
