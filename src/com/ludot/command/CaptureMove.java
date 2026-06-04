@@ -1,4 +1,4 @@
-﻿package com.ludot.command;
+package com.ludot.command;
 
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;

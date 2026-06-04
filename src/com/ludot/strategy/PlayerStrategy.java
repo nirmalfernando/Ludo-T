@@ -1,4 +1,4 @@
-﻿package com.ludot.strategy;
+package com.ludot.strategy;
 
 import java.util.List;
 import com.ludot.command.Move;

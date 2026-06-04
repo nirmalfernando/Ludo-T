@@ -1,4 +1,4 @@
-﻿package com.ludot.rules.mystery;
+package com.ludot.rules.mystery;
 
 import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;

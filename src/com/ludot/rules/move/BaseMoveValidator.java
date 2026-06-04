@@ -1,4 +1,4 @@
-﻿xpackage com.ludot.rules.move;
+package com.ludot.rules.move;
 
 import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;

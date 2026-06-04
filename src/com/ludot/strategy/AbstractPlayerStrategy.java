@@ -1,4 +1,4 @@
-﻿package com.ludot.strategy;
+package com.ludot.strategy;
 
 import com.ludot.command.BlockMove;
 import com.ludot.command.CaptureMove;

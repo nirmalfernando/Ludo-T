@@ -1,4 +1,4 @@
-﻿package com.ludot.effects;
+package com.ludot.effects;
 
 public class SickEffect implements Effect {
 

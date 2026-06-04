@@ -1,4 +1,4 @@
-﻿package com.ludot.command;
+package com.ludot.command;
 
 public interface Move {
 

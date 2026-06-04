@@ -1,4 +1,4 @@
-﻿package com.ludot.strategy;
+package com.ludot.strategy;
 
 import com.ludot.command.Move;
 import com.ludot.model.GameState;

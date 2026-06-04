@@ -1,4 +1,4 @@
-﻿package com.ludot.factory;
+package com.ludot.factory;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.dice.SeededRandomProvider;

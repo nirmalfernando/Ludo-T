@@ -29,10 +29,10 @@ class BaseMoveValidatorTest {
     }
     @AfterEach void tearDown() { Board.resetInstance(); }
     @Test @DisplayName("CW destination uses modulo arithmetic") void cwDestination() {
-        assertEquals(13, validator.getDestinationCell(piece, 3).getId()); // 10+3=13
+        assertEquals(13, validator.getDestinationCell(piece, 3).get().getId()); // 10+3=13
     }
-    @Test @DisplayName("null for piece at base") void nullForBasePiece() {
-        assertNull(validator.getDestinationCell(new Piece("R2", Colour.RED), 3));
+    @Test @DisplayName("empty Optional for piece at base") void emptyForBasePiece() {
+        assertTrue(validator.getDestinationCell(new Piece("R2", Colour.RED), 3).isEmpty());
     }
     @Test @DisplayName("assignDirection always returns CLOCKWISE") void alwaysClockwise() {
         assertEquals(Direction.CLOCKWISE, validator.assignDirection(piece));
@@ -44,7 +44,7 @@ class BaseMoveValidatorTest {
         Cell c51 = Board.getInstance().getCell(51);
         piece.getPosition().removePiece(piece);
         c51.addPiece(piece); piece.setPosition(c51);
-        assertEquals(2, validator.getDestinationCell(piece, 3).getId());
+        assertEquals(2, validator.getDestinationCell(piece, 3).get().getId());
     }
 
     @Test @DisplayName("CCW destination wraps correctly at cell 0")
@@ -54,6 +54,6 @@ class BaseMoveValidatorTest {
         piece.getPosition().removePiece(piece);
         c2.addPiece(piece); piece.setPosition(c2);
         piece.setDirection(Direction.COUNTER_CLOCKWISE);
-        assertEquals(51, validator.getDestinationCell(piece, 3).getId());
+        assertEquals(51, validator.getDestinationCell(piece, 3).get().getId());
     }
 }

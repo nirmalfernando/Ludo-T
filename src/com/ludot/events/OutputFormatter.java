@@ -64,7 +64,7 @@ public class OutputFormatter {
     public String format(CoinTossEvent e) {
         String toss = e.direction() == Direction.CLOCKWISE ? "Heads" : "Tails";
         String dir  = e.direction() == Direction.CLOCKWISE ? "Clockwise" : "Counter-Clockwise";
-        return e.piece().getName() + " exits base. Coin toss: " + toss + " → " + dir;
+        return e.piece().getName() + " exits base. Coin toss: " + toss + " -> " + dir;
     }
 
     public String format(TripleSixEvent e) {
@@ -136,8 +136,8 @@ public class OutputFormatter {
     }
 
     public String format(MysteryTeleportEvent e) {
-        String destLabel = destLabel(e.destName());
-        String posStr = e.newPos() != null ? " (cell " + e.newPos().getId() + ")" : "";
+        String destLabel = destLabel(e.effectName());
+        String posStr = e.to() != null ? " (cell " + e.to().getId() + ")" : "";
         StringBuilder sb = new StringBuilder();
         sb.append(e.piece().getName()).append(" lands on mystery cell! Teleporting...");
         sb.append("\n").append(e.piece().getName()).append(" teleported to ").append(destLabel).append(posStr);

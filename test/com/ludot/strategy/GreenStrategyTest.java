@@ -21,7 +21,7 @@ class GreenStrategyTest {
         Cell src = new Cell(0, CellType.STANDARD, null); Cell tgt = new Cell(3, CellType.STANDARD, null);
         src.addPiece(p1); src.addPiece(p2); p1.setPosition(src); p2.setPosition(src);
         Move skip  = new SkipMove(player);
-        Move block = new BlockMove(List.of(p1, p2), tgt, 3);
+        Move block = new BlockMove(List.of(p1, p2), tgt, 3, 6);
         assertInstanceOf(BlockMove.class, strategy.decideMoves(null, 3, List.of(), List.of(skip, block)));
     }
     @Test @DisplayName("prefers CaptureMove when no block") void captureWhenNoBlock() {

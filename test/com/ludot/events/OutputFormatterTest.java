@@ -106,7 +106,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 5, Colour.GREEN, 2, Colour.YELLOW, 1, Colour.BLUE, 4);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("Red player has the highest roll"),
+        assertTrue(msg.contains("Red goes first!"),
                 "Should name the highest roller");
     }
 
@@ -182,7 +182,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 6, Colour.GREEN, 2, Colour.YELLOW, 2, Colour.BLUE, 1);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("Red player has the highest roll"), "Winner should be named");
+        assertTrue(msg.contains("Red goes first!"), "Winner should be named");
         assertTrue(msg.contains("Green and Yellow") && msg.contains("rolled 2"),
                 "Tied pair should be noted");
     }
@@ -251,14 +251,14 @@ class OutputFormatterTest {
     void coinTossHeadsFormat() {
         Piece p = new Piece("R1", Colour.RED);
         String msg = formatter.format(new CoinTossEvent(p, Direction.CLOCKWISE));
-        assertEquals("R1 exits base. Coin toss: Heads → Clockwise", msg);
+        assertEquals("R1 exits base. Coin toss: Heads -> Clockwise", msg);
     }
 
     @Test @DisplayName("CoinTossEvent format: Tails for Counter-Clockwise")
     void coinTossTailsFormat() {
         Piece p = new Piece("G2", Colour.GREEN);
         String msg = formatter.format(new CoinTossEvent(p, Direction.COUNTER_CLOCKWISE));
-        assertEquals("G2 exits base. Coin toss: Tails → Counter-Clockwise", msg);
+        assertEquals("G2 exits base. Coin toss: Tails -> Counter-Clockwise", msg);
     }
 
     // ── move / capture formats ────────────────────────────────────────────────

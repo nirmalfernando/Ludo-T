@@ -1,4 +1,4 @@
-﻿package com.ludot.rules;
+package com.ludot.rules;
 
 import com.ludot.GameConstants;
 import com.ludot.command.BlockCaptureMove;

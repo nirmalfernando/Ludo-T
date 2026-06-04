@@ -1,4 +1,4 @@
-﻿package com.ludot.model;
+package com.ludot.model;
 
 import com.ludot.strategy.PlayerStrategy;
 import java.util.ArrayList;

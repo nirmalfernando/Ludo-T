@@ -69,9 +69,9 @@ class RuleEngineTest {
         assertFalse(moves.stream().allMatch(m -> m instanceof SkipMove),
                 "SkipMove must not be the only option when a partial move is available");
     }
-    @Test @DisplayName("calculateEffectiveSteps delegates to piece effect") void effectiveStesDelegates() {
+    @Test @DisplayName("getEffectiveSteps delegates to piece effect") void effectiveStesDelegates() {
         Piece p = new Piece("R1", Colour.RED);
         p.setActiveEffect(new com.ludot.effects.EnergisedEffect(4));
-        assertEquals(6, engine.calculateEffectiveSteps(p, 3));
+        assertEquals(6, p.getEffectiveSteps(3));
     }
 }

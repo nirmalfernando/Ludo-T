@@ -1,4 +1,4 @@
-﻿package com.ludot.rules.block;
+package com.ludot.rules.block;
 
 import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;

@@ -1,4 +1,4 @@
-﻿package com.ludot.rules.capture;
+package com.ludot.rules.capture;
 
 import com.ludot.model.Piece;
 
