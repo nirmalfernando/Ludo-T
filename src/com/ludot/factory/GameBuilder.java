@@ -21,6 +21,7 @@ public class GameBuilder {
     private int playerCount = 4;
     private RandomProvider customRandom = null;
     private EventBus customEventBus = null;
+    private RuleEngineFactory ruleEngineFactory = new LudoTRuleEngineFactory();
 
     public GameBuilder withSeed(long seed) {
         this.seed = seed;
@@ -42,6 +43,11 @@ public class GameBuilder {
         return this;
     }
 
+    public GameBuilder withRuleEngineFactory(RuleEngineFactory factory) {
+        this.ruleEngineFactory = factory;
+        return this;
+    }
+
     public GameEngine build() {
         RandomProvider random = customRandom != null ? customRandom : new SeededRandomProvider(seed);
 
@@ -57,7 +63,7 @@ public class GameBuilder {
             eventBus.subscribe(new ConsoleOutputListener(new OutputFormatter()));
         }
 
-        RuleEngine ruleEngine = RuleEngineFactory.createLudoTRuleEngine(random);
+        RuleEngine ruleEngine = ruleEngineFactory.create(random);
 
         MysteryManager mysteryManager = new MysteryManager(random, board);
         MoveExecutor moveExecutor = new MoveExecutor(board, ruleEngine, mysteryManager, eventBus, players);

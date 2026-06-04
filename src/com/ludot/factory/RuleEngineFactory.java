@@ -1,61 +1,24 @@
 package com.ludot.factory;
 
 import com.ludot.dice.RandomProvider;
-
-
-
-
-
-
-
-
-
-
-
 import com.ludot.rules.RuleEngine;
-import com.ludot.rules.move.BaseMoveValidator;
-import com.ludot.rules.move.LudoTMoveValidator;
-import com.ludot.rules.capture.BaseCaptureRule;
-import com.ludot.rules.capture.LudoTCaptureRule;
-import com.ludot.rules.block.BlockRule;
-import com.ludot.rules.home.BaseHomeEntryRule;
-import com.ludot.rules.home.LudoTHomeEntryRule;
-import com.ludot.rules.dice.BaseDiceRule;
-import com.ludot.rules.dice.LudoTDiceRule;
-import com.ludot.rules.mystery.MysteryRule;
-import com.ludot.rules.mystery.EffectRule;
 
-// Abstract Factory — assembles different RuleEngine configurations (classic vs LudoT variant).
-public class RuleEngineFactory {
+// Abstract Factory — subclasses assemble a complete, consistent family of rule objects.
+// Use createClassicRuleEngine() / createLudoTRuleEngine() for the two standard configurations,
+// or subclass RuleEngineFactory and pass an instance to GameBuilder.withRuleEngineFactory().
+public abstract class RuleEngineFactory {
 
-    private RuleEngineFactory() {}
+    // Produce a fully wired RuleEngine for a specific game variant.
+    public abstract RuleEngine create(RandomProvider random);
 
-    // base Ludo: always CW, no capture bonus, no approach-count requirement
+    // Convenience static accessor — delegates to ClassicRuleEngineFactory so existing callers
+    // (tests, legacy code) continue to work without modification.
     public static RuleEngine createClassicRuleEngine(RandomProvider random) {
-        BlockRule blockRule = new BlockRule(random);
-        return new RuleEngine(
-                new BaseMoveValidator(random) {}, // anonymous — uses base CW-only defaults
-                new BaseCaptureRule(),
-                blockRule,
-                new BaseHomeEntryRule(),
-                new BaseDiceRule(),
-                new MysteryRule(random),
-                new EffectRule(random)
-        );
+        return new ClassicRuleEngineFactory().create(random);
     }
 
-    // LudoT: coin-toss direction, T-7 capture requirement, T-2 bonus roll, T-6 block break
+    // Convenience static accessor — delegates to LudoTRuleEngineFactory.
     public static RuleEngine createLudoTRuleEngine(RandomProvider random) {
-        BlockRule blockRule = new BlockRule(random);
-        LudoTDiceRule diceRule = new LudoTDiceRule(blockRule);
-        return new RuleEngine(
-                new LudoTMoveValidator(random),
-                new LudoTCaptureRule(),
-                blockRule,
-                new LudoTHomeEntryRule(),
-                diceRule,
-                new MysteryRule(random),
-                new EffectRule(random)
-        );
+        return new LudoTRuleEngineFactory().create(random);
     }
 }
