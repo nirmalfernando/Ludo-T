@@ -8,9 +8,11 @@ import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.events.effect.EffectAppliedEvent;
 import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.RoundEndEvent;
 import com.ludot.events.flow.TurnOrderEvent;
+import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.home.HomeEntryEvent;
 import com.ludot.events.home.HomeReachEvent;
@@ -66,10 +68,12 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
     @Override public void visit(EffectExpiredEvent e) { print(formatter.format(e)); }
 
     // game flow
-    @Override public void visit(RollOffEvent e)   { print(formatter.format(e)); }
-    @Override public void visit(TurnOrderEvent e) { print(formatter.format(e)); }
-    @Override public void visit(RoundEndEvent e)  { print(formatter.format(e)); }
-    @Override public void visit(WinEvent e)       { print(formatter.format(e)); }
+    @Override public void visit(GameStartEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(TurnStartEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(RollOffEvent e)    { print(formatter.format(e)); }
+    @Override public void visit(TurnOrderEvent e)  { print(formatter.format(e)); }
+    @Override public void visit(RoundEndEvent e)   { print(formatter.format(e)); }
+    @Override public void visit(WinEvent e)        { print(formatter.format(e)); }
 
     private void print(String line) {
         if (line != null && !line.isBlank()) {

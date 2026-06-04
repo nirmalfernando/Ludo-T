@@ -2,6 +2,7 @@ package com.ludot.engine;
 
 import com.ludot.dice.RandomProvider;
 import com.ludot.events.EventBus;
+import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.TurnOrderEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
@@ -47,6 +48,7 @@ public class GameEngine {
     }
 
     public void run() {
+        eventBus.publish(new GameStartEvent(List.copyOf(players)));
         determineFirstPlayer();
         while (!checkWinCondition()) {
             playRound();
@@ -79,11 +81,15 @@ public class GameEngine {
     }
 
     public void playRound() {
+        boolean winMidRound = false;
         for (Player player : players) {
             if (!player.hasWon()) {
                 turnManager.executeTurn(player);
             }
-            if (checkWinCondition()) return;
+            if (checkWinCondition()) {
+                winMidRound = true;
+                break;
+            }
         }
         turnManager.incrementRound();
         int round = turnManager.getRoundCount();
@@ -113,7 +119,11 @@ public class GameEngine {
         // tick active piece effects (Energised/Sick countdown)
         ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
 
+        // always publish round-end status, even when someone won mid-round
         eventBus.publish(new RoundEndEvent(round, List.copyOf(players)));
+
+        // exit after publishing round status so the final board state is visible
+        if (winMidRound) return;
     }
 
     public boolean checkWinCondition() {

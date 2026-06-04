@@ -9,6 +9,7 @@ import com.ludot.dice.RandomProvider;
 import com.ludot.events.block.BlockBreakEvent;
 import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.EventBus;
+import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.model.Board;
@@ -46,6 +47,9 @@ public class TurnManager {
     }
 
     private void executeTurn(Player player, int bonusDepth) {
+        if (bonusDepth == 0) {
+            eventBus.publish(new TurnStartEvent(player));
+        }
         int roll = rollDice();
         eventBus.publish(new DiceRollEvent(player, roll));
 

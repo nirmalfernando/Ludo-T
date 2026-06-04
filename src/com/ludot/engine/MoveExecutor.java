@@ -121,7 +121,7 @@ public class MoveExecutor {
         Cell from = block.get(0).getPosition();
         MoveResult result = bm.execute();
         Cell dest = block.get(0).getPosition();
-        eventBus.publish(new BlockMoveEvent(block, from, dest, bm.getSteps()));
+        eventBus.publish(new BlockMoveEvent(block, from, dest, bm.getSteps(), bm.getOriginalRoll()));
         return result;
     }
 

@@ -10,11 +10,13 @@ public class BlockMove implements Move {
     private final List<Piece> block;
     private final Cell targetCell;
     private final int steps;
+    private final int originalRoll; // stored so the T-4 output line can show "roll X / size"
 
-    public BlockMove(List<Piece> block, Cell targetCell, int steps) {
+    public BlockMove(List<Piece> block, Cell targetCell, int steps, int originalRoll) {
         this.block = block;
         this.targetCell = targetCell;
         this.steps = steps;
+        this.originalRoll = originalRoll;
     }
 
     @Override
@@ -35,4 +37,5 @@ public class BlockMove implements Move {
 
     public List<Piece> getBlock() { return block; }
     public int getSteps() { return steps; }
+    public int getOriginalRoll() { return originalRoll; }
 }

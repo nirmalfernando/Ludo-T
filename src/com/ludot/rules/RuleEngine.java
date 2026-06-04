@@ -85,7 +85,7 @@ public class RuleEngine {
                                 // T-8: same-size block capture
                                 valid.add(new BlockCaptureMove(block, new ArrayList<>(target.getPieces()), target, blockSteps));
                             } else if (!blockRule.isBlocked(block.get(0), target)) {
-                                valid.add(new BlockMove(block, target, blockSteps));
+                                valid.add(new BlockMove(block, target, blockSteps, roll));
                             }
                         }
                         continue;

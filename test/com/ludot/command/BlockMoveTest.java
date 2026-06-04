@@ -19,15 +19,15 @@ class BlockMoveTest {
         block = List.of(p1, p2);
     }
     @Test @DisplayName("execute moves all block pieces to target cell") void movesAllPieces() {
-        new BlockMove(block, target, 3).execute();
+        new BlockMove(block, target, 3, 6).execute();
         assertEquals(2, target.getPieces().size());
     }
     @Test @DisplayName("source cell is empty after move") void sourceCellEmptied() {
-        new BlockMove(block, target, 3).execute();
+        new BlockMove(block, target, 3, 6).execute();
         assertFalse(source.isOccupied());
     }
     @Test @DisplayName("all pieces share the new position") void allPiecesSamePosition() {
-        new BlockMove(block, target, 3).execute();
+        new BlockMove(block, target, 3, 6).execute();
         for (Piece p : block) assertEquals(target, p.getPosition());
     }
 }

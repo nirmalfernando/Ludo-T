@@ -6,6 +6,6 @@ import com.ludot.model.Cell;
 import com.ludot.model.Piece;
 import java.util.List;
 
-public record BlockMoveEvent(List<Piece> block, Cell from, Cell to, int steps) implements GameEvent {
+public record BlockMoveEvent(List<Piece> block, Cell from, Cell to, int steps, int originalRoll) implements GameEvent {
     public void accept(EventVisitor v) { v.visit(this); }
 }

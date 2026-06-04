@@ -8,9 +8,11 @@ import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.events.effect.EffectAppliedEvent;
 import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.RoundEndEvent;
 import com.ludot.events.flow.TurnOrderEvent;
+import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.flow.WinEvent;
 import com.ludot.events.home.HomeEntryEvent;
 import com.ludot.events.home.HomeReachEvent;
@@ -55,6 +57,8 @@ public interface EventVisitor {
     void visit(EffectExpiredEvent e);
 
     // game flow
+    void visit(GameStartEvent e);
+    void visit(TurnStartEvent e);
     void visit(RollOffEvent e);
     void visit(TurnOrderEvent e);
     void visit(RoundEndEvent e);
