@@ -16,8 +16,4 @@ public class AtHomeState implements PieceState {
         return false;
     }
 
-    @Override
-    public String getStateName() {
-        return "AT_HOME";
-    }
 }

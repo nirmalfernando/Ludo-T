@@ -11,7 +11,8 @@ import java.util.List;
 
 public class EffectRule {
 
-    private static final int EFFECT_DURATION = GameConstants.EFFECT_DURATION;
+    private static final int EFFECT_DURATION   = GameConstants.EFFECT_DURATION;
+    private static final int BRIEFING_DURATION = GameConstants.BRIEFING_DURATION;
     private final RandomProvider random;
 
     
@@ -30,7 +31,7 @@ public class EffectRule {
 
     
     public void applyBeta(Piece piece) {
-        piece.setState(new AtBriefingState(EFFECT_DURATION));
+        piece.setState(new AtBriefingState(BRIEFING_DURATION));
     }
 
     

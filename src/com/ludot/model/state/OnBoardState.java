@@ -22,9 +22,4 @@ public class OnBoardState implements PieceState {
     public boolean canMove() {
         return true;
     }
-
-    @Override
-    public String getStateName() {
-        return "ON_BOARD";
-    }
 }
