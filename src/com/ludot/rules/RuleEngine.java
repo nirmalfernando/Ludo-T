@@ -9,6 +9,8 @@ import com.ludot.command.MoveFromBase;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.command.SkipMove;
 import com.ludot.effects.TeleportDestination;
+import com.ludot.events.EventBus;
+import com.ludot.events.move.PieceBlockedEvent;
 import com.ludot.model.state.OnBoardState;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -37,6 +39,7 @@ public class RuleEngine {
     private final BaseDiceRule diceRule;
     private final MysteryRule mysteryRule;
     private final EffectRule effectRule;
+    private EventBus eventBus;
 
     public RuleEngine(BaseMoveValidator moveValidator, BaseCaptureRule captureRule,
                       BlockRule blockRule, BaseHomeEntryRule homeEntryRule,
@@ -48,6 +51,10 @@ public class RuleEngine {
         this.diceRule = diceRule;
         this.mysteryRule = mysteryRule;
         this.effectRule = effectRule;
+    }
+
+    public void setEventBus(EventBus bus) {
+        this.eventBus = bus;
     }
 
     public List<Move> getValidMoves(Player player, int roll) {
@@ -75,6 +82,10 @@ public class RuleEngine {
         mfb.getPiece().setDirection(dir);
         Cell startCell = Board.getInstance().getStartCell(mfb.getPiece().getColour());
         if (blockRule != null && blockRule.isBlocked(mfb.getPiece(), startCell)) {
+            if (eventBus != null) {
+                eventBus.publish(new PieceBlockedEvent(mfb.getPiece(), null, startCell,
+                        List.copyOf(startCell.getPieces())));
+            }
             return;
         }
         valid.add(mfb);
@@ -97,6 +108,10 @@ public class RuleEngine {
         }
         Cell dest = destOpt.get();
         if (blockRule != null && blockRule.isBlocked(p, dest)) {
+            if (eventBus != null) {
+                eventBus.publish(new PieceBlockedEvent(p, p.getPosition(), dest,
+                        List.copyOf(dest.getPieces())));
+            }
             int partialSteps = stepsBeforeBlock(p, mob.getSteps());
             if (partialSteps > 0) {
                 valid.add(new MoveOnBoard(p, partialSteps));

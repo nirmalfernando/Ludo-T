@@ -68,6 +68,7 @@ public class GameBuilder {
         }
 
         RuleEngine ruleEngine = ruleEngineFactory.create(random);
+        ruleEngine.setEventBus(eventBus);
 
         MysteryManager mysteryManager = new MysteryManager(random, board);
         MoveExecutor moveExecutor = new MoveExecutor(board, ruleEngine, mysteryManager, eventBus, players);

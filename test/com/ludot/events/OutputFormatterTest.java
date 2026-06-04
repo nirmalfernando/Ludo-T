@@ -92,7 +92,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 3, Colour.GREEN, 3, Colour.YELLOW, 3, Colour.BLUE, 3);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("The order of play is Blue, Green, Red, and Yellow."),
+        assertTrue(msg.contains("The order of a single round is Blue, Green, Red, and Yellow."),
                 "Should list the alphabetical play order");
     }
 
@@ -106,7 +106,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 5, Colour.GREEN, 2, Colour.YELLOW, 1, Colour.BLUE, 4);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("Red goes first!"),
+        assertTrue(msg.contains("Red player has the highest roll and will begin the game."),
                 "Should name the highest roller");
     }
 
@@ -128,7 +128,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 5, Colour.GREEN, 2, Colour.YELLOW, 1, Colour.BLUE, 4);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("The order of play is Red, Blue, Green, and Yellow."),
+        assertTrue(msg.contains("The order of a single round is Red, Blue, Green, and Yellow."),
                 "Play order line should reflect descending roll order");
     }
 
@@ -182,7 +182,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 6, Colour.GREEN, 2, Colour.YELLOW, 2, Colour.BLUE, 1);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("Red goes first!"), "Winner should be named");
+        assertTrue(msg.contains("Red player has the highest roll and will begin the game."), "Winner should be named");
         assertTrue(msg.contains("Green and Yellow") && msg.contains("rolled 2"),
                 "Tied pair should be noted");
     }
@@ -209,7 +209,7 @@ class OutputFormatterTest {
         Map<Colour, Integer> rolls = Map.of(
                 Colour.RED, 4, Colour.GREEN, 4, Colour.YELLOW, 1, Colour.BLUE, 4);
         String msg = format(order, rolls);
-        assertTrue(msg.contains("The order of play is Blue, Green, Red, and Yellow."),
+        assertTrue(msg.contains("The order of a single round is Blue, Green, Red, and Yellow."),
                 "Tied group should be sorted alphabetically in the order line");
     }
 
@@ -235,10 +235,10 @@ class OutputFormatterTest {
 
     // ── dice event formats ────────────────────────────────────────────────────
 
-    @Test @DisplayName("DiceRollEvent format: '[colour] rolls [value]'")
+    @Test @DisplayName("DiceRollEvent format: '[colour] player rolled [value].'")
     void diceRollFormat() {
         String msg = formatter.format(new DiceRollEvent(player(Colour.RED), 4));
-        assertEquals("Red rolls 4", msg);
+        assertEquals("Red player rolled 4.", msg);
     }
 
     @Test @DisplayName("TripleSixEvent format: turn forfeited when no block present")
@@ -269,23 +269,22 @@ class OutputFormatterTest {
 
     // ── move / capture formats ────────────────────────────────────────────────
 
-    @Test @DisplayName("SkipTurnEvent format: '[colour] has no valid moves. Turn skipped.'")
+    @Test @DisplayName("SkipTurnEvent format: '[colour] player does not have other pieces available. Ignoring the throw.'")
     void skipTurnFormat() {
         String msg = formatter.format(new SkipTurnEvent(player(Colour.BLUE)));
-        assertEquals("Blue has no valid moves. Turn skipped.", msg);
+        assertEquals("Blue player does not have other pieces available. Ignoring the throw.", msg);
     }
 
-    @Test @DisplayName("CaptureEvent format: three lines — capture, sent to base, bonus roll")
-    void captureEventThreeLines() {
+    @Test @DisplayName("CaptureEvent format: two lines — spec capture message, bonus roll")
+    void captureEventTwoLines() {
         Piece attacker = new Piece("R1", Colour.RED);
         Piece victim   = new Piece("B1", Colour.BLUE);
         Cell cell = Board.getInstance().getCell(9);
         String msg = formatter.format(new CaptureEvent(attacker, victim, cell, null));
         String[] lines = msg.split("\n");
-        assertEquals(3, lines.length, "CaptureEvent must produce exactly 3 lines");
-        assertEquals("R1 captures B1 at cell 9!", lines[0]);
-        assertEquals("B1 is sent to base.", lines[1]);
-        assertEquals("Red receives a bonus roll! (T-2)", lines[2]);
+        assertEquals(2, lines.length, "CaptureEvent must produce exactly 2 lines");
+        assertEquals("Red piece R1 lands on square 9, captures Blue piece B1, and returns it to the base.", lines[0]);
+        assertEquals("Red receives a bonus roll! (T-2)", lines[1]);
     }
 
     // ── block formats ─────────────────────────────────────────────────────────
@@ -316,18 +315,18 @@ class OutputFormatterTest {
         assertTrue(msg.contains("--- Green's turn ---"));
     }
 
-    @Test @DisplayName("WinEvent format: two lines — banner and round count")
+    @Test @DisplayName("WinEvent format: two lines — spec win message and round count")
     void winEventFormat() {
         String msg = formatter.format(new WinEvent(player(Colour.RED), 15));
         String[] lines = msg.split("\n");
         assertEquals(2, lines.length, "WinEvent must produce exactly 2 lines");
-        assertEquals("=== RED WINS! ===", lines[0]);
+        assertEquals("Red player wins!!!", lines[0]);
         assertEquals("Game finished in 15 rounds.", lines[1]);
     }
 
     @Test @DisplayName("RoundEndEvent format: first line is '=== Round N Status ==='")
     void roundEndHeaderPresent() {
-        String msg = formatter.format(new RoundEndEvent(3, List.of(player(Colour.RED))));
+        String msg = formatter.format(RoundEndEvent.of(3, List.of(player(Colour.RED))));
         assertTrue(msg.startsWith("=== Round 3 Status ==="),
                 "RoundEndEvent must start with the round-status header");
     }

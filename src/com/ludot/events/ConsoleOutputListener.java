@@ -8,6 +8,7 @@ import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.events.effect.EffectAppliedEvent;
 import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.BriefingEscapeEvent;
 import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.RoundEndEvent;
@@ -20,6 +21,7 @@ import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
+import com.ludot.events.move.PieceBlockedEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
@@ -71,6 +73,11 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
 
     @Override
     public void visit(SkipTurnEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(PieceBlockedEvent e) {
         print(formatter.format(e));
     }
 
@@ -176,6 +183,11 @@ public class ConsoleOutputListener implements GameEventListener, EventVisitor {
 
     @Override
     public void visit(WinEvent e) {
+        print(formatter.format(e));
+    }
+
+    @Override
+    public void visit(BriefingEscapeEvent e) {
         print(formatter.format(e));
     }
 
