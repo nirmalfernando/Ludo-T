@@ -29,22 +29,26 @@ public class Piece {
     // moves piece on the standard 52-cell circular path using current direction
     public void move(int steps) {
         Board board = Board.getInstance();
-        int currentId = position.getId();
-        int newId;
-        if (direction == Direction.CLOCKWISE) {
-            newId = (currentId + steps) % GameConstants.BOARD_SIZE;
-        } else {
-            newId = ((currentId - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
+        int id = position.getId();
+
+        // T-1: walk step-by-step so that passing THROUGH the approach cell mid-move is counted,
+        // not just landing on it. A CCW piece skipping over cell 24 in a 6-step move still qualifies.
+        for (int i = 0; i < steps; i++) {
+            if (direction == Direction.CLOCKWISE) {
+                id = (id + 1) % GameConstants.BOARD_SIZE;
+            } else {
+                id = ((id - 1) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
+            }
+            if (direction == Direction.COUNTER_CLOCKWISE
+                    && board.getCell(id).equals(board.getApproachCell(colour))) {
+                incrementApproachPassCount();
+            }
         }
-        Cell newCell = board.getCell(newId);
+
+        Cell newCell = board.getCell(id);
         position.removePiece(this);
         newCell.addPiece(this);
         position = newCell;
-        // T-1: CCW pieces must pass their approach cell twice before entering home straight
-        if (direction == Direction.COUNTER_CLOCKWISE
-                && newCell.equals(board.getApproachCell(colour))) {
-            incrementApproachPassCount();
-        }
     }
 
     public void sendToBase() {

@@ -23,6 +23,13 @@ public class BlockRule {
         return cell.hasBlock() && cell.getPieces().get(0).getColour() != piece.getColour();
     }
 
+    // T-8: an attacking block of the same size can capture an opposing block
+    public boolean canCaptureBlock(List<Piece> attackers, Cell target) {
+        if (!target.hasBlock()) return false;
+        if (target.getPieces().get(0).getColour() == attackers.get(0).getColour()) return false;
+        return attackers.size() == target.getBlockSize();
+    }
+
     // T-4: landing on a same-colour cell forms a block
     public boolean canFormBlock(Piece piece, Cell cell) {
         if (!cell.isOccupied()) return false;

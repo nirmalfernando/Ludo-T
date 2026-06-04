@@ -32,6 +32,30 @@ class MysteryRuleTest {
         assertEquals(TeleportDestination.ALPHA,
             new MysteryRule(fp).resolveTeleport(new Piece("R1", Colour.RED), Board.getInstance()));
     }
+    @Test @DisplayName("resolveTeleport maps roll 2 to BETA") void roll2IsBeta() {
+        assertEquals(TeleportDestination.BETA,
+            new MysteryRule(new FixedRandomProvider().addMysteryEffects(2))
+                .resolveTeleport(new Piece("R1", Colour.RED), Board.getInstance()));
+    }
+
+    @Test @DisplayName("resolveTeleport maps roll 3 to GAMMA") void roll3IsGamma() {
+        assertEquals(TeleportDestination.GAMMA,
+            new MysteryRule(new FixedRandomProvider().addMysteryEffects(3))
+                .resolveTeleport(new Piece("R1", Colour.RED), Board.getInstance()));
+    }
+
+    @Test @DisplayName("resolveTeleport maps roll 4 to BASE") void roll4IsBase() {
+        assertEquals(TeleportDestination.BASE,
+            new MysteryRule(new FixedRandomProvider().addMysteryEffects(4))
+                .resolveTeleport(new Piece("R1", Colour.RED), Board.getInstance()));
+    }
+
+    @Test @DisplayName("resolveTeleport maps roll 5 to START_CELL") void roll5IsStartCell() {
+        assertEquals(TeleportDestination.START_CELL,
+            new MysteryRule(new FixedRandomProvider().addMysteryEffects(5))
+                .resolveTeleport(new Piece("R1", Colour.RED), Board.getInstance()));
+    }
+
     @Test @DisplayName("resolveTeleport maps roll 6 to APPROACH_CELL") void roll6IsApproach() {
         FixedRandomProvider fp = new FixedRandomProvider().addMysteryEffects(6);
         assertEquals(TeleportDestination.APPROACH_CELL,

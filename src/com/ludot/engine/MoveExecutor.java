@@ -132,6 +132,13 @@ public class MoveExecutor {
     private void checkBlockForm(Piece piece, Cell dest) {
         if (dest != null && dest.hasBlock() && dest.getPieces().contains(piece)
                 && dest.getBlockSize() >= 2) {
+            // T-5: save each piece's direction at the moment of block formation so it can be
+            // restored when the block breaks. Only set if not already stored (handles 3rd piece joining).
+            for (Piece p : dest.getPieces()) {
+                if (p.getOriginalDirection() == null) {
+                    p.setOriginalDirection(p.getDirection());
+                }
+            }
             eventBus.publish(new BlockFormEvent(dest.getPieces(), dest));
         }
     }

@@ -2,6 +2,7 @@ package com.ludot.engine;
 
 import com.ludot.GameConstants;
 import com.ludot.command.Move;
+import com.ludot.command.MoveOnBoard;
 import com.ludot.command.MoveResult;
 import com.ludot.command.SkipMove;
 import com.ludot.dice.RandomProvider;
@@ -85,6 +86,12 @@ public class TurnManager {
                 List<Piece> block = new ArrayList<>(cell.getPieces());
                 ruleEngine.getBlockRule().forceBreakBlock(block);
                 eventBus.publish(new BlockBreakEvent(block, cell));
+                // T-6: each piece moves 6 units in its restored direction after the break
+                for (Piece piece : block) {
+                    if (piece.getDirection() != null) {
+                        moveExecutor.execute(new MoveOnBoard(piece, GameConstants.LEAVE_BASE_ROLL), player);
+                    }
+                }
                 break; // a player can only have one block at a time
             }
         }

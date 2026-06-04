@@ -1,6 +1,7 @@
 package com.ludot.rules;
 
 import com.ludot.GameConstants;
+import com.ludot.command.BlockCaptureMove;
 import com.ludot.command.BlockMove;
 import com.ludot.rules.mystery.EffectRule;
 import com.ludot.rules.mystery.MysteryRule;
@@ -80,7 +81,10 @@ public class RuleEngine {
                         if (blockSteps > 0) {
                             Cell target = blockDestination(currentCell,
                                     blockRule.calcBlockMoveDir(block), blockSteps);
-                            if (!blockRule.isBlocked(block.get(0), target)) {
+                            if (blockRule.canCaptureBlock(block, target)) {
+                                // T-8: same-size block capture
+                                valid.add(new BlockCaptureMove(block, new ArrayList<>(target.getPieces()), target, blockSteps));
+                            } else if (!blockRule.isBlocked(block.get(0), target)) {
                                 valid.add(new BlockMove(block, target, blockSteps));
                             }
                         }
@@ -96,8 +100,10 @@ public class RuleEngine {
                     Cell dest = moveValidator.getDestinationCell(p, mob.getSteps());
                     if (dest == null) continue;
                     if (blockRule.isBlocked(p, dest)) {
-                        // T-3: piece stops at the cell just before the block instead of being skipped
-                        int partialSteps = mob.getSteps() - 1;
+                        // T-3: walk the path to find how many steps land on the cell immediately
+                        // before the block. Using effectiveSteps-1 was wrong for Energised pieces
+                        // (e.g. 12 effective steps with a block 3 cells away would give 11, not 2).
+                        int partialSteps = stepsBeforeBlock(p, mob.getSteps());
                         if (partialSteps > 0) {
                             valid.add(new MoveOnBoard(p, partialSteps));
                         }
@@ -127,6 +133,21 @@ public class RuleEngine {
             return occupants.get(0);
         }
         return null;
+    }
+
+    // walks the path one step at a time to find how many steps place the piece on the cell
+    // immediately before the first blockade encountered, up to maxSteps.
+    private int stepsBeforeBlock(Piece piece, int maxSteps) {
+        int id = piece.getPosition().getId();
+        for (int s = 1; s < maxSteps; s++) {
+            int testId = piece.getDirection() == Direction.CLOCKWISE
+                    ? (id + s) % GameConstants.BOARD_SIZE
+                    : ((id - s) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
+            if (blockRule.isBlocked(piece, Board.getInstance().getCell(testId))) {
+                return s - 1; // stop on the cell before this blocked cell
+            }
+        }
+        return maxSteps - 1; // block is exactly at the destination
     }
 
     // calculates the target cell for a block moving in its direction by the given steps

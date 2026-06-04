@@ -35,6 +35,15 @@ class MysteryManagerTest {
         m.tick();
         assertFalse(m.isActive(), "Cell should expire after 4 ticks");
     }
+    @Test @DisplayName("handleLanding returns null and has no side effects when no mystery is active")
+    void handleLandingReturnsNullWhenInactive() {
+        MysteryManager m = new MysteryManager(new FixedRandomProvider(), board);
+        // no spawnMystery call — manager is inactive
+        assertNull(m.handleLanding(new Piece("R1", Colour.RED)),
+                "handleLanding must return null when no mystery cell is active");
+        assertFalse(m.isActive(), "Manager must remain inactive after landing on nothing");
+    }
+
     @Test @DisplayName("handleLanding clears cell and returns destination") void handlesLanding() {
         FixedRandomProvider fp = new FixedRandomProvider().addCells(5).addMysteryEffects(1);
         MysteryManager m = new MysteryManager(fp, board);

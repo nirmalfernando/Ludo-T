@@ -24,12 +24,12 @@ public class MysteryRule {
         return roundCount > 2;
     }
 
-    // T-10: no consecutive repeat of the same cell location
+    // T-10: no consecutive repeat; must also land on an empty cell
     public Cell getRandomSpawnCell(Board board) {
         int cellId;
         do {
             cellId = random.getRandomCell(GameConstants.BOARD_SIZE);
-        } while (previousLocations.contains(cellId));
+        } while (previousLocations.contains(cellId) || board.getCell(cellId).isOccupied());
         previousLocations.clear();
         previousLocations.add(cellId);
         return board.getCell(cellId);

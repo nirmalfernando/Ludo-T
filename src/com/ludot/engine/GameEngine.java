@@ -91,17 +91,23 @@ public class GameEngine {
         // mystery cell lifecycle
         Cell cellBeforeSpawn = mysteryManager.getCurrentCell();
         mysteryManager.spawnMystery(round);
-        if (mysteryManager.isActive() && cellBeforeSpawn == null) {
+        boolean justSpawned = cellBeforeSpawn == null && mysteryManager.isActive();
+        if (justSpawned) {
             eventBus.publish(new MysterySpawnEvent(mysteryManager.getCurrentCell(),
                     mysteryManager.getLifespan()));
         }
-        Cell cellBeforeTick = mysteryManager.getCurrentCell();
-        mysteryManager.tick();
-        if (cellBeforeTick != null && !mysteryManager.isActive()) {
-            eventBus.publish(new MysteryExpireEvent(cellBeforeTick));
-        } else if (mysteryManager.isActive()) {
-            eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(),
-                    mysteryManager.getRoundsLeft()));
+
+        // T-10: do not tick on the same round the cell spawns — the lifespan is 4 full rounds,
+        // ticking on the spawn round would silently reduce it to 3.
+        if (!justSpawned) {
+            Cell cellBeforeTick = mysteryManager.getCurrentCell();
+            mysteryManager.tick();
+            if (cellBeforeTick != null && !mysteryManager.isActive()) {
+                eventBus.publish(new MysteryExpireEvent(cellBeforeTick));
+            } else if (mysteryManager.isActive()) {
+                eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(),
+                        mysteryManager.getRoundsLeft()));
+            }
         }
 
         // tick active piece effects (Energised/Sick countdown)
