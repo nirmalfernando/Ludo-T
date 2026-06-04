@@ -11,6 +11,15 @@ Thumbs.db
 .vscode/
 *.class
 
-# JaCoCo coverage reports
-jacoco.exec
-coverage/
+# Metrics tool JARs (downloaded by download-tools.bat / download-tools.sh)
+tools/*.jar
+tools/pmd/
+tools/spotbugs/
+tools/*.zip
+
+# Metrics reports and build output
+reports/
+out/
+
+# Game log file
+game_log.txt

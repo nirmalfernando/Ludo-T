@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<ruleset name="LUDO-T Ruleset"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+                             https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    <description>PMD rules for the LUDO-T assignment.</description>
+
+    <!-- Best practices -->
+    <rule ref="category/java/bestpractices.xml">
+        <exclude name="GuardLogStatement"/>
+        <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <!-- Console output is intentional in this console game -->
+        <exclude name="SystemPrintln"/>
+    </rule>
+
+    <!-- Code style -->
+    <rule ref="category/java/codestyle.xml">
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="AtLeastOneConstructor"/>
+        <exclude name="CommentDefaultAccessModifier"/>
+        <exclude name="CallSuperInConstructor"/>
+        <exclude name="LongVariable"/>
+        <exclude name="ShortVariable"/>
+        <!-- Adding final to every parameter and local variable is noisy and adds no safety here -->
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
+    </rule>
+
+    <!-- Design -->
+    <rule ref="category/java/design.xml">
+        <exclude name="LawOfDemeter"/>
+        <exclude name="LoosePackageCoupling"/>
+        <exclude name="DataClass"/>
+    </rule>
+
+    <!-- Error prone -->
+    <rule ref="category/java/errorprone.xml"/>
+
+    <!-- Performance -->
+    <rule ref="category/java/performance.xml"/>
+</ruleset>

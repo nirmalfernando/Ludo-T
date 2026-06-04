@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Dedicated cyclomatic complexity configuration for LUDO-T.
+  Run separately from checkstyle.xml so complexity results have their own report.
+
+  Metrics collected:
+    CyclomaticComplexity  - McCabe CC: counts branches (if/for/while/case/&&/||/?)
+    NPathComplexity       - number of distinct acyclic execution paths through a method
+    JavaNCSS              - non-commenting source statements per method / class / file
+    ClassFanOutComplexity - number of other classes a class depends on
+-->
+<module name="Checker">
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+
+    <module name="TreeWalker">
+
+        <!-- McCabe Cyclomatic Complexity (CC).
+             Threshold 10 is the widely accepted upper bound for a single method.
+             Methods above this are hard to test exhaustively. -->
+        <module name="CyclomaticComplexity">
+            <property name="max" value="10"/>
+            <property name="switchBlockAsSingleDecisionPoint" value="false"/>
+        </module>
+
+        <!-- NPath Complexity.
+             Counts acyclic execution paths; grows exponentially with nested branches.
+             Threshold 200 is the standard recommendation. -->
+        <module name="NPathComplexity">
+            <property name="max" value="200"/>
+        </module>
+
+        <!-- JavaNCSS (Non-Commenting Source Statements).
+             Tracks raw statement counts as a size/complexity proxy.
+             Method > 30, class > 300 signals a candidate for decomposition. -->
+        <module name="JavaNCSS">
+            <property name="methodMaximum" value="30"/>
+            <property name="classMaximum" value="300"/>
+            <property name="fileMaximum" value="750"/>
+        </module>
+
+        <!-- Class Fan-Out Complexity.
+             Number of distinct classes a class instantiates or uses.
+             High fan-out increases the blast radius of changes.
+             Threshold raised to 35: Visitor-pattern classes legitimately reference every event type. -->
+        <module name="ClassFanOutComplexity">
+            <property name="max" value="35"/>
+        </module>
+
+    </module>
+</module>

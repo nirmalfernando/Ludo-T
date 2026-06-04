@@ -1,0 +1,6 @@
+# Tool JARs and extracted distributions are downloaded by download-tools.bat / download-tools.sh
+# They are not committed to version control.
+*.jar
+*.zip
+pmd/
+spotbugs/
