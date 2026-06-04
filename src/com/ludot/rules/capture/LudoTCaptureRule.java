@@ -13,5 +13,8 @@ public class LudoTCaptureRule extends BaseCaptureRule {
 
     
     @Override
-    protected void postCapture(Piece attacker) {}
+    protected void postCapture(Piece attacker) {
+        // Bonus-roll signal is conveyed through MoveResult.grantsBonusRoll in MoveExecutor.executeCapture(),
+        // not here. This hook is retained for Template Method completeness.
+    }
 }

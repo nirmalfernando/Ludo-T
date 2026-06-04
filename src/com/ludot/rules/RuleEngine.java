@@ -66,7 +66,7 @@ public class RuleEngine {
                     Direction dir = moveValidator.assignDirection(mfb.getPiece());
                     mfb.getPiece().setDirection(dir);
                     Cell startCell = Board.getInstance().getStartCell(piece.getColour());
-                    if (blockRule.isBlocked(piece, startCell)) continue;
+                    if (blockRule != null && blockRule.isBlocked(piece, startCell)) continue;
                     // piece is still at base (null position) — can't capture until it has landed
                     valid.add(mfb);
 
@@ -75,7 +75,7 @@ public class RuleEngine {
                     Cell currentCell = p.getPosition();
 
                     // if piece is part of a block, the whole block moves as one unit (T-5)
-                    if (currentCell != null && currentCell.hasBlock()
+                    if (blockRule != null && currentCell != null && currentCell.hasBlock()
                             && !processedBlocks.contains(currentCell)) {
                         processedBlocks.add(currentCell);
                         List<Piece> block = new ArrayList<>(currentCell.getPieces());
@@ -94,7 +94,7 @@ public class RuleEngine {
                     }
 
                     // skip if piece is already in a block processed via another piece
-                    if (currentCell != null && currentCell.hasBlock()
+                    if (blockRule != null && currentCell != null && currentCell.hasBlock()
                             && processedBlocks.contains(currentCell)) {
                         continue;
                     }
@@ -102,7 +102,7 @@ public class RuleEngine {
                     Optional<Cell> destOpt = moveValidator.getDestinationCell(p, mob.getSteps());
                     if (destOpt.isEmpty()) continue;
                     Cell dest = destOpt.get();
-                    if (blockRule.isBlocked(p, dest)) {
+                    if (blockRule != null && blockRule.isBlocked(p, dest)) {
                         // T-3: walk the path to find how many steps land on the cell immediately
                         // before the block. Using effectiveSteps-1 was wrong for Energised pieces
                         // (e.g. 12 effective steps with a block 3 cells away would give 11, not 2).
@@ -185,12 +185,14 @@ public class RuleEngine {
     private void applyTeleport(Piece piece, TeleportDestination dest) {
         Board board = Board.getInstance();
         switch (dest) {
-            case ALPHA -> effectRule.applyAlpha(piece);
-            case BETA  -> effectRule.applyBeta(piece);
+            case ALPHA -> { if (effectRule != null) effectRule.applyAlpha(piece); }
+            case BETA  -> { if (effectRule != null) effectRule.applyBeta(piece); }
             case GAMMA -> {
-                effectRule.applyGamma(piece);
-                // T-14: CW→CCW flip also sends piece to briefing room
-                if (piece.getDirection() == Direction.COUNTER_CLOCKWISE) {
+                // Read direction BEFORE the flip so the CW→Beta branch is unambiguous
+                Direction dirBefore = piece.getDirection();
+                if (effectRule != null) effectRule.applyGamma(piece);
+                // T-14: only pieces that were CW get flipped to CCW and also sent to briefing
+                if (dirBefore == Direction.CLOCKWISE && effectRule != null) {
                     effectRule.applyBeta(piece);
                 }
             }

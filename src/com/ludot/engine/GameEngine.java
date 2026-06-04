@@ -121,8 +121,10 @@ public class GameEngine {
             }
         }
 
-        // tick active piece effects (Energised/Sick countdown)
-        ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
+        // tick active piece effects (Energised/Sick countdown) — only in LudoT (classic has no effects)
+        if (ruleEngine.getEffectRule() != null) {
+            ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
+        }
 
         // always publish round-end status, even when someone won mid-round
         eventBus.publish(new RoundEndEvent(round, List.copyOf(players)));

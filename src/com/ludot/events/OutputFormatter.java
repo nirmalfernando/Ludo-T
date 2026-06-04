@@ -48,6 +48,17 @@ public class OutputFormatter {
                 .map(p -> cap(p.getColour()) + " (" + strategyName(p.getColour()) + ")")
                 .collect(Collectors.toList());
         sb.append(String.join(", ", playerDescs));
+        // Pre-game player introduction — lists each player's four piece names
+        for (Player p : e.players()) {
+            List<String> names = p.getPieces().stream()
+                    .map(Piece::getName)
+                    .collect(Collectors.toList());
+            if (!names.isEmpty()) {
+                sb.append("\nThe ").append(cap(p.getColour()))
+                  .append(" player has four (04) pieces named ")
+                  .append(joinNames(names)).append(".");
+            }
+        }
         sb.append("\nDetermining first player...");
         return sb.toString();
     }

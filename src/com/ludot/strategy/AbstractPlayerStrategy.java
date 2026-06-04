@@ -8,28 +8,25 @@ import com.ludot.model.state.InHomeStraightState;
 import java.util.List;
 import java.util.Optional;
 
+// Retained for backward compatibility only. New strategies implement PlayerStrategy directly
+// and use StrategyHelper for shared logic — inheritance between strategies is avoided per
+// the coding guidelines ("Strategies are independent implementations").
+@Deprecated
 public abstract class AbstractPlayerStrategy implements PlayerStrategy {
 
-    
     protected Optional<Move> findCapture(List<Move> moves) {
-        return moves.stream().filter(m -> m instanceof CaptureMove).findFirst();
+        return StrategyHelper.findCapture(moves);
     }
 
-    
     protected Optional<Move> findBlock(List<Move> moves) {
-        return moves.stream().filter(m -> m instanceof BlockMove).findFirst();
+        return StrategyHelper.findBlock(moves);
     }
 
-    
     protected Optional<Move> findHomeStraight(List<Move> moves) {
-        return moves.stream()
-                .filter(m -> m instanceof MoveOnBoard mob
-                        && mob.getPiece().getState() instanceof InHomeStraightState)
-                .findFirst();
+        return StrategyHelper.findHomeStraight(moves);
     }
 
-    
     protected Move firstOf(List<Move> moves) {
-        return moves.get(0);
+        return StrategyHelper.firstOf(moves);
     }
 }
