@@ -105,7 +105,8 @@ public class GameEngine {
             ruleEngine.getEffectRule().tickAllEffects(getAllPieces());
         }
 
-        eventBus.publish(new RoundEndEvent(round, List.copyOf(players)));
+        eventBus.publish(new RoundEndEvent(round, List.copyOf(players),
+                mysteryManager.getCurrentCell(), mysteryManager.getRoundsLeft()));
 
         if (winMidRound) {
             return;

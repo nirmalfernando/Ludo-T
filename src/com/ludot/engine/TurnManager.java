@@ -9,10 +9,13 @@ import com.ludot.dice.RandomProvider;
 import com.ludot.events.block.BlockBreakEvent;
 import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.EventBus;
+import com.ludot.events.flow.BriefingEscapeEvent;
 import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.model.Board;
+import com.ludot.model.state.AtBaseState;
+import com.ludot.model.state.AtBriefingState;
 import com.ludot.model.Cell;
 import com.ludot.model.GameState;
 import com.ludot.model.Piece;
@@ -70,7 +73,20 @@ public class TurnManager {
         }
 
         GameState gameState = new GameState(players, Board.getInstance(), turnCount);
+
+        // O15: snapshot pieces in briefing before validation so we can detect beta escapes after
+        List<Piece> inBriefingBefore = player.getPieces().stream()
+                .filter(p -> p.getState() instanceof AtBriefingState)
+                .collect(java.util.stream.Collectors.toList());
+
         List<Move> validMoves = ruleEngine.getValidMoves(player, roll);
+
+        // publish BriefingEscapeEvent for any piece that escaped via 3 consecutive 3s
+        for (Piece p : inBriefingBefore) {
+            if (p.getState() instanceof AtBaseState) {
+                eventBus.publish(new BriefingEscapeEvent(player, p));
+            }
+        }
         Move chosen = player.getStrategy().decideMoves(gameState, roll, player.getPieces(), validMoves);
 
         if (chosen instanceof SkipMove) {

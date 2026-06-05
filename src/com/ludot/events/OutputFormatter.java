@@ -8,6 +8,7 @@ import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.events.effect.EffectAppliedEvent;
 import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.BriefingEscapeEvent;
 import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.RoundEndEvent;
@@ -20,6 +21,7 @@ import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
+import com.ludot.events.move.PieceBlockedEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 // Converts each event type into a console-ready string via overloaded format() methods.
 public class OutputFormatter {
 
+    private static final String SEP = "====================";
+
     // game flow — start and turn headers
     public String format(GameStartEvent e) {
         StringBuilder sb = new StringBuilder();
@@ -50,7 +54,6 @@ public class OutputFormatter {
                 .map(p -> cap(p.getColour()) + " (" + strategyName(p.getColour()) + ")")
                 .collect(Collectors.toList());
         sb.append(String.join(", ", playerDescs));
-        // Pre-game player introduction — lists each player's four piece names
         for (Player p : e.players()) {
             List<String> names = p.getPieces().stream()
                     .map(Piece::getName)
@@ -70,8 +73,9 @@ public class OutputFormatter {
     }
 
     // dice
+    // O5: "[Color X] player rolled [value]."
     public String format(DiceRollEvent e) {
-        return cap(e.player().getColour()) + " rolls " + e.roll();
+        return cap(e.player().getColour()) + " player rolled " + e.roll() + ".";
     }
 
     public String format(CoinTossEvent e) {
@@ -88,22 +92,60 @@ public class OutputFormatter {
     }
 
     // movement
+    // O6: base exit — "[Color X] player moves piece [Name] to the starting point."
+    // O8: board move — "[Color X] player moves piece [Name] from location L1 to L2 by N units in [dir] direction."
+    // O7: board count appended to both.
     public String format(MoveEvent e) {
+        StringBuilder sb = new StringBuilder();
+        String colour = cap(e.piece().getColour());
         if (e.from() == null) {
-            return e.piece().getName() + " moves from Base to " + e.to().getId();
+            sb.append(colour).append(" player moves piece ").append(e.piece().getName())
+              .append(" to the starting point.");
+        } else {
+            sb.append(colour).append(" player moves piece ").append(e.piece().getName())
+              .append(" from location ").append(e.from().getId())
+              .append(" to ").append(e.to().getId())
+              .append(" by ").append(e.steps()).append(" units in ")
+              .append(dirStr(e.piece().getDirection())).append(" direction.");
         }
-        return e.piece().getName() + " moves from " + e.from().getId() + " to " + e.to().getId();
+        if (e.player() != null) {
+            int onBoard = e.player().getPiecesOnBoard().size();
+            int atBase  = e.player().getPiecesAtBase().size();
+            int total   = e.player().getPieces().size();
+            sb.append("\n").append(colour)
+              .append(" player now has ").append(onBoard).append("/").append(total)
+              .append(" pieces on the board and ").append(atBase).append("/").append(total)
+              .append(" pieces on the base.");
+        }
+        return sb.toString();
     }
 
+    // O11: "[Color X] piece [Name] lands on square L1, captures [Color Y] piece [Name], and returns it to the base."
     public String format(CaptureEvent e) {
-        return e.attacker().getName() + " captures " + e.victim().getName()
-                + " at cell " + e.cell().getId() + "!"
-                + "\n" + e.victim().getName() + " is sent to base."
+        return cap(e.attacker().getColour()) + " piece " + e.attacker().getName()
+                + " lands on square " + e.cell().getId() + ", captures "
+                + cap(e.victim().getColour()) + " piece " + e.victim().getName()
+                + ", and returns it to the base."
                 + "\n" + cap(e.attacker().getColour()) + " receives a bonus roll! (T-2)";
     }
 
+    // O10: "[Color] player does not have other pieces available. Ignoring the throw."
     public String format(SkipTurnEvent e) {
-        return cap(e.player().getColour()) + " has no valid moves. Turn skipped.";
+        return cap(e.player().getColour()) + " player does not have other pieces available. Ignoring the throw.";
+    }
+
+    // O9: "[Color] piece [Name] is blocked from moving from L1 to L2 by [Color'] piece [Name']."
+    public String format(PieceBlockedEvent e) {
+        String fromStr = e.from() == null ? "Base" : String.valueOf(e.from().getId());
+        String toStr   = String.valueOf(e.intendedDest().getId());
+        if (e.blockingPieces().isEmpty()) {
+            return cap(e.blocked().getColour()) + " piece " + e.blocked().getName()
+                    + " is blocked from moving from " + fromStr + " to " + toStr + ".";
+        }
+        Piece blocker = e.blockingPieces().get(0);
+        return cap(e.blocked().getColour()) + " piece " + e.blocked().getName()
+                + " is blocked from moving from " + fromStr + " to " + toStr
+                + " by " + cap(blocker.getColour()) + " piece " + blocker.getName() + ".";
     }
 
     public String format(ApproachPassEvent e) {
@@ -113,7 +155,6 @@ public class OutputFormatter {
     // block
     public String format(BlockFormEvent e) {
         List<Piece> block = e.block();
-        String names = block.stream().map(Piece::getName).collect(Collectors.joining(", "));
         String first = block.get(0).getName();
         String rest  = block.subList(1, block.size()).stream()
                 .map(Piece::getName).collect(Collectors.joining(", "));
@@ -147,8 +188,10 @@ public class OutputFormatter {
     }
 
     // mystery cell
+    // O13: "A mystery cell has spawned in location L and will be at this location for the next N rounds."
     public String format(MysterySpawnEvent e) {
-        return "Mystery cell appears at cell " + e.cell().getId() + "!";
+        return "A mystery cell has spawned in location " + e.cell().getId()
+                + " and will be at this location for the next " + e.roundCount() + " rounds.";
     }
 
     public String format(MysteryTickEvent e) {
@@ -181,11 +224,19 @@ public class OutputFormatter {
         return e.piece().getName() + "'s " + e.effectName() + " effect has worn off.";
     }
 
+    // O15: beta escape
+    public String format(BriefingEscapeEvent e) {
+        String name = cap(e.piece().getColour()) + " piece " + e.piece().getName();
+        return name + " is movement-restricted and has rolled three consecutively. Teleporting piece "
+                + e.piece().getName() + " to base.";
+    }
+
     // game flow — roll-off and turn order
     public String format(RollOffEvent e) {
         return cap(e.player().getColour()) + " rolls " + e.roll();
     }
 
+    // O3/O4: first-player announcement and play order
     public String format(TurnOrderEvent e) {
         Map<Colour, Integer> rolls = e.rollResults();
         List<Player> order = e.order();
@@ -197,7 +248,9 @@ public class OutputFormatter {
             sb.append("All players rolled ").append(rolled)
               .append(". Play order determined alphabetically.");
         } else {
-            sb.append(cap(e.first().getColour())).append(" goes first!");
+            // O3
+            sb.append(cap(e.first().getColour()))
+              .append(" player has the highest roll and will begin the game.");
             rolls.values().stream().distinct().forEach(rollVal -> {
                 List<String> tied = order.stream()
                         .filter(p -> rolls.get(p.getColour()) == rollVal)
@@ -211,29 +264,39 @@ public class OutputFormatter {
             });
         }
 
-        sb.append("\nThe order of play is ").append(joinNames(
+        // O4
+        sb.append("\nThe order of a single round is ").append(joinNames(
                 order.stream().map(p -> cap(p.getColour())).collect(Collectors.toList())
         )).append(".");
         return sb.toString();
     }
 
+    // O12/O17: round-end status table with optional mystery cell line
     public String format(RoundEndEvent e) {
         List<Player> players = e.players();
         if (players == null || players.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
         sb.append("=== Round ").append(e.roundNumber()).append(" Status ===");
         for (Player p : players) {
-            sb.append("\n").append(cap(p.getColour())).append(": ");
-            List<String> pieceDescs = p.getPieces().stream()
-                    .map(piece -> piece.getName() + "@" + posLabel(piece))
-                    .collect(Collectors.toList());
-            sb.append(String.join("  ", pieceDescs));
+            sb.append("\n").append(SEP);
+            sb.append("\nLocation of pieces ").append(cap(p.getColour()));
+            sb.append("\n").append(SEP);
+            for (Piece piece : p.getPieces()) {
+                sb.append("\nPiece ").append(piece.getName()).append(" -> ").append(posLabel(piece));
+            }
+        }
+        if (e.mysteryCell() != null) {
+            sb.append("\n").append(SEP);
+            sb.append("\nThe mystery cell is at ").append(e.mysteryCell().getId())
+              .append(" and will be at that location for the next ")
+              .append(e.mysteryRoundsLeft()).append(" rounds.");
         }
         return sb.toString();
     }
 
+    // O16: "[Color X] player wins!!!"
     public String format(WinEvent e) {
-        return "=== " + e.winner().getColour().name() + " WINS! ==="
+        return cap(e.winner().getColour()) + " player wins!!!"
                 + "\nGame finished in " + e.totalRounds() + " rounds.";
     }
 
@@ -245,7 +308,7 @@ public class OutputFormatter {
 
     private String dirStr(Direction dir) {
         if (dir == null) return "unknown";
-        return dir == Direction.CLOCKWISE ? "Clockwise" : "Counter-Clockwise";
+        return dir == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
     }
 
     private String strategyName(Colour colour) {

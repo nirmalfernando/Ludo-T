@@ -27,6 +27,10 @@ cd Ludo-T
 ### 2. Run the game
 
 ```bat
+compile.bat
+```
+
+```bat
 run.bat
 ```
 
@@ -39,6 +43,92 @@ run.bat 12345
 ```
 
 If no seed is provided, the default seed `42` is used.
+
+---
+
+## Scenario Seeds
+
+Each seed below produces a fully reproducible game that clearly demonstrates a specific LUDO-T rule.
+Run any of them with `run.bat <seed>` and search the output for the quoted line to jump straight to the scenario.
+
+---
+
+### Seed 1 — Core rules (T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-14, T-15 + CCW movement)
+
+This is the primary demonstration seed. A single game run contains examples of almost every rule.
+
+```bat
+run.bat 1
+```
+
+| Rule | What to look for in the output |
+|------|-------------------------------|
+| **T-1** CCW movement | `R1 exits base. Coin toss: Tails -> Counter-Clockwise` |
+| **T-1** Approach cell pass | `R1 passes approach cell (pass count: 1)` |
+| **T-2** Bonus roll on capture | `Yellow receives a bonus roll! (T-2)` |
+| **T-3** Block formation | `G1 forms a blockade with G2 at cell 39 (T-3)` |
+| **T-4** Block movement | `Blockade of 2 moves 2 steps (roll 5 / 2) (T-4)` |
+| **T-5** Direction restored on break | `Blockade broken! G1 reverts to counter-clockwise (T-5)` |
+| **T-6** Triple-six penalty | `Green rolled three consecutive 6s! Forced block break! (T-6)` |
+| **T-7** Home entry rejected | `G4 cannot enter home straight (needs 1 more capture(s)) (T-7)` |
+| **T-8** Block-vs-block capture | `Blockade of 3 moves 1 steps (roll 0 / 3) (T-4)` *(roll=0 marks a block-capture move)* |
+| **T-9** Capture + return to base | `Yellow piece Y4 lands on square 2, captures Red piece R1, and returns it to the base.` |
+| **T-10** Mystery cell spawns | `A mystery cell has spawned in location 32 and will be at this location for the next 4 rounds.` |
+| **T-11** Mystery teleport | `Y1 lands on mystery cell! Teleporting...` → `Y1 teleported to Start Cell (cell 0)` |
+| **T-14** Gamma — direction reversal | `Y1 teleported to Gamma Cell (cell 33)` → `Yellow piece Y1, which was moving clockwise, has changed to moving counter-clockwise.` |
+| **T-15** Mystery cell expiry | `Mystery cell expires.` |
+| Home straight entry | `Y4 enters the home straight!` |
+| Piece reaches home | `Y4 reaches Home!` |
+
+---
+
+### Seed 2 — Alpha (Sick) + Beta Briefing (T-12 Sick, T-13)
+
+```bat
+run.bat 2
+```
+
+| Rule | What to look for in the output |
+|------|-------------------------------|
+| **T-12** Alpha → Sick effect | `R1 teleported to Alpha Cell (cell 20)` → `Red piece R1 feels sick, and movement speed halves.` |
+| **T-13** Beta → Briefing lock | `G1 teleported to Beta Cell (cell 45)` → `Green piece G1 attends briefing and cannot move for four rounds.` |
+
+---
+
+### Seed 3 — Alpha (Energised) (T-12 Energised)
+
+```bat
+run.bat 3
+```
+
+| Rule | What to look for in the output |
+|------|-------------------------------|
+| **T-12** Alpha → Energised effect | `Y4 teleported to Alpha Cell (cell 10)` → `Yellow piece Y4 feels energized, and movement speed doubles.` |
+
+---
+
+### Seed 2069 — Beta Briefing escape via triple-3 (T-13 escape)
+
+This is the rarest scenario: a piece in Briefing state rolls three consecutive 3s and escapes early.
+
+```bat
+run.bat 2069
+```
+
+| Rule | What to look for in the output |
+|------|-------------------------------|
+| **T-13** Briefing early escape | `Red piece R3 is movement-restricted and has rolled three consecutively. Teleporting piece R3 to base.` |
+
+---
+
+### Quick reference
+
+| Seed | Primary scenario |
+|------|-----------------|
+| `1` | T-1 CCW · T-2 Bonus · T-3/T-4 Block · T-5 Break · T-6 Triple-Six · T-7 Home reject · T-8 Block capture · T-9 Capture · T-10/T-11 Mystery · T-14 Gamma · T-15 Expiry |
+| `2` | T-12 Alpha Sick · T-13 Beta Briefing |
+| `3` | T-12 Alpha Energised |
+| `2069` | T-13 Beta Briefing escape (triple-3) |
 
 ---
 

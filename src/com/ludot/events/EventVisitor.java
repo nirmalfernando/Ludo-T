@@ -8,6 +8,7 @@ import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.events.effect.EffectAppliedEvent;
 import com.ludot.events.effect.EffectExpiredEvent;
+import com.ludot.events.flow.BriefingEscapeEvent;
 import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
 import com.ludot.events.flow.RoundEndEvent;
@@ -20,6 +21,7 @@ import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.ApproachPassEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
+import com.ludot.events.move.PieceBlockedEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.mystery.MysteryExpireEvent;
 import com.ludot.events.mystery.MysterySpawnEvent;
@@ -44,6 +46,8 @@ public interface EventVisitor {
     void visit(CaptureEvent e);
 
     void visit(SkipTurnEvent e);
+
+    void visit(PieceBlockedEvent e);
 
     void visit(ApproachPassEvent e);
 
@@ -92,4 +96,6 @@ public interface EventVisitor {
     void visit(RoundEndEvent e);
 
     void visit(WinEvent e);
+
+    void visit(BriefingEscapeEvent e);
 }
