@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.command.Move;
 import com.ludot.dice.RandomProvider;
 import com.ludot.events.EventBus;
 import com.ludot.events.flow.GameStartEvent;
@@ -13,6 +14,7 @@ import com.ludot.events.flow.WinEvent;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Colour;
+import com.ludot.model.GameState;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
@@ -36,6 +38,9 @@ public class GameEngine {
     private final RuleEngine ruleEngine;
     private final EventBus eventBus;
     private final RandomProvider random;
+    private GamePhase phase = GamePhase.NOT_STARTED;
+    private int currentIndex;   // seat in play order whose turn it is
+    private int stepNumber;     // rolls + moves applied so far
 
     /** Constructs a GameEngine with all collaborators wired in by the caller (GameBuilder). */
     public GameEngine(Board board, List<Player> players, TurnManager turnManager,
@@ -51,15 +56,118 @@ public class GameEngine {
         this.random = random;
     }
 
-    /** Starts and drives the game loop until a winner is found, then publishes a WinEvent. */
+    /** Starts the game, then lets every seat's strategy play it to the end; the winner is announced by a WinEvent. */
     public void run() {
+        start();
+        while (phase != GamePhase.FINISHED) {
+            Player player = getCurrentPlayer();
+            RollResult rolled = roll(player.getColour());
+            if (phase == GamePhase.AWAITING_MOVE) {
+                Move chosen = player.getStrategy().decideMoves(
+                        currentGameState(), rolled.roll(), player.getPieces(), rolled.validMoves());
+                applyMove(player.getColour(), rolled.validMoves().indexOf(chosen));
+            }
+        }
+    }
+
+    /** Publishes the start event, runs the roll-off and opens the first player's turn. */
+    public void start() {
+        requirePhase(GamePhase.NOT_STARTED);
         eventBus.publish(new GameStartEvent(List.copyOf(players)));
         determineFirstPlayer();
-        while (!checkWinCondition()) {
-            playRound();
+        currentIndex = 0;
+        beginTurn();
+    }
+
+    /** Roll phase for the player whose turn it is. A triple six forfeits the turn and moves play on. */
+    public RollResult roll(Colour colour) {
+        requirePhase(GamePhase.AWAITING_ROLL);
+        requireCurrentPlayer(colour);
+        RollResult result = turnManager.roll();
+        stepNumber++;
+        if (result.turnOver()) {
+            completeTurn();
+        } else {
+            phase = GamePhase.AWAITING_MOVE;
         }
-        Player winner = players.stream().filter(Player::hasWon).findFirst().orElse(players.get(0));
-        eventBus.publish(new WinEvent(winner, turnManager.getRoundCount()));
+        return result;
+    }
+
+    /** Move phase: applies the index-th valid move offered by the last roll. */
+    public StepResult applyMove(Colour colour, int moveIndex) {
+        requirePhase(GamePhase.AWAITING_MOVE);
+        requireCurrentPlayer(colour);
+        List<Move> offered = turnManager.getPendingMoves();
+        if (moveIndex < 0 || moveIndex >= offered.size()) {
+            throw new IllegalArgumentException("Move index out of range: " + moveIndex);
+        }
+        StepResult result = turnManager.applyMove(offered.get(moveIndex));
+        stepNumber++;
+        if (result.turnOver()) {
+            completeTurn();
+        } else {
+            phase = GamePhase.AWAITING_ROLL;
+        }
+        return result;
+    }
+
+    /** The current phase of the turn cycle. */
+    public GamePhase getPhase() {
+        return phase;
+    }
+
+    /** The player who must act now (roll or choose a move). */
+    public Player getCurrentPlayer() {
+        return players.get(currentIndex);
+    }
+
+    /** Counts every roll and move applied so far; requests quote it so stale ones can be rejected. */
+    public int getTurnNumber() {
+        return stepNumber;
+    }
+
+    /** The valid moves offered by the last roll (empty unless awaiting a move). */
+    public List<Move> getPendingMoves() {
+        return turnManager.getPendingMoves();
+    }
+
+    /** The view of the game strategies decide from. */
+    public GameState currentGameState() {
+        return turnManager.currentGameState();
+    }
+
+    private void requirePhase(GamePhase expected) {
+        if (phase != expected) {
+            throw new IllegalStateException("Expected phase " + expected + " but game is in " + phase);
+        }
+    }
+
+    private void requireCurrentPlayer(Colour colour) {
+        if (getCurrentPlayer().getColour() != colour) {
+            throw new IllegalStateException("It is not " + colour + "'s turn");
+        }
+    }
+
+    private void beginTurn() {
+        turnManager.beginTurn(getCurrentPlayer());
+        phase = GamePhase.AWAITING_ROLL;
+    }
+
+    // called when a player's turn (bonus rolls included) is fully over
+    private void completeTurn() {
+        boolean won = checkWinCondition();
+        boolean roundOver = currentIndex == players.size() - 1;
+        if (won || roundOver) {
+            endRound();
+        }
+        if (won) {
+            Player winner = players.stream().filter(Player::hasWon).findFirst().orElse(players.get(0));
+            eventBus.publish(new WinEvent(winner, turnManager.getRoundCount()));
+            phase = GamePhase.FINISHED;
+            return;
+        }
+        currentIndex = roundOver ? 0 : currentIndex + 1;
+        beginTurn();
     }
 
     /** Conducts the roll-off to determine play order; highest roll goes first, ties broken alphabetically. */
@@ -85,17 +193,7 @@ public class GameEngine {
         return players.get(0);
     }
 
-    private void playRound() {
-        boolean winMidRound = false;
-        for (Player player : players) {
-            if (!player.hasWon()) {
-                turnManager.executeTurn(player);
-            }
-            if (checkWinCondition()) {
-                winMidRound = true;
-                break;
-            }
-        }
+    private void endRound() {
         turnManager.incrementRound();
         int round = turnManager.getRoundCount();
 
@@ -107,10 +205,6 @@ public class GameEngine {
 
         eventBus.publish(new RoundEndEvent(round, List.copyOf(players),
                 mysteryManager.getCurrentCell(), mysteryManager.getRoundsLeft()));
-
-        if (winMidRound) {
-            return;
-        }
     }
 
     // T-10: spawn on the first eligible round; do not tick on the same round the cell spawns.

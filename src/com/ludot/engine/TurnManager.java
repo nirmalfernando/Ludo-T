@@ -39,6 +39,11 @@ public class TurnManager {
     private final RandomProvider random;
     private final List<Player> players;
     private final Board board;
+    private Player activePlayer;        // null between turns
+    private int bonusDepth;
+    private boolean pendingBonusRoll;   // the last roll was a non-triple six
+    private boolean awaitingMove;
+    private List<Move> pendingMoves = List.of();
 
     /** Constructs a TurnManager with all rule and engine collaborators injected by the caller. */
     public TurnManager(RuleEngine ruleEngine, MoveExecutor moveExecutor, EventBus eventBus,
@@ -53,16 +58,39 @@ public class TurnManager {
         this.roundCount = 0;
     }
 
-    /** Executes a full turn for the given player, including roll, move selection, and bonus-roll handling. */
+    /** Executes a full turn for the given player, driving every decision with the player's own strategy. */
     public void executeTurn(Player player) {
-        executeTurn(player, 0);
+        beginTurn(player);
+        boolean turnOver = false;
+        while (!turnOver) {
+            RollResult rolled = roll();
+            if (rolled.turnOver()) {
+                return;
+            }
+            Move chosen = player.getStrategy().decideMoves(
+                    currentGameState(), rolled.roll(), player.getPieces(), rolled.validMoves());
+            turnOver = applyMove(chosen).turnOver();
+        }
     }
 
-    private void executeTurn(Player player, int bonusDepth) {
-        if (bonusDepth == 0) {
-            eventBus.publish(new TurnStartEvent(player));
-            turnCount++;
+    /** Starts a new turn for the player; the next step must be {@link #roll()}. */
+    public void beginTurn(Player player) {
+        activePlayer = player;
+        bonusDepth = 0;
+        awaitingMove = false;
+        eventBus.publish(new TurnStartEvent(player));
+        turnCount++;
+    }
+
+    /**
+     * Roll phase: rolls the dice, applies the dice rule (T-2, T-6) and computes the valid moves.
+     * Leaves the turn awaiting a move choice, unless a triple six ends the turn immediately.
+     */
+    public RollResult roll() {
+        if (activePlayer == null || awaitingMove) {
+            throw new IllegalStateException("No roll is expected right now");
         }
+        Player player = activePlayer;
         int roll = rollDice();
         eventBus.publish(new DiceRollEvent(player, roll));
 
@@ -71,10 +99,9 @@ public class TurnManager {
 
         if (roll == GameConstants.LEAVE_BASE_ROLL && !bonusRoll) {
             handleTripleSix(player);
-            return;
+            activePlayer = null;
+            return new RollResult(roll, List.of(), true);
         }
-
-        GameState gameState = new GameState(players, board, turnCount);
 
         // O15: snapshot pieces in briefing before validation so we can detect beta escapes after
         List<Piece> inBriefingBefore = player.getPieces().stream()
@@ -89,19 +116,61 @@ public class TurnManager {
                 eventBus.publish(new BriefingEscapeEvent(player, p));
             }
         }
-        Move chosen = player.getStrategy().decideMoves(gameState, roll, player.getPieces(), validMoves);
+        pendingMoves = List.copyOf(validMoves);
+        pendingBonusRoll = bonusRoll;
+        awaitingMove = true;
+        return new RollResult(roll, pendingMoves, false);
+    }
 
+    /**
+     * Move phase: executes the chosen move, which must be one of the valid moves from the last roll.
+     * A capture or a (non-triple) six grants another roll to the same player, up to the bonus-depth guard.
+     */
+    public StepResult applyMove(Move chosen) {
+        if (!awaitingMove) {
+            throw new IllegalStateException("No move is expected right now");
+        }
+        if (!pendingMoves.contains(chosen)) {
+            throw new IllegalArgumentException("Move is not one of the valid moves for this roll");
+        }
+        Player player = activePlayer;
         if (chosen instanceof SkipMove) {
             eventBus.publish(new SkipTurnEvent(player));
         }
-
         MoveResult result = moveExecutor.execute(chosen, player);
 
         // T-2: capture grants a bonus roll; rolling 6 (non-triple) also grants one
-        // depth guard prevents runaway recursion on a very lucky streak
-        if ((result.grantsBonusRoll() || bonusRoll) && bonusDepth < GameConstants.MAX_BONUS_DEPTH) {
-            executeTurn(player, bonusDepth + 1);
+        // depth guard prevents runaway bonus chains on a very lucky streak
+        boolean rollAgain = (result.grantsBonusRoll() || pendingBonusRoll)
+                && bonusDepth < GameConstants.MAX_BONUS_DEPTH;
+        awaitingMove = false;
+        pendingMoves = List.of();
+        if (rollAgain) {
+            bonusDepth++;
+        } else {
+            activePlayer = null;
         }
+        return new StepResult(result, !rollAgain);
+    }
+
+    /** True between {@link #roll()} and {@link #applyMove(Move)}. */
+    public boolean isAwaitingMove() {
+        return awaitingMove;
+    }
+
+    /** The valid moves offered by the last roll, or empty when no move is pending. */
+    public List<Move> getPendingMoves() {
+        return pendingMoves;
+    }
+
+    /** Builds the read-only view of the game that strategies decide from. */
+    public GameState currentGameState() {
+        return new GameState(players, board, turnCount);
+    }
+
+    /** Number of real (non-bonus) turns started so far; strategies use it for cycling. */
+    public int getTurnCount() {
+        return turnCount;
     }
 
     /** Rolls the dice once and returns the result via the injected RandomProvider. */
