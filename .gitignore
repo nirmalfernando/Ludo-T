@@ -30,3 +30,25 @@ lib/postgresql-*.jar
 lib/h2-*.jar
 lib/javafx-sdk/
 lib/javafx.zip
+
+# Secrets and credentials (never commit)
+config/*.properties
+!config/*.properties.example
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+secrets/
+supabase/.temp/
+supabase/.branches/
+
+# Local database files (H2 fallback) and dumps
+*.mv.db
+*.trace.db
+*.sql.bak
+*.dump
+
+# Session tokens / local settings
+.claude/settings.local.json
