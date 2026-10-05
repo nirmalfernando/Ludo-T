@@ -1,0 +1,32 @@
+package com.ludot.protocol;
+
+/** One value per game event the server narrates to clients. */
+public enum EventType {
+    GAME_START,
+    ROLL_OFF,
+    TURN_ORDER,
+    TURN_START,
+    DICE_ROLL,
+    COIN_TOSS,
+    TRIPLE_SIX,
+    MOVE,
+    CAPTURE,
+    SKIP_TURN,
+    PIECE_BLOCKED,
+    APPROACH_PASS,
+    BLOCK_FORM,
+    BLOCK_MOVE,
+    BLOCK_BREAK,
+    HOME_ENTRY,
+    HOME_ENTRY_REJECTED,
+    HOME_REACH,
+    BRIEFING_ESCAPE,
+    MYSTERY_SPAWN,
+    MYSTERY_TICK,
+    MYSTERY_EXPIRE,
+    MYSTERY_TELEPORT,
+    EFFECT_APPLIED,
+    EFFECT_EXPIRED,
+    ROUND_END,
+    WIN
+}
