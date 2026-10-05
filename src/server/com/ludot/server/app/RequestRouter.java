@@ -1,0 +1,177 @@
+package com.ludot.server.app;
+
+import com.ludot.protocol.ClientMessage;
+import com.ludot.protocol.ErrorCode;
+import com.ludot.protocol.RoomMode;
+import com.ludot.protocol.ServerMessage;
+import com.ludot.protocol.ServerMessage.Response;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Sends each request from a connection where it belongs: identity requests to the directory, lobby
+ * requests to the lobby, room requests to that room's queue. It runs on the connection's reader
+ * thread, does almost no work itself and never blocks, so one slow request cannot hold up others.
+ */
+public final class RequestRouter {
+
+    private interface Handler {
+        void handle(ClientSession session, ClientMessage message);
+    }
+
+    private final PlayerDirectory directory;
+    private final RoomRegistry registry;
+    private final LobbyService lobby;
+    private final Map<Class<?>, Handler> handlers = new HashMap<>();
+
+    public RequestRouter(PlayerDirectory directory, RoomRegistry registry, LobbyService lobby) {
+        this.directory = directory;
+        this.registry = registry;
+        this.lobby = lobby;
+        handlers.put(ClientMessage.Ping.class, (s, m) -> s.sink().offer(new ServerMessage.Pong(System.currentTimeMillis())));
+        handlers.put(ClientMessage.Hello.class, (s, m) -> hello(s, (ClientMessage.Hello) m));
+        handlers.put(ClientMessage.Reconnect.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
+                ErrorCode.UNKNOWN_TOKEN, "Reconnecting is not available yet"));
+        handlers.put(ClientMessage.ListRooms.class, (s, m) -> listRooms(s, (ClientMessage.ListRooms) m));
+        handlers.put(ClientMessage.CreateRoom.class, (s, m) -> createRoom(s, (ClientMessage.CreateRoom) m));
+        handlers.put(ClientMessage.SendChat.class, (s, m) -> sendChat(s, (ClientMessage.SendChat) m));
+        handlers.put(ClientMessage.ListFinishedGames.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
+                ErrorCode.INTERNAL_ERROR, "Finished games are not available yet"));
+        handlers.put(ClientMessage.StartReplay.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
+                ErrorCode.INTERNAL_ERROR, "Replays are not available yet"));
+        handlers.put(ClientMessage.ControlReplay.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
+                ErrorCode.INTERNAL_ERROR, "Replays are not available yet"));
+    }
+
+    /**
+     * Routes one message from a connection.
+     *
+     * @return false if the connection broke the protocol and should be closed
+     */
+    public boolean route(ClientSession session, ClientMessage message) {
+        if (!session.isIdentified() && !isAllowedBeforeHello(message)) {
+            reject(session, message, ErrorCode.PROTOCOL_ERROR, "Say Hello first");
+            return false;
+        }
+        if (message instanceof ClientMessage.Request request) {
+            Response earlier = session.requests().find(idOf(session), request.requestId());
+            if (earlier != null) {
+                session.sink().offer(earlier);
+                return true;
+            }
+        }
+        Handler handler = handlers.get(message.getClass());
+        if (handler != null) {
+            handler.handle(session, message);
+        } else if (message instanceof ClientMessage.RoomRequest room) {
+            toRoom(session, room);
+        } else {
+            reject(session, message, ErrorCode.PROTOCOL_ERROR, "Unknown message");
+            return false;
+        }
+        return true;
+    }
+
+    /** Cleans up after a connection ends for any reason. Safe to call from any thread, any number of times. */
+    public void disconnected(ClientSession session) {
+        if (!session.markDisconnected()) {
+            return;
+        }
+        Participant who = session.participant();
+        if (who == null) {
+            return;
+        }
+        lobby.unsubscribe(who.id());
+        for (String roomId : session.rooms()) {
+            GameSession room = registry.find(roomId);
+            if (room != null) {
+                room.connectionLost(who.id(), session.sink());
+            }
+        }
+        directory.release(who.identity());
+    }
+
+    private static boolean isAllowedBeforeHello(ClientMessage message) {
+        return message instanceof ClientMessage.Hello || message instanceof ClientMessage.Reconnect
+                || message instanceof ClientMessage.Ping;
+    }
+
+    // before Hello there is no identity, so no per-player log; the one allowed request (Hello) has no earlier answer
+    private static String idOf(ClientSession session) {
+        return session.isIdentified() ? session.participant().id() : "";
+    }
+
+    private void hello(ClientSession session, ClientMessage.Hello request) {
+        if (session.isIdentified()) {
+            respond(session, Response.error(request.requestId(), ErrorCode.PROTOCOL_ERROR, "Already said Hello"));
+            return;
+        }
+        try {
+            PlayerIdentity identity = directory.register(request.nickname());
+            session.identify(identity);
+            session.sink().offer(new ServerMessage.Welcome(identity.id(), identity.nickname(), identity.token()));
+            respond(session, Response.ok(request.requestId()));
+        } catch (RequestRejected rejected) {
+            respond(session, Response.error(request.requestId(), rejected.code(), rejected.getMessage()));
+        }
+    }
+
+    private void listRooms(ClientSession session, ClientMessage.ListRooms request) {
+        if (!lobby.subscribe(session.participant(), request)) {
+            respond(session, Response.error(request.requestId(), ErrorCode.SERVER_BUSY, "Lobby is busy"));
+        }
+    }
+
+    private void createRoom(ClientSession session, ClientMessage.CreateRoom request) {
+        Participant creator = session.participant();
+        GameSession room = registry.create(request.mode(), request.variant(), request.seed());
+        session.rooms().add(room.roomId());
+        // the response goes first, then the room sends the creator's snapshot
+        respond(session, Response.ok(request.requestId(), room.roomId()));
+        room.attachCreator(creator);
+        String kind = request.mode() == RoomMode.BOT_MATCH ? "Bot match" : "Play room";
+        lobby.announce(creator.identity().nickname() + " created " + kind + " " + room.roomId());
+    }
+
+    private void sendChat(ClientSession session, ClientMessage.SendChat request) {
+        if (request.roomId() == null) {
+            if (!lobby.sendChat(session.participant(), request)) {
+                respond(session, Response.error(request.requestId(), ErrorCode.SERVER_BUSY, "Lobby is busy"));
+            }
+        } else {
+            toRoom(session, request.roomId(), request);
+        }
+    }
+
+    private void toRoom(ClientSession session, ClientMessage.RoomRequest request) {
+        if (request instanceof ClientMessage.JoinRoom) {
+            session.rooms().add(request.roomId());
+        }
+        toRoom(session, request.roomId(), request);
+    }
+
+    private void toRoom(ClientSession session, String roomId, ClientMessage.Request request) {
+        GameSession room = registry.find(roomId);
+        if (room == null) {
+            respond(session, Response.error(request.requestId(), ErrorCode.UNKNOWN_ROOM, "No such room: " + roomId));
+            return;
+        }
+        room.submit(session.participant(), request);
+    }
+
+    private void unsupported(ClientSession session, ClientMessage.Request request, ErrorCode code, String why) {
+        respond(session, Response.error(request.requestId(), code, why));
+    }
+
+    // answers on the reader thread are remembered here so a repeated request id gets the same answer
+    private void respond(ClientSession session, Response response) {
+        session.requests().remember(idOf(session), response);
+        session.sink().offer(response);
+    }
+
+    private void reject(ClientSession session, ClientMessage message, ErrorCode code, String why) {
+        if (message instanceof ClientMessage.Request request) {
+            session.sink().offer(Response.error(request.requestId(), code, why));
+        }
+    }
+}

@@ -231,7 +231,7 @@ public final class GameSession {
             executor.execute(() -> run(command));
         } catch (RejectedExecutionException e) {
             if (!executor.isShutdown()) {
-                scheduler.schedule(() -> submitInternal(command), RETRY_DELAY_MS, TimeUnit.MILLISECONDS);
+                schedule(() -> submitInternal(command), RETRY_DELAY_MS);
             }
         }
     }
@@ -353,8 +353,7 @@ public final class GameSession {
             cancelFuture(pendingAi);
         }
         cancelFuture(closeTimer);
-        closeTimer = scheduler.schedule(() -> submitInternal(this::closeIfStillEmpty),
-                config.emptyRoomCloseMs(), TimeUnit.MILLISECONDS);
+        closeTimer = schedule(() -> submitInternal(this::closeIfStillEmpty), config.emptyRoomCloseMs());
     }
 
     private void closeIfStillEmpty() {
@@ -541,8 +540,7 @@ public final class GameSession {
             return;
         }
         int expectedTurn = game.turnNumber();
-        pendingAi = scheduler.schedule(() -> submitInternal(() -> aiAct(expectedTurn)),
-                config.delayMs(speed), TimeUnit.MILLISECONDS);
+        pendingAi = schedule(() -> submitInternal(() -> aiAct(expectedTurn)), config.delayMs(speed));
     }
 
     private boolean nothingToDecide() {
@@ -729,6 +727,15 @@ public final class GameSession {
         Member host = hostId == null ? null : members.get(hostId);
         return new RoomSummary(roomId, mode, variant, status, seats.humanSeats(), seats.count(Controller.AI),
                 (int) spectators, host == null ? "" : host.identity.nickname());
+    }
+
+    // a stopped scheduler means the server is shutting down: there is nothing left to schedule
+    private ScheduledFuture<?> schedule(Runnable task, long delayMs) {
+        try {
+            return scheduler.schedule(task, delayMs, TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException e) {
+            return null;
+        }
     }
 
     private static void cancelFuture(ScheduledFuture<?> future) {
