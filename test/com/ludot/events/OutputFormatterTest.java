@@ -1,5 +1,6 @@
 package com.ludot.events;
 
+import com.ludot.TestBoard;
 import com.ludot.events.dice.CoinTossEvent;
 import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.dice.TripleSixEvent;
@@ -30,16 +31,16 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("OutputFormatter — all message formats")
 class OutputFormatterTest {
 
+    private Board board;
+
     private OutputFormatter formatter;
 
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
+        board = TestBoard.create();
         formatter = new OutputFormatter();
     }
 
-    @AfterEach void tearDown() { Board.resetInstance(); }
-
+    
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private Player player(Colour c) {
@@ -255,14 +256,14 @@ class OutputFormatterTest {
 
     @Test @DisplayName("CoinTossEvent format: Heads for Clockwise, piece name included")
     void coinTossHeadsFormat() {
-        Piece p = new Piece("R1", Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
         String msg = formatter.format(new CoinTossEvent(p, Direction.CLOCKWISE));
         assertEquals("R1 exits base. Coin toss: Heads -> Clockwise", msg);
     }
 
     @Test @DisplayName("CoinTossEvent format: Tails for Counter-Clockwise")
     void coinTossTailsFormat() {
-        Piece p = new Piece("G2", Colour.GREEN);
+        Piece p = new Piece("G2", Colour.GREEN, board);
         String msg = formatter.format(new CoinTossEvent(p, Direction.COUNTER_CLOCKWISE));
         assertEquals("G2 exits base. Coin toss: Tails -> Counter-Clockwise", msg);
     }
@@ -277,9 +278,9 @@ class OutputFormatterTest {
 
     @Test @DisplayName("CaptureEvent format: two lines — spec capture message, bonus roll")
     void captureEventTwoLines() {
-        Piece attacker = new Piece("R1", Colour.RED);
-        Piece victim   = new Piece("B1", Colour.BLUE);
-        Cell cell = Board.getInstance().getCell(9);
+        Piece attacker = new Piece("R1", Colour.RED, board);
+        Piece victim   = new Piece("B1", Colour.BLUE, board);
+        Cell cell = board.getCell(9);
         String msg = formatter.format(new CaptureEvent(attacker, victim, cell, null));
         String[] lines = msg.split("\n");
         assertEquals(2, lines.length, "CaptureEvent must produce exactly 2 lines");
@@ -291,9 +292,9 @@ class OutputFormatterTest {
 
     @Test @DisplayName("BlockFormEvent format: '[piece] forms a blockade with [piece] at cell [id] (T-3)'")
     void blockFormFormat() {
-        Piece p1 = new Piece("R1", Colour.RED);
-        Piece p2 = new Piece("R2", Colour.RED);
-        Cell cell = Board.getInstance().getCell(9);
+        Piece p1 = new Piece("R1", Colour.RED, board);
+        Piece p2 = new Piece("R2", Colour.RED, board);
+        Cell cell = board.getCell(9);
         String msg = formatter.format(new BlockFormEvent(List.of(p1, p2), cell));
         assertEquals("R1 forms a blockade with R2 at cell 9 (T-3)", msg);
     }

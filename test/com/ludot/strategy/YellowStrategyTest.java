@@ -1,4 +1,6 @@
 package com.ludot.strategy;
+
+import com.ludot.model.Board;
 import com.ludot.command.Move;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.command.SkipMove;
@@ -14,11 +16,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("YellowStrategy — progress")
 class YellowStrategyTest {
+
+    private Board board;
     private final YellowStrategy strategy = new YellowStrategy();
     private final Player player = new Player(Colour.YELLOW, List.of(), (gs,r,ps,m)->m.get(0));
     @Test @DisplayName("prefers move for piece in home straight") void prefersHomeStraight() {
-        Piece onBoard  = new Piece("Y1", Colour.YELLOW);
-        Piece inHome   = new Piece("Y2", Colour.YELLOW);
+        Piece onBoard  = new Piece("Y1", Colour.YELLOW, board);
+        Piece inHome   = new Piece("Y2", Colour.YELLOW, board);
         inHome.setState(new InHomeStraightState());
         Cell c = new Cell(0, CellType.HOME_STRAIGHT, Colour.YELLOW);
         c.addPiece(inHome); inHome.setPosition(c);

@@ -7,29 +7,15 @@ import java.util.Map;
 
 /**
  * Represents the Ludo game board, providing access to standard path cells and colour-specific home straights.
- * Implements the Singleton pattern to ensure one shared board instance exists for the entire game.
+ * Each game owns its own Board (created by GameBuilder and injected), so several games can run concurrently.
  */
 public final class Board {
-
-    private static Board instance;
 
     private List<Cell> cells;                        // 52-cell standard path (indices 0–51)
     private Map<Colour, List<Cell>> homeStraights;   // 5 home-straight cells per colour
 
-    private Board() {
-    }
-
-    /** Returns the singleton Board instance, creating it lazily on first call. */
-    public static Board getInstance() {
-        if (instance == null) {
-            instance = new Board();
-        }
-        return instance;
-    }
-
-    /** Destroys the singleton instance so tests can obtain a fresh board between test cases. */
-    public static void resetInstance() {
-        instance = null;
+    /** Creates an empty board; CellFactory.initializeBoard populates it. */
+    public Board() {
     }
 
     /** Returns the standard-path cell at the given index, throwing if the id is out of range. */

@@ -38,15 +38,17 @@ public class TurnManager {
     private final EventBus eventBus;
     private final RandomProvider random;
     private final List<Player> players;
+    private final Board board;
 
     /** Constructs a TurnManager with all rule and engine collaborators injected by the caller. */
     public TurnManager(RuleEngine ruleEngine, MoveExecutor moveExecutor, EventBus eventBus,
-                       RandomProvider random, List<Player> players) {
+                       RandomProvider random, List<Player> players, Board board) {
         this.ruleEngine = ruleEngine;
         this.moveExecutor = moveExecutor;
         this.eventBus = eventBus;
         this.random = random;
         this.players = players;
+        this.board = board;
         this.currentPlayerIndex = 0;
         this.roundCount = 0;
     }
@@ -72,7 +74,7 @@ public class TurnManager {
             return;
         }
 
-        GameState gameState = new GameState(players, Board.getInstance(), turnCount);
+        GameState gameState = new GameState(players, board, turnCount);
 
         // O15: snapshot pieces in briefing before validation so we can detect beta escapes after
         List<Piece> inBriefingBefore = player.getPieces().stream()
@@ -109,12 +111,12 @@ public class TurnManager {
 
     /** Handles a triple-six penalty by forcing a block break and moving each freed piece six cells (Rule T-6). */
     public void handleTripleSix(Player player) {
-        boolean hasBlock = Board.getInstance().getStandardPath().stream()
+        boolean hasBlock = board.getStandardPath().stream()
                 .anyMatch(cell -> cell.hasBlock()
                               && !cell.getPieces().isEmpty()
                               && cell.getPieces().get(0).getColour() == player.getColour());
         eventBus.publish(new TripleSixEvent(player, hasBlock));
-        for (Cell cell : Board.getInstance().getStandardPath()) {
+        for (Cell cell : board.getStandardPath()) {
             if (cell.hasBlock() && cell.getPieces().get(0).getColour() == player.getColour()) {
                 List<Piece> block = new ArrayList<>(cell.getPieces());
                 ruleEngine.getBlockRule().forceBreakBlock(block);

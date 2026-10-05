@@ -1,5 +1,6 @@
 package com.ludot.command;
 
+import com.ludot.TestBoard;
 import com.ludot.factory.CellFactory;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -17,17 +18,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("BlockCaptureMove (T-8)")
 class BlockCaptureMoveTest {
 
+    private Board board;
+
     private Cell source, target;
     private Piece a1, a2, v1, v2;
 
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
-        source = Board.getInstance().getCell(5);
-        target = Board.getInstance().getCell(10);
+        board = TestBoard.create();
+        source = board.getCell(5);
+        target = board.getCell(10);
 
-        a1 = new Piece("R1", Colour.RED); a2 = new Piece("R2", Colour.RED);
-        v1 = new Piece("B1", Colour.BLUE); v2 = new Piece("B2", Colour.BLUE);
+        a1 = new Piece("R1", Colour.RED, board); a2 = new Piece("R2", Colour.RED, board);
+        v1 = new Piece("B1", Colour.BLUE, board); v2 = new Piece("B2", Colour.BLUE, board);
 
         source.addPiece(a1); a1.setPosition(source); a1.setState(new OnBoardState()); a1.setDirection(Direction.CLOCKWISE);
         source.addPiece(a2); a2.setPosition(source); a2.setState(new OnBoardState()); a2.setDirection(Direction.CLOCKWISE);
@@ -35,8 +37,7 @@ class BlockCaptureMoveTest {
         target.addPiece(v2); v2.setPosition(target); v2.setState(new OnBoardState());
     }
 
-    @AfterEach void tearDown() { Board.resetInstance(); }
-
+    
     private BlockCaptureMove move() {
         return new BlockCaptureMove(List.of(a1, a2), List.of(v1, v2), target, 5);
     }

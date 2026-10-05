@@ -1,6 +1,5 @@
 package com.ludot.command;
 
-import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.Piece;
@@ -29,7 +28,7 @@ public class MoveOnBoard implements Move {
 
     // linear forward movement within the colour-specific home straight
     private void moveInHomeStraight() {
-        List<Cell> homeStraight = Board.getInstance().getHomeStraight(piece.getColour());
+        List<Cell> homeStraight = piece.getBoard().getHomeStraight(piece.getColour());
         int currentIndex = homeStraight.indexOf(piece.getPosition());
         int targetIndex  = currentIndex + steps;
         Cell target = homeStraight.get(targetIndex);

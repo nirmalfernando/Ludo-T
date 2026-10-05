@@ -1,4 +1,6 @@
 package com.ludot.command;
+
+import com.ludot.TestBoard;
 import com.ludot.factory.CellFactory;
 import com.ludot.model.Board;
 import com.ludot.model.Colour;
@@ -12,17 +14,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("MoveFromBase")
 class MoveFromBaseTest {
+
+    private Board board;
     private Piece piece;
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
-        piece = new Piece("RED1", Colour.RED);
+        board = TestBoard.create();
+        piece = new Piece("RED1", Colour.RED, board);
         piece.setDirection(Direction.CLOCKWISE);
     }
-    @AfterEach void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("execute places piece on start cell") void placesOnStartCell() {
+        @Test @DisplayName("execute places piece on start cell") void placesOnStartCell() {
         new MoveFromBase(piece).execute();
-        assertEquals(Board.getInstance().getStartCell(Colour.RED), piece.getPosition());
+        assertEquals(board.getStartCell(Colour.RED), piece.getPosition());
     }
     @Test @DisplayName("execute sets piece to OnBoardState") void setsOnBoardState() {
         new MoveFromBase(piece).execute();

@@ -1,4 +1,6 @@
 package com.ludot.model.state;
+
+import com.ludot.TestBoard;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.factory.CellFactory;
 import com.ludot.model.Board;
@@ -13,19 +15,19 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("InHomeStraightState")
 class InHomeStraightStateTest {
+
+    private Board board;
     private Piece piece;
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
-        piece = new Piece("R1", Colour.RED);
+        board = TestBoard.create();
+        piece = new Piece("R1", Colour.RED, board);
         // place on first home-straight cell
-        List<Cell> hs = Board.getInstance().getHomeStraight(Colour.RED);
+        List<Cell> hs = board.getHomeStraight(Colour.RED);
         hs.get(0).addPiece(piece);
         piece.setPosition(hs.get(0));
         piece.setState(new InHomeStraightState());
     }
-    @AfterEach void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("handleRoll returns MoveOnBoard when steps fit") void moveFits() {
+        @Test @DisplayName("handleRoll returns MoveOnBoard when steps fit") void moveFits() {
         var moves = new InHomeStraightState().handleRoll(piece, 2);
         assertEquals(1, moves.size());
         assertInstanceOf(MoveOnBoard.class, moves.get(0));
@@ -50,7 +52,7 @@ class InHomeStraightStateTest {
     @Test @DisplayName("one step past HOME from penultimate cell is an overshoot")
     void oneOverFromPenultimateIsEmpty() {
         // move piece to index 3 (one step from HOME), then roll 2 — overshoots
-        List<Cell> hs = Board.getInstance().getHomeStraight(Colour.RED);
+        List<Cell> hs = board.getHomeStraight(Colour.RED);
         piece.getPosition().removePiece(piece);
         hs.get(3).addPiece(piece);
         piece.setPosition(hs.get(3));

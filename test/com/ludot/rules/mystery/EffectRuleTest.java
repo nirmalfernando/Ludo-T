@@ -1,4 +1,6 @@
 package com.ludot.rules.mystery;
+
+import com.ludot.model.Board;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.effects.EnergisedEffect;
 import com.ludot.effects.NoEffect;
@@ -13,36 +15,38 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("EffectRule (T-12/13/14)")
 class EffectRuleTest {
+
+    private Board board;
     @Test @DisplayName("applyAlpha heads gives EnergisedEffect") void alphaHeadsEnergised() {
-        Piece p = new Piece("R1", Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
         new EffectRule(new FixedRandomProvider().addAlphaOutcomes(true)).applyAlpha(p);
         assertInstanceOf(EnergisedEffect.class, p.getActiveEffect());
     }
     @Test @DisplayName("applyAlpha tails gives SickEffect") void alphaTailsSick() {
-        Piece p = new Piece("R1", Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
         new EffectRule(new FixedRandomProvider().addAlphaOutcomes(false)).applyAlpha(p);
         assertInstanceOf(SickEffect.class, p.getActiveEffect());
     }
     @Test @DisplayName("applyBeta sets AtBriefingState") void betaSetsBriefing() {
-        Piece p = new Piece("R1", Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
         new EffectRule(new FixedRandomProvider()).applyBeta(p);
         assertInstanceOf(AtBriefingState.class, p.getState());
     }
     @Test @DisplayName("applyGamma flips CW to CCW") void gammaFlipsCW() {
-        Piece p = new Piece("R1", Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
         p.setDirection(Direction.CLOCKWISE);
         new EffectRule(new FixedRandomProvider()).applyGamma(p);
         assertEquals(Direction.COUNTER_CLOCKWISE, p.getDirection());
     }
     @Test @DisplayName("applyGamma flips CCW to CW") void gammaFlipsCCW() {
-        Piece p = new Piece("R1", Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
         p.setDirection(Direction.COUNTER_CLOCKWISE);
         new EffectRule(new FixedRandomProvider()).applyGamma(p);
         assertEquals(Direction.CLOCKWISE, p.getDirection());
     }
     @Test @DisplayName("tickAllEffects calls tickEffect on each piece") void ticksAllPieces() {
-        Piece p1 = new Piece("R1", Colour.RED);
-        Piece p2 = new Piece("R2", Colour.RED);
+        Piece p1 = new Piece("R1", Colour.RED, board);
+        Piece p2 = new Piece("R2", Colour.RED, board);
         p1.setActiveEffect(new EnergisedEffect(1));
         p2.setActiveEffect(new SickEffect(1));
         new EffectRule(new FixedRandomProvider()).tickAllEffects(List.of(p1, p2));

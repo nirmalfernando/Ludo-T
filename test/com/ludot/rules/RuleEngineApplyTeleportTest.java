@@ -1,5 +1,6 @@
 package com.ludot.rules;
 
+import com.ludot.TestBoard;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.effects.EnergisedEffect;
 import com.ludot.effects.NoEffect;
@@ -28,15 +29,13 @@ class RuleEngineApplyTeleportTest {
     private Board board;
 
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
-        board = Board.getInstance();
+        board = TestBoard.create();
+        board = board;
     }
 
-    @AfterEach void tearDown() { Board.resetInstance(); }
-
+    
     private Piece onBoardPiece(Colour colour, int cellId, Direction dir) {
-        Piece p = new Piece(colour.name().charAt(0) + "1", colour);
+        Piece p = new Piece(colour.name().charAt(0) + "1", colour, board);
         Cell cell = board.getCell(cellId);
         cell.addPiece(p);
         p.setPosition(cell);

@@ -10,6 +10,7 @@ public class Piece {
 
     private final String name;
     private final Colour colour;
+    private final Board board;      // the board this piece plays on (injected, one per game)
     private Cell position;          // null when at base
     private PieceState state;
     private Direction direction;    // assigned on leaving base via coin toss
@@ -19,16 +20,16 @@ public class Piece {
     private int approachPassCount;  // counts CCW passes of approach cell (T-1)
 
     
-    public Piece(String name, Colour colour) {
+    public Piece(String name, Colour colour, Board board) {
         this.name = name;
         this.colour = colour;
+        this.board = board;
         this.state = new AtBaseState();
         this.activeEffect = new NoEffect();
     }
 
     
     public void move(int steps) {
-        Board board = Board.getInstance();
         int id = position.getId();
 
         // T-1: walk step-by-step so that passing THROUGH the approach cell mid-move is counted,
@@ -49,6 +50,11 @@ public class Piece {
         position.removePiece(this);
         newCell.addPiece(this);
         position = newCell;
+    }
+
+    
+    public Board getBoard() {
+        return board;
     }
 
     

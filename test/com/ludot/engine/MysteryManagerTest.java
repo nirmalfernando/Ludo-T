@@ -1,4 +1,6 @@
 package com.ludot.engine;
+
+import com.ludot.TestBoard;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.effects.TeleportDestination;
 import com.ludot.factory.CellFactory;
@@ -13,9 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("MysteryManager (T-10/11/15)")
 class MysteryManagerTest {
     private Board board;
-    @BeforeEach void setUp()    { Board.resetInstance(); CellFactory.initializeBoard(Board.getInstance()); board = Board.getInstance(); }
-    @AfterEach  void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("isActive false initially") void notActiveInitially() {
+    @BeforeEach void setUp()    { board = TestBoard.create(); }
+        @Test @DisplayName("isActive false initially") void notActiveInitially() {
         assertFalse(new MysteryManager(new FixedRandomProvider(), board).isActive());
     }
     @Test @DisplayName("spawnMystery does nothing before round 3") void noSpawnBeforeRound3() {
@@ -41,7 +42,7 @@ class MysteryManagerTest {
     void handleLandingReturnsNullWhenInactive() {
         MysteryManager m = new MysteryManager(new FixedRandomProvider(), board);
         // no spawnMystery call — manager is inactive
-        assertTrue(m.handleLanding(new Piece("R1", Colour.RED)).isEmpty(),
+        assertTrue(m.handleLanding(new Piece("R1", Colour.RED, board)).isEmpty(),
                 "handleLanding must return empty Optional when no mystery cell is active");
         assertFalse(m.isActive(), "Manager must remain inactive after landing on nothing");
     }
@@ -50,7 +51,7 @@ class MysteryManagerTest {
         FixedRandomProvider fp = new FixedRandomProvider().addCells(5).addMysteryEffects(1);
         MysteryManager m = new MysteryManager(fp, board);
         m.spawnMystery(3);
-        TeleportDestination dest = m.handleLanding(new Piece("R1", Colour.RED)).orElse(null);
+        TeleportDestination dest = m.handleLanding(new Piece("R1", Colour.RED, board)).orElse(null);
         assertEquals(TeleportDestination.ALPHA, dest);
         assertFalse(m.isActive());
     }

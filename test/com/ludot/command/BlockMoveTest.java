@@ -1,4 +1,6 @@
 package com.ludot.command;
+
+import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.CellType;
 import com.ludot.model.Colour;
@@ -10,13 +12,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("BlockMove")
 class BlockMoveTest {
+
+    private Board board;
     private List<Piece> block;
     private Cell source, target;
     @BeforeEach void setUp() {
         source = new Cell(0, CellType.STANDARD, null);
         target = new Cell(3, CellType.STANDARD, null);
-        Piece p1 = new Piece("R1", Colour.RED);
-        Piece p2 = new Piece("R2", Colour.RED);
+        Piece p1 = new Piece("R1", Colour.RED, board);
+        Piece p2 = new Piece("R2", Colour.RED, board);
         source.addPiece(p1); source.addPiece(p2);
         p1.setPosition(source); p2.setPosition(source);
         block = List.of(p1, p2);

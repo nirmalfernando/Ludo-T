@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.TestBoard;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.dice.SeededRandomProvider;
 import com.ludot.events.EventBus;
@@ -22,18 +23,19 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GameEngine")
 class GameEngineTest {
 
+    private Board board;
+
     private List<GameEvent> events;
     private EventBus bus;
 
     @BeforeEach void setUp() {
-        Board.resetInstance();
+        board = TestBoard.create();
         events = new ArrayList<>();
         bus = new EventBus();
         bus.subscribe(events::add);
     }
 
-    @AfterEach void tearDown() { Board.resetInstance(); }
-
+    
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private GameEngine buildWith(int... diceRolls) {
@@ -267,7 +269,7 @@ class GameEngineTest {
 
     @Test @DisplayName("run completes, publishes WinEvent with a valid winner and positive round count")
     void runPublishesWinEvent() {
-        Board.resetInstance();
+        board = TestBoard.create();
         GameEngine engine = new GameBuilder().withSeed(42).withEventBus(bus).withPlayers(4).build();
         assertDoesNotThrow(engine::run);
 

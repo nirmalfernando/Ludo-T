@@ -1,4 +1,6 @@
 package com.ludot.rules.move;
+
+import com.ludot.TestBoard;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.factory.CellFactory;
 import com.ludot.model.Board;
@@ -14,21 +16,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("LudoTMoveValidator (T-1)")
 class LudoTMoveValidatorTest {
-    @BeforeEach  void setUp()    { Board.resetInstance(); CellFactory.initializeBoard(Board.getInstance()); }
-    @AfterEach   void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("heads coin toss gives CLOCKWISE") void headsClockwise() {
+
+    private Board board;
+    @BeforeEach  void setUp()    { board = TestBoard.create(); }
+        @Test @DisplayName("heads coin toss gives CLOCKWISE") void headsClockwise() {
         LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider().addCoins(true));
-        assertEquals(Direction.CLOCKWISE, v.assignDirection(new Piece("R1", Colour.RED)));
+        assertEquals(Direction.CLOCKWISE, v.assignDirection(new Piece("R1", Colour.RED, board)));
     }
     @Test @DisplayName("tails coin toss gives COUNTER_CLOCKWISE") void tailsCCW() {
         LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider().addCoins(false));
-        assertEquals(Direction.COUNTER_CLOCKWISE, v.assignDirection(new Piece("R1", Colour.RED)));
+        assertEquals(Direction.COUNTER_CLOCKWISE, v.assignDirection(new Piece("R1", Colour.RED, board)));
     }
     @Test @DisplayName("CCW piece with exactly 1 pass is still blocked from home straight")
     void onePassStillBlocked() {
         LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider());
-        Piece p = new Piece("R1", Colour.RED);
-        Cell approachCell = Board.getInstance().getApproachCell(Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
+        Cell approachCell = board.getApproachCell(Colour.RED);
         approachCell.addPiece(p);
         p.setPosition(approachCell);
         p.setDirection(Direction.COUNTER_CLOCKWISE);
@@ -39,8 +42,8 @@ class LudoTMoveValidatorTest {
 
     @Test @DisplayName("CCW piece requires 2 approach passes for home entry") void ccwRequiresTwoPasses() {
         LudoTMoveValidator v = new LudoTMoveValidator(new FixedRandomProvider());
-        Piece p = new Piece("R1", Colour.RED);
-        Cell approachCell = Board.getInstance().getApproachCell(Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
+        Cell approachCell = board.getApproachCell(Colour.RED);
         approachCell.addPiece(p);
         p.setPosition(approachCell);
         p.setDirection(Direction.COUNTER_CLOCKWISE);

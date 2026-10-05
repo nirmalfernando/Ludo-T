@@ -80,7 +80,7 @@ public class RuleEngine {
     private void addMoveFromBase(MoveFromBase mfb, List<Move> valid) {
         Direction dir = moveValidator.assignDirection(mfb.getPiece());
         mfb.getPiece().setDirection(dir);
-        Cell startCell = Board.getInstance().getStartCell(mfb.getPiece().getColour());
+        Cell startCell = mfb.getPiece().getBoard().getStartCell(mfb.getPiece().getColour());
         if (blockRule != null && blockRule.isBlocked(mfb.getPiece(), startCell)) {
             if (eventBus != null) {
                 eventBus.publish(new PieceBlockedEvent(mfb.getPiece(), null, startCell,
@@ -133,7 +133,7 @@ public class RuleEngine {
         if (blockSteps == 0) {
             return;
         }
-        Cell target = blockDestination(currentCell, blockRule.calcBlockMoveDir(block), blockSteps);
+        Cell target = blockDestination(block.get(0).getBoard(), currentCell, blockRule.calcBlockMoveDir(block), blockSteps);
         if (blockRule.canCaptureBlock(block, target)) {
             valid.add(new BlockCaptureMove(block, new ArrayList<>(target.getPieces()), target, blockSteps));
         } else if (!blockRule.isBlocked(block.get(0), target)) {
@@ -161,7 +161,7 @@ public class RuleEngine {
             int testId = piece.getDirection() == Direction.CLOCKWISE
                     ? (id + s) % GameConstants.BOARD_SIZE
                     : ((id - s) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
-            if (blockRule.isBlocked(piece, Board.getInstance().getCell(testId))) {
+            if (blockRule.isBlocked(piece, piece.getBoard().getCell(testId))) {
                 return s - 1;
             }
         }
@@ -169,17 +169,17 @@ public class RuleEngine {
     }
 
     // calculates the target cell for a block moving in its direction by the given steps
-    private Cell blockDestination(Cell source, Direction dir, int steps) {
+    private Cell blockDestination(Board board, Cell source, Direction dir, int steps) {
         int id = source.getId();
         int newId = dir == Direction.CLOCKWISE
                 ? (id + steps) % GameConstants.BOARD_SIZE
                 : ((id - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
-        return Board.getInstance().getCell(newId);
+        return board.getCell(newId);
     }
 
     public void applyLandingEffects(Piece piece) {
         if (homeEntryRule.canEnterHomeStraight(piece)) {
-            List<Cell> hs = Board.getInstance().getHomeStraight(piece.getColour());
+            List<Cell> hs = piece.getBoard().getHomeStraight(piece.getColour());
             Cell first = hs.get(0);
             piece.getPosition().removePiece(piece);
             first.addPiece(piece);
@@ -195,7 +195,7 @@ public class RuleEngine {
     }
 
     private void applyTeleport(Piece piece, TeleportDestination dest) {
-        Board board = Board.getInstance();
+        Board board = piece.getBoard();
         switch (dest) {
             case ALPHA -> {
                 if (effectRule != null) {

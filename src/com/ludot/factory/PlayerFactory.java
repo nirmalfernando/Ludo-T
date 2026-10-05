@@ -1,5 +1,6 @@
 package com.ludot.factory;
 
+import com.ludot.model.Board;
 import com.ludot.model.Colour;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
@@ -19,14 +20,14 @@ public final class PlayerFactory {
     private PlayerFactory() {
     }
 
-    public static Player createPlayer(Colour colour) {
-        return new Player(colour, createPieces(colour), createStrategy(colour));
+    public static Player createPlayer(Colour colour, Board board) {
+        return new Player(colour, createPieces(colour, board), createStrategy(colour));
     }
 
-    public static List<Player> createAll() {
+    public static List<Player> createAll(Board board) {
         List<Player> players = new ArrayList<>();
         for (Colour c : Colour.values()) {
-            players.add(createPlayer(c));
+            players.add(createPlayer(c, board));
         }
         return players;
     }
@@ -40,11 +41,11 @@ public final class PlayerFactory {
         };
     }
 
-    private static List<Piece> createPieces(Colour colour) {
+    private static List<Piece> createPieces(Colour colour, Board board) {
         List<Piece> pieces = new ArrayList<>(PIECES_PER_PLAYER);
         String prefix = String.valueOf(colour.name().charAt(0));
         for (int i = 1; i <= PIECES_PER_PLAYER; i++) {
-            pieces.add(new Piece(prefix + i, colour));
+            pieces.add(new Piece(prefix + i, colour, board));
         }
         return pieces;
     }

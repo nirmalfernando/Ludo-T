@@ -2,7 +2,6 @@ package com.ludot.rules.move;
 
 import com.ludot.GameConstants;
 import com.ludot.dice.RandomProvider;
-import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Direction;
 import com.ludot.model.state.InHomeStraightState;
@@ -34,7 +33,7 @@ public abstract class BaseMoveValidator implements GameRule {
         }
 
         if (piece.getState() instanceof InHomeStraightState) {
-            List<Cell> hs = Board.getInstance().getHomeStraight(piece.getColour());
+            List<Cell> hs = piece.getBoard().getHomeStraight(piece.getColour());
             int idx = hs.indexOf(piece.getPosition());
             int target = idx + steps;
             if (target >= hs.size()) {
@@ -48,7 +47,7 @@ public abstract class BaseMoveValidator implements GameRule {
         int newId = piece.getDirection() == Direction.CLOCKWISE
                 ? (id + steps) % GameConstants.BOARD_SIZE
                 : ((id - steps) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
-        return Optional.of(Board.getInstance().getCell(newId));
+        return Optional.of(piece.getBoard().getCell(newId));
     }
 
     

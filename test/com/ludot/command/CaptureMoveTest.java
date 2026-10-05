@@ -1,4 +1,6 @@
 package com.ludot.command;
+
+import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.CellType;
 import com.ludot.model.Colour;
@@ -10,11 +12,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("CaptureMove")
 class CaptureMoveTest {
+
+    private Board board;
     private Piece attacker, victim;
     private Cell attackerCell, targetCell;
     @BeforeEach void setUp() {
-        attacker    = new Piece("RED1",  Colour.RED);
-        victim      = new Piece("BLUE1", Colour.BLUE);
+        attacker    = new Piece("RED1",  Colour.RED, board);
+        victim      = new Piece("BLUE1", Colour.BLUE, board);
         attackerCell = new Cell(4, CellType.STANDARD, null);
         targetCell   = new Cell(5, CellType.STANDARD, null);
         attackerCell.addPiece(attacker); attacker.setPosition(attackerCell);

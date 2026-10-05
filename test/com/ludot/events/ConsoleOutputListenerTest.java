@@ -1,5 +1,6 @@
 package com.ludot.events;
 
+import com.ludot.TestBoard;
 import com.ludot.events.dice.DiceRollEvent;
 import com.ludot.events.flow.GameStartEvent;
 import com.ludot.events.flow.RollOffEvent;
@@ -26,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("ConsoleOutputListener — Visitor routing and output")
 class ConsoleOutputListenerTest {
 
+    private Board board;
+
     private ConsoleOutputListener listener;
     private EventBus bus;
     private Player player;
@@ -33,8 +36,7 @@ class ConsoleOutputListenerTest {
     private ByteArrayOutputStream captured;
 
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
+        board = TestBoard.create();
         listener = new ConsoleOutputListener(new OutputFormatter());
         bus = new EventBus();
         bus.subscribe(listener);
@@ -46,7 +48,7 @@ class ConsoleOutputListenerTest {
 
     @AfterEach void tearDown() {
         System.setOut(originalOut);
-        Board.resetInstance();
+        board = TestBoard.create();
     }
 
     private String output() { return captured.toString(); }
@@ -85,7 +87,7 @@ class ConsoleOutputListenerTest {
 
     @Test @DisplayName("MysterySpawnEvent produces output with cell location")
     void mysterySpawnRoutedCorrectly() {
-        Cell cell = Board.getInstance().getCell(7);
+        Cell cell = board.getCell(7);
         bus.publish(new MysterySpawnEvent(cell, 4));
         assertTrue(output().contains("7"),
                 "MysterySpawnEvent output must include cell ID");
@@ -93,7 +95,7 @@ class ConsoleOutputListenerTest {
 
     @Test @DisplayName("MysteryExpireEvent produces non-blank output")
     void mysteryExpireRoutedCorrectly() {
-        Cell cell = Board.getInstance().getCell(7);
+        Cell cell = board.getCell(7);
         bus.publish(new MysteryExpireEvent(cell));
         assertFalse(output().isBlank(), "MysteryExpireEvent must produce output");
     }
@@ -102,7 +104,7 @@ class ConsoleOutputListenerTest {
 
     @Test @DisplayName("CoinTossEvent produces non-blank output with coin toss result")
     void coinTossProducesOutput() {
-        com.ludot.model.Piece piece = new com.ludot.model.Piece("R1", Colour.RED);
+        com.ludot.model.Piece piece = new com.ludot.model.Piece("R1", Colour.RED, board);
         piece.setDirection(com.ludot.model.Direction.CLOCKWISE);
         bus.publish(new com.ludot.events.dice.CoinTossEvent(piece, com.ludot.model.Direction.CLOCKWISE));
         assertFalse(output().isBlank(), "CoinTossEvent must produce console output");

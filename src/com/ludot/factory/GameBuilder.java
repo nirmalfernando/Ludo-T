@@ -55,12 +55,11 @@ public class GameBuilder {
     public GameEngine build() {
         RandomProvider random = customRandom != null ? customRandom : new SeededRandomProvider(seed);
 
-        // reset ensures no piece/mystery state bleeds from a previous build() call
-        Board.resetInstance();
-        Board board = Board.getInstance();
+        // every build() gets its own Board, so games never share piece or mystery state
+        Board board = new Board();
         CellFactory.initializeBoard(board);
 
-        List<Player> players = PlayerFactory.createAll().subList(0, playerCount);
+        List<Player> players = PlayerFactory.createAll(board).subList(0, playerCount);
 
         EventBus eventBus = customEventBus != null ? customEventBus : new EventBus();
         if (customEventBus == null) {
@@ -73,7 +72,7 @@ public class GameBuilder {
         MysteryManager mysteryManager = new MysteryManager(random, board);
         MoveExecutor moveExecutor = new MoveExecutor(board, ruleEngine, mysteryManager, eventBus, players);
 
-        TurnManager turnManager = new TurnManager(ruleEngine, moveExecutor, eventBus, random, players);
+        TurnManager turnManager = new TurnManager(ruleEngine, moveExecutor, eventBus, random, players, board);
 
         return new GameEngine(board, players, turnManager, moveExecutor,
                 mysteryManager, ruleEngine, eventBus, random);

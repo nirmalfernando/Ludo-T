@@ -67,7 +67,7 @@ final class StrategyHelper {
                 id = ((id - 1) % GameConstants.BOARD_SIZE + GameConstants.BOARD_SIZE) % GameConstants.BOARD_SIZE;
             }
         }
-        return Board.getInstance().getCell(id);
+        return piece.getBoard().getCell(id);
     }
 
     // Minimum circular distance between two cell ids on the 52-cell board.

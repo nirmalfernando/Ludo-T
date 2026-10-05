@@ -1,5 +1,6 @@
 package com.ludot.strategy;
 
+import com.ludot.TestBoard;
 import com.ludot.command.Move;
 import com.ludot.command.SkipMove;
 import com.ludot.factory.CellFactory;
@@ -17,18 +18,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("BlueStrategy — stateless cycling via GameState.getTurnNumber()")
 class BlueStrategyTest {
 
+    private Board board;
+
     private Player player;
 
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
+        board = TestBoard.create();
         player = new Player(Colour.BLUE, List.of(), (gs, r, ps, m) -> m.get(0));
     }
 
-    @AfterEach void tearDown() { Board.resetInstance(); }
-
+    
     private GameState state(int turnNumber) {
-        return new GameState(List.of(player), Board.getInstance(), turnNumber);
+        return new GameState(List.of(player), board, turnNumber);
     }
 
     @Test @DisplayName("cycles through moves by turn number") void cyclesByTurnNumber() {

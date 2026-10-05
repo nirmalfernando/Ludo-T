@@ -47,7 +47,7 @@ public class BlockRule implements GameRule {
 
     
     public Direction calcBlockMoveDir(List<Piece> block) {
-        Board board = Board.getInstance();
+        Board board = block.get(0).getBoard();
         return block.stream()
                 .max(Comparator.comparingInt(p -> distanceToApproach(p, board)))
                 .map(Piece::getDirection)

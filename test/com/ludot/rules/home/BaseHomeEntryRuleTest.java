@@ -1,4 +1,6 @@
 package com.ludot.rules.home;
+
+import com.ludot.TestBoard;
 import com.ludot.factory.CellFactory;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -11,17 +13,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("BaseHomeEntryRule")
 class BaseHomeEntryRuleTest {
-    @BeforeEach  void setUp()    { Board.resetInstance(); CellFactory.initializeBoard(Board.getInstance()); }
-    @AfterEach   void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("canEnterHomeStraight true at own approach cell") void trueAtApproach() {
-        Piece p = new Piece("R1", Colour.RED);
-        Cell approach = Board.getInstance().getApproachCell(Colour.RED);
+
+    private Board board;
+    @BeforeEach  void setUp()    { board = TestBoard.create(); }
+        @Test @DisplayName("canEnterHomeStraight true at own approach cell") void trueAtApproach() {
+        Piece p = new Piece("R1", Colour.RED, board);
+        Cell approach = board.getApproachCell(Colour.RED);
         approach.addPiece(p); p.setPosition(approach);
         assertTrue(new BaseHomeEntryRule().canEnterHomeStraight(p));
     }
     @Test @DisplayName("canEnterHomeStraight false elsewhere") void falseElsewhere() {
-        Piece p = new Piece("R1", Colour.RED);
-        Cell other = Board.getInstance().getCell(10);
+        Piece p = new Piece("R1", Colour.RED, board);
+        Cell other = board.getCell(10);
         other.addPiece(p); p.setPosition(other);
         assertFalse(new BaseHomeEntryRule().canEnterHomeStraight(p));
     }

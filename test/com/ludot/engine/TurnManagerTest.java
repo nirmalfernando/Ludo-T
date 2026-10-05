@@ -1,4 +1,6 @@
 package com.ludot.engine;
+
+import com.ludot.TestBoard;
 import com.ludot.dice.FixedRandomProvider;
 import com.ludot.events.EventBus;
 import com.ludot.events.GameEvent;
@@ -24,24 +26,24 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("TurnManager")
 class TurnManagerTest {
+
+    private Board board;
     private TurnManager tm;
     private List<GameEvent> published;
     private List<Player> players;
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
+        board = TestBoard.create();
         published = new ArrayList<>();
         EventBus bus = new EventBus();
         bus.subscribe(published::add);
         FixedRandomProvider random = new FixedRandomProvider().addDice(3,3,3,3,3);
         RuleEngine rules = RuleEngineFactory.createLudoTRuleEngine(random);
-        MysteryManager mm = new MysteryManager(random, Board.getInstance());
-        MoveExecutor me = new MoveExecutor(Board.getInstance(), rules, mm, bus);
-        players = PlayerFactory.createAll();
-        tm = new TurnManager(rules, me, bus, random, players);
+        MysteryManager mm = new MysteryManager(random, board);
+        MoveExecutor me = new MoveExecutor(board, rules, mm, bus);
+        players = PlayerFactory.createAll(board);
+        tm = new TurnManager(rules, me, bus, random, players, board);
     }
-    @AfterEach void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("executeTurn publishes DiceRollEvent") void publishesDiceRoll() {
+        @Test @DisplayName("executeTurn publishes DiceRollEvent") void publishesDiceRoll() {
         tm.executeTurn(players.get(0));
         assertTrue(published.stream().anyMatch(ev -> ev instanceof DiceRollEvent));
     }
@@ -61,7 +63,7 @@ class TurnManagerTest {
     @Test @DisplayName("handleTripleSix breaks an active block and publishes BlockBreakEvent")
     void tripleSixBreaksBlock() {
         Player red = players.get(0);
-        Cell cell20 = Board.getInstance().getCell(20);
+        Cell cell20 = board.getCell(20);
         Piece p1 = red.getPieces().get(0);
         Piece p2 = red.getPieces().get(1);
         // place two RED pieces on cell 20 to form a block

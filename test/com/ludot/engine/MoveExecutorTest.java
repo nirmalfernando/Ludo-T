@@ -1,4 +1,6 @@
 package com.ludot.engine;
+
+import com.ludot.TestBoard;
 import com.ludot.command.CaptureMove;
 import com.ludot.command.MoveFromBase;
 import com.ludot.command.MoveOnBoard;
@@ -30,30 +32,30 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("MoveExecutor")
 class MoveExecutorTest {
+
+    private Board board;
     private MoveExecutor executor;
     private List<GameEvent> published;
     @BeforeEach void setUp() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
+        board = TestBoard.create();
         published = new ArrayList<>();
         EventBus bus = new EventBus();
         bus.subscribe(published::add);
         FixedRandomProvider random = new FixedRandomProvider();
         RuleEngine rules = RuleEngineFactory.createLudoTRuleEngine(random);
-        MysteryManager mm = new MysteryManager(random, Board.getInstance());
-        executor = new MoveExecutor(Board.getInstance(), rules, mm, bus);
+        MysteryManager mm = new MysteryManager(random, board);
+        executor = new MoveExecutor(board, rules, mm, bus);
     }
-    @AfterEach void tearDown() { Board.resetInstance(); }
-    @Test @DisplayName("MoveFromBase publishes CoinTossEvent and MoveEvent") void fromBaseEvents() {
-        Piece p = new Piece("R1", Colour.RED);
+        @Test @DisplayName("MoveFromBase publishes CoinTossEvent and MoveEvent") void fromBaseEvents() {
+        Piece p = new Piece("R1", Colour.RED, board);
         p.setDirection(Direction.CLOCKWISE);
         executor.execute(new MoveFromBase(p));
         assertTrue(published.stream().anyMatch(ev -> ev instanceof CoinTossEvent));
         assertTrue(published.stream().anyMatch(ev -> ev instanceof MoveEvent));
     }
     @Test @DisplayName("CaptureMove publishes CaptureEvent") void captureEvents() {
-        Piece att = new Piece("R1", Colour.RED); Piece vic = new Piece("B1", Colour.BLUE);
-        Cell c1 = Board.getInstance().getCell(5); Cell c2 = Board.getInstance().getCell(8);
+        Piece att = new Piece("R1", Colour.RED, board); Piece vic = new Piece("B1", Colour.BLUE, board);
+        Cell c1 = board.getCell(5); Cell c2 = board.getCell(8);
         c1.addPiece(att); att.setPosition(c1); att.setState(new OnBoardState()); att.setDirection(Direction.CLOCKWISE);
         c2.addPiece(vic); vic.setPosition(c2); vic.setState(new OnBoardState());
         executor.execute(new CaptureMove(att, vic, c2, 3));
@@ -61,10 +63,10 @@ class MoveExecutorTest {
     }
     @Test @DisplayName("CaptureMove via executor: attacker lands on target cell, victim sent to base")
     void captureFullPath() {
-        Piece att = new Piece("R1", Colour.RED);
-        Piece vic = new Piece("B1", Colour.BLUE);
-        Cell c1 = Board.getInstance().getCell(5);
-        Cell c2 = Board.getInstance().getCell(8);
+        Piece att = new Piece("R1", Colour.RED, board);
+        Piece vic = new Piece("B1", Colour.BLUE, board);
+        Cell c1 = board.getCell(5);
+        Cell c2 = board.getCell(8);
         c1.addPiece(att); att.setPosition(c1); att.setState(new OnBoardState()); att.setDirection(Direction.CLOCKWISE);
         c2.addPiece(vic); vic.setPosition(c2); vic.setState(new OnBoardState());
 
@@ -77,8 +79,8 @@ class MoveExecutorTest {
     }
 
     @Test @DisplayName("MoveOnBoard publishes HomeReachEvent on last home cell") void homeReachEvent() {
-        Piece p = new Piece("R1", Colour.RED);
-        List<Cell> hs = Board.getInstance().getHomeStraight(Colour.RED);
+        Piece p = new Piece("R1", Colour.RED, board);
+        List<Cell> hs = board.getHomeStraight(Colour.RED);
         Cell penultimate = hs.get(3);
         penultimate.addPiece(p); p.setPosition(penultimate); p.setState(new InHomeStraightState());
         executor.execute(new MoveOnBoard(p, 1));
@@ -89,10 +91,10 @@ class MoveExecutorTest {
 
     @Test @DisplayName("T-5: block formation saves originalDirection for all pieces in the block")
     void blockFormationSavesOriginalDirection() {
-        Piece resident = new Piece("R1", Colour.RED);
-        Piece mover    = new Piece("R2", Colour.RED);
-        Cell cell5 = Board.getInstance().getCell(5);
-        Cell cell3 = Board.getInstance().getCell(3);
+        Piece resident = new Piece("R1", Colour.RED, board);
+        Piece mover    = new Piece("R2", Colour.RED, board);
+        Cell cell5 = board.getCell(5);
+        Cell cell3 = board.getCell(3);
 
         cell5.addPiece(resident); resident.setPosition(cell5);
         resident.setState(new OnBoardState()); resident.setDirection(Direction.CLOCKWISE);
@@ -110,10 +112,10 @@ class MoveExecutorTest {
 
     @Test @DisplayName("T-5: full cycle — block forms, directions saved, break restores them")
     void blockFormationAndBreakCycle_T5() {
-        Piece p1 = new Piece("R1", Colour.RED);
-        Piece p2 = new Piece("R2", Colour.RED);
-        Cell cell5 = Board.getInstance().getCell(5);
-        Cell cell3 = Board.getInstance().getCell(3);
+        Piece p1 = new Piece("R1", Colour.RED, board);
+        Piece p2 = new Piece("R2", Colour.RED, board);
+        Cell cell5 = board.getCell(5);
+        Cell cell3 = board.getCell(3);
 
         cell5.addPiece(p1); p1.setPosition(cell5);
         p1.setState(new OnBoardState()); p1.setDirection(Direction.CLOCKWISE);

@@ -1,4 +1,6 @@
 package com.ludot.model;
+
+import com.ludot.TestBoard;
 import com.ludot.effects.EnergisedEffect;
 import com.ludot.factory.CellFactory;
 import com.ludot.model.state.AtBaseState;
@@ -10,8 +12,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("Piece")
 class PieceTest {
+
+    private Board board;
     private Piece piece;
-    @BeforeEach void setUp() { piece = new Piece("RED1", Colour.RED); }
+    @BeforeEach void setUp() {
+        board = TestBoard.create();
+        piece = new Piece("RED1", Colour.RED, board);
+    }
     @Test @DisplayName("new piece starts at base") void startsAtBase() {
         assertNull(piece.getPosition());
         assertInstanceOf(AtBaseState.class, piece.getState());
@@ -50,12 +57,10 @@ class PieceTest {
 
     @Test @DisplayName("T-1: CCW piece increments approachPassCount when passing THROUGH approach cell mid-move")
     void ccwPassThroughApproachCellIncrementsCount() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
 
         // RED approach cell is at id 24. Place piece at cell 27 moving CCW.
         // 5 CCW steps: 27→26→25→24(approach!)→23→22 — passes through 24 without landing.
-        Cell cell27 = Board.getInstance().getCell(27);
+        Cell cell27 = board.getCell(27);
         piece.setState(new OnBoardState());
         piece.setDirection(Direction.COUNTER_CLOCKWISE);
         cell27.addPiece(piece);
@@ -70,11 +75,9 @@ class PieceTest {
 
     @Test @DisplayName("T-1: CW piece does NOT increment approachPassCount when passing approach cell")
     void cwPieceDoesNotIncrementApproachPassCount() {
-        Board.resetInstance();
-        CellFactory.initializeBoard(Board.getInstance());
 
         // CW piece passing through RED approach cell should have no count change
-        Cell cell21 = Board.getInstance().getCell(21);
+        Cell cell21 = board.getCell(21);
         piece.setState(new OnBoardState());
         piece.setDirection(Direction.CLOCKWISE);
         cell21.addPiece(piece);
@@ -87,5 +90,4 @@ class PieceTest {
                 "T-1: CW pieces must never increment approachPassCount");
     }
 
-    @AfterEach void tearDown() { Board.resetInstance(); }
-}
+    }

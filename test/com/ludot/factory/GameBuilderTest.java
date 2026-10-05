@@ -1,5 +1,6 @@
 package com.ludot.factory;
 
+import com.ludot.TestBoard;
 import com.ludot.engine.GameEngine;
 import com.ludot.model.Board;
 import org.junit.jupiter.api.AfterEach;
@@ -11,9 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GameBuilder")
 class GameBuilderTest {
 
-    @BeforeEach void setUp()    { Board.resetInstance(); }
-    @AfterEach  void tearDown() { Board.resetInstance(); }
+    private Board board;
 
+    @BeforeEach void setUp()    { board = TestBoard.create(); }
+    
     @Test @DisplayName("build returns a non-null GameEngine")
     void buildReturnsEngine() {
         assertNotNull(new GameBuilder().withSeed(42).withPlayers(4).build());
@@ -21,14 +23,14 @@ class GameBuilderTest {
 
     @Test @DisplayName("same seed produces the same first player (deterministic)")
     void seedDeterministic() {
-        Board.resetInstance();
+        board = TestBoard.create();
         GameEngine e1 = new GameBuilder().withSeed(99).withPlayers(4).build();
-        Board.resetInstance();
+        board = TestBoard.create();
         GameEngine e2 = new GameBuilder().withSeed(99).withPlayers(4).build();
 
         // same seed must produce the same roll-off winner
         var first1 = e1.determineFirstPlayer();
-        Board.resetInstance();
+        board = TestBoard.create();
 
         // rebuild e2 fresh so its dice sequence is at the start
         e2 = new GameBuilder().withSeed(99).withPlayers(4).build();

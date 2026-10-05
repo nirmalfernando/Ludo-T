@@ -11,10 +11,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("Player")
 class PlayerTest {
+
+    private Board board;
     private Player makePlayer(PieceState... states) {
         java.util.List<Piece> pieces = new java.util.ArrayList<>();
         for (PieceState s : states) {
-            Piece p = new Piece("P", Colour.RED);
+            Piece p = new Piece("P", Colour.RED, board);
             p.setState(s);
             pieces.add(p);
         }

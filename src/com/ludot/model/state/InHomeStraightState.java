@@ -2,7 +2,6 @@ package com.ludot.model.state;
 
 import com.ludot.model.Piece;
 import com.ludot.model.Cell;
-import com.ludot.model.Board;
 
 import com.ludot.command.Move;
 import com.ludot.command.MoveOnBoard;
@@ -12,7 +11,7 @@ public class InHomeStraightState implements PieceState {
 
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
-        List<Cell> homeStraight = Board.getInstance().getHomeStraight(piece.getColour());
+        List<Cell> homeStraight = piece.getBoard().getHomeStraight(piece.getColour());
         int currentIndex = homeStraight.indexOf(piece.getPosition());
         int stepsToHome = (homeStraight.size() - 1) - currentIndex;
         int steps = piece.getEffectiveSteps(roll);
