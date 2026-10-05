@@ -51,7 +51,8 @@ public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, lo
                 intOf(props, "chat.rateLimitMessages", s.chatRateLimitMessages()),
                 longOf(props, "chat.rateLimitWindowMs", s.chatRateLimitWindowMs()),
                 longOf(props, "room.emptyCloseMs", s.emptyRoomCloseMs()),
-                s.recentLogSize());
+                s.recentLogSize(),
+                intOf(props, "room.requestMemory", s.requestMemory()));
         return new ServerConfig(intOf(props, "server.port", d.port()),
                 intOf(props, "connection.outboundCapacity", d.outboundCapacity()),
                 intOf(props, "connection.readTimeoutMs", d.readTimeoutMs()),

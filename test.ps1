@@ -15,4 +15,5 @@ Run-Tests "protocol" @()
 Run-Tests "server"   @("core", "protocol")
 Run-Tests "client"   @("protocol")
 Run-Tests "bot"      @("protocol")
+Run-Tests "integration" @("core", "protocol", "server", "bot")
 exit $status

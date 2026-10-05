@@ -51,10 +51,29 @@ build_module() {
     echo "  [$name] built -> dist/$name.jar"
 }
 
+# build_test_module <name> <dependency modules...>: tests that span modules and so have no main sources of their own
+build_test_module() {
+    local name=$1; shift
+    local tests
+    tests=$(find "test/$name" -name '*.java' 2>/dev/null || true)
+    if [ -z "$tests" ]; then
+        return
+    fi
+    local cp="" dep
+    for dep in "$@"; do cp="$cp:out/main/$dep"; done
+    cp="${cp#:}"
+    rm -rf "out/test/$name"
+    mkdir -p "out/test/$name"
+    # shellcheck disable=SC2086
+    javac --release $RELEASE -encoding UTF-8 -d "out/test/$name" -cp "$cp:lib/*" $tests
+    echo "  [$name] cross-module tests built"
+}
+
 echo "Building modules..."
 build_module core     com.ludot.Main
 build_module protocol -
 build_module server   com.ludot.server.ServerMain core protocol
 build_module client   com.ludot.client.ClientApp  protocol
 build_module bot      com.ludot.bot.BotMain       protocol
+build_test_module integration core protocol server bot
 echo "Build complete."

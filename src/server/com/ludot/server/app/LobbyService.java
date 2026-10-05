@@ -38,11 +38,12 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
     private final Map<String, RoomSummary> rooms = new TreeMap<>();
     private final Map<String, Participant> subscribers = new LinkedHashMap<>();
     private final ChatChannel chat;
-    private final RequestLog requests = new RequestLog(64);
+    private final RequestLog requests;
     private long lobbySeq;
 
     public LobbyService(SessionConfig config, LongSupplier clock) {
         this.chat = new ChatChannel(config, clock);
+        this.requests = new RequestLog(config.requestMemory());
     }
 
     // ------------------------------------------------------------------ from rooms (never dropped)

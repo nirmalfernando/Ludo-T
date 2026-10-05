@@ -21,4 +21,5 @@ run_tests protocol || status=1
 run_tests server core protocol || status=1
 run_tests client protocol || status=1
 run_tests bot protocol || status=1
+run_tests integration core protocol server bot || status=1
 exit $status

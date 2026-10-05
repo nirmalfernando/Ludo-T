@@ -50,7 +50,6 @@ import java.util.logging.Logger;
 public final class GameSession {
 
     private static final Logger LOG = Logger.getLogger(GameSession.class.getName());
-    private static final int REQUEST_MEMORY = 64;
     private static final long RETRY_DELAY_MS = 20;
 
     private interface Handler {
@@ -104,7 +103,7 @@ public final class GameSession {
     private final SeatTable seats = new SeatTable();
     private final RoomGame game;
     private final ChatChannel chat;
-    private final RequestLog requests = new RequestLog(REQUEST_MEMORY);
+    private final RequestLog requests;
     private final Deque<String> log = new ArrayDeque<>();
     private final List<Member> slowConsumers = new ArrayList<>();
     private RoomStatus status = RoomStatus.WAITING;
@@ -130,6 +129,7 @@ public final class GameSession {
         this.repository = repository;
         this.game = new RoomGame(variant, this.seed);
         this.chat = new ChatChannel(config, clock);
+        this.requests = new RequestLog(config.requestMemory());
         this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(config.queueCapacity()),
                 new NamedThreadFactory("room-" + roomId, false), new ThreadPoolExecutor.AbortPolicy());

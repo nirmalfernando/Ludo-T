@@ -40,10 +40,22 @@ function Build-Module($name, $main, $deps) {
     Write-Host "  [$name] built -> dist\$name.jar"
 }
 
+function Build-TestModule($name, $deps) {
+    $tests = Get-Sources "test\$name"
+    if ($tests.Count -eq 0) { return }
+    $cp = ($deps | ForEach-Object { "out\main\$_" }) -join ";"
+    Remove-Item -Recurse -Force "out\test\$name" -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path "out\test\$name" | Out-Null
+    & javac --release $release -encoding UTF-8 -d "out\test\$name" -cp "$cp;lib\*" @tests
+    if ($LASTEXITCODE -ne 0) { throw "[$name] test compile failed" }
+    Write-Host "  [$name] cross-module tests built"
+}
+
 Write-Host "Building modules..."
 Build-Module "core"     "com.ludot.Main"              @()
 Build-Module "protocol" "-"                           @()
 Build-Module "server"   "com.ludot.server.ServerMain" @("core", "protocol")
 Build-Module "client"   "com.ludot.client.ClientApp"  @("protocol")
 Build-Module "bot"      "com.ludot.bot.BotMain"       @("protocol")
+Build-TestModule "integration" @("core", "protocol", "server", "bot")
 Write-Host "Build complete."

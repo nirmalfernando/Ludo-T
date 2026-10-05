@@ -389,6 +389,24 @@ class GameSessionTest {
         assertEquals(1, claimBroadcasts);
     }
 
+    @Test @DisplayName("a repeated id is still recognised after hundreds of other requests (the memory outlasts a flood)")
+    void duplicateRecognisedAfterManyRequests() {
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 1, alice);
+        ClientMessage.ClaimSeat claim = new ClientMessage.ClaimSeat(id(), room.roomId(), Colour.RED);
+        assertTrue(Kit.call(room, alice, claim).isOk());
+        for (int i = 0; i < 500; i++) {
+            room.submit(alice, new ClientMessage.RequestSnapshot(id(), room.roomId()));
+        }
+        // re-evaluating the claim would answer SEAT_TAKEN (she already holds RED); the remembered answer is OK
+        room.submit(alice, new ClientMessage.ClaimSeat(claim.requestId(), room.roomId(), Colour.RED));
+        Kit.settle(room, alice);
+        List<Response> answers = Kit.sink(alice).of(Response.class).stream()
+                .filter(r -> r.requestId().equals(claim.requestId())).toList();
+        assertEquals(2, answers.size());
+        assertTrue(answers.get(1).isOk(), String.valueOf(answers.get(1)));
+    }
+
     @Test @DisplayName("a dropped connection hands the seat to the AI, which keeps playing it")
     void connectionLostHandsSeatToAi() {
         Participant alice = Kit.person("alice");

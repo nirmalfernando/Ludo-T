@@ -6,26 +6,33 @@ import com.ludot.protocol.Speed;
 public record SessionConfig(int queueCapacity, long fastMs, long normalMs, long slowMs,
                             int chatMaxLength, int chatHistorySize,
                             int chatRateLimitMessages, long chatRateLimitWindowMs,
-                            long emptyRoomCloseMs, int recentLogSize) {
+                            long emptyRoomCloseMs, int recentLogSize, int requestMemory) {
+
+    /**
+     * How many recent answers a room remembers per player to replay on a repeated request id. It must be
+     * larger than the number of requests that can be queued between a request and its retry, or a retry
+     * under a flood is evaluated again instead of answered from memory.
+     */
+    public static final int DEFAULT_REQUEST_MEMORY = 1_024;
 
     public static SessionConfig defaults() {
         return new SessionConfig(10_000, Speed.FAST.delayMs(), Speed.NORMAL.delayMs(), Speed.SLOW.delayMs(),
-                200, 30, 5, 5_000, 60_000, 50);
+                200, 30, 5, 5_000, 60_000, 50, DEFAULT_REQUEST_MEMORY);
     }
 
     public SessionConfig withQueueCapacity(int capacity) {
         return new SessionConfig(capacity, fastMs, normalMs, slowMs, chatMaxLength, chatHistorySize,
-                chatRateLimitMessages, chatRateLimitWindowMs, emptyRoomCloseMs, recentLogSize);
+                chatRateLimitMessages, chatRateLimitWindowMs, emptyRoomCloseMs, recentLogSize, requestMemory);
     }
 
     public SessionConfig withDelays(long fast, long normal, long slow) {
         return new SessionConfig(queueCapacity, fast, normal, slow, chatMaxLength, chatHistorySize,
-                chatRateLimitMessages, chatRateLimitWindowMs, emptyRoomCloseMs, recentLogSize);
+                chatRateLimitMessages, chatRateLimitWindowMs, emptyRoomCloseMs, recentLogSize, requestMemory);
     }
 
     public SessionConfig withEmptyRoomCloseMs(long millis) {
         return new SessionConfig(queueCapacity, fastMs, normalMs, slowMs, chatMaxLength, chatHistorySize,
-                chatRateLimitMessages, chatRateLimitWindowMs, millis, recentLogSize);
+                chatRateLimitMessages, chatRateLimitWindowMs, millis, recentLogSize, requestMemory);
     }
 
     /** Delay between AI actions at the given speed. */
@@ -35,5 +42,10 @@ public record SessionConfig(int queueCapacity, long fastMs, long normalMs, long 
             case NORMAL -> normalMs;
             case SLOW -> slowMs;
         };
+    }
+
+    public SessionConfig withRequestMemory(int memory) {
+        return new SessionConfig(queueCapacity, fastMs, normalMs, slowMs, chatMaxLength, chatHistorySize,
+                chatRateLimitMessages, chatRateLimitWindowMs, emptyRoomCloseMs, recentLogSize, memory);
     }
 }
