@@ -1,4 +1,24 @@
 #!/bin/bash
-java -jar lib/junit-platform-console-standalone-1.10.2.jar \
-  --class-path "out/production:out/test:lib/*" \
-  --scan-class-path out/test
+# Runs the JUnit tests of every module that has them. Run ./compile.sh first.
+set -uo pipefail
+cd "$(dirname "$0")"
+
+# run_tests <name> <dependency modules...>
+run_tests() {
+    local name=$1; shift
+    [ -d "out/test/$name" ] && [ -n "$(find "out/test/$name" -name '*.class' | head -1)" ] || return 0
+    local cp="out/test/$name:out/main/$name" dep
+    for dep in "$@"; do cp="$cp:out/main/$dep"; done
+    echo "=== tests: $name"
+    java -jar lib/junit-platform-console-standalone-1.10.2.jar \
+        --class-path "$cp:lib/*" \
+        --scan-class-path "out/test/$name"
+}
+
+status=0
+run_tests core || status=1
+run_tests protocol || status=1
+run_tests server core protocol || status=1
+run_tests client protocol || status=1
+run_tests bot protocol || status=1
+exit $status

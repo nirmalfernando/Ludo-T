@@ -52,3 +52,6 @@ supabase/.branches/
 
 # Session tokens / local settings
 .claude/settings.local.json
+
+# Build output: runnable module JARs
+dist/

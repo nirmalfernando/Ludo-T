@@ -7,8 +7,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-SRC="$ROOT/src"
-TEST="$ROOT/test"
+SRC="$ROOT/src/core"   # metrics cover the game core module
+TEST="$ROOT/test/core"
 LIB="$ROOT/lib"
 TOOLS="$ROOT/tools"
 OUT="$ROOT/out"
