@@ -1,0 +1,8 @@
+# Copy to config/server.properties (git-ignored) and fill in the Supabase session-pooler details.
+server.port=5555
+
+# db.mode=postgres uses Supabase; db.mode=h2 uses the offline fallback.
+db.mode=postgres
+db.url=jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require
+db.user=postgres.<project-ref>
+db.password=<your-password>

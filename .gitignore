@@ -23,3 +23,10 @@ out/
 
 # Game log file
 game_log.txt
+
+# Assignment 2: secrets and downloaded runtime libraries
+config/server.properties
+lib/postgresql-*.jar
+lib/h2-*.jar
+lib/javafx-sdk/
+lib/javafx.zip
