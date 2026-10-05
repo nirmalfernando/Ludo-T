@@ -20,4 +20,9 @@ public class NoEffect implements Effect {
     public String getName() {
         return "NONE";
     }
+
+    @Override
+    public int getRoundsLeft() {
+        return 0;
+    }
 }

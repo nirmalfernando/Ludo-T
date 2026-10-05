@@ -12,4 +12,7 @@ public interface Effect {
 
     
     String getName();
+
+    /** Rounds this effect still has to run; 0 when it has none (or has expired). */
+    int getRoundsLeft();
 }

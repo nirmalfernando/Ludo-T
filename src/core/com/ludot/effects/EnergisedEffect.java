@@ -36,4 +36,9 @@ public class EnergisedEffect implements Effect {
     public String getName() {
         return "ENERGISED";
     }
+
+    @Override
+    public int getRoundsLeft() {
+        return Math.max(roundsLeft, 0);
+    }
 }

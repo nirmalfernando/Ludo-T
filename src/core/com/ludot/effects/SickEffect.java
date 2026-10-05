@@ -36,4 +36,9 @@ public class SickEffect implements Effect {
     public String getName() {
         return "SICK";
     }
+
+    @Override
+    public int getRoundsLeft() {
+        return Math.max(roundsLeft, 0);
+    }
 }

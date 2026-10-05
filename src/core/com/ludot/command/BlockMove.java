@@ -41,6 +41,11 @@ public class BlockMove implements Move {
     }
 
     
+    public Cell getTargetCell() {
+        return targetCell;
+    }
+
+    
     public int getSteps() {
         return steps;
     }

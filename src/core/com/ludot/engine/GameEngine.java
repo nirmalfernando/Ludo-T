@@ -121,6 +121,26 @@ public class GameEngine {
         return players.get(currentIndex);
     }
 
+    /** The board this game is played on. */
+    public Board getBoard() {
+        return board;
+    }
+
+    /** Completed rounds so far. */
+    public int getRoundCount() {
+        return turnManager.getRoundCount();
+    }
+
+    /** The mystery cell currently on the board, or null when none is active. */
+    public Cell getMysteryCell() {
+        return mysteryManager.getCurrentCell();
+    }
+
+    /** Rounds the active mystery cell has left. */
+    public int getMysteryRoundsLeft() {
+        return mysteryManager.getRoundsLeft();
+    }
+
     /** Counts every roll and move applied so far; requests quote it so stale ones can be rejected. */
     public int getTurnNumber() {
         return stepNumber;
