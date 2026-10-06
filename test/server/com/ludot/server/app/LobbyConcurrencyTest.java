@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** The lobby and registry under simultaneous load. */
@@ -134,6 +135,21 @@ class LobbyConcurrencyTest {
         for (RouterKit.Client watcher : watchers) {
             assertEquals(expected, ids(lastUpdate(watcher).rooms()));
         }
+    }
+
+    @Test @DisplayName("when a room closes the lobby chat says so, after the 'created' line, once")
+    void closingIsAnnounced() throws Exception {
+        kit = new RouterKit(SessionConfig.defaults().withDelays(0, 1, 1).withEmptyRoomCloseMs(20));
+        RouterKit.Client watcher = subscribers(1).get(0);
+        RouterKit.Client creator = kit.hello("maker");
+        String roomId = (String) creator.call(new ClientMessage.CreateRoom(id(), RoomMode.PLAY, Variant.LUDO_T, 1L)).payload();
+        creator.call(new ClientMessage.LeaveRoom(id(), roomId));
+
+        String closed = "Room " + roomId + " was closed";
+        Kit.await(() -> watcher.inbox.of(ChatMessage.class).stream().anyMatch(m -> m.system() && m.text().equals(closed)), 5000);
+        kit.lobby.awaitIdle();
+        List<String> lines = watcher.inbox.of(ChatMessage.class).stream().filter(m -> m.roomId() == null).map(ChatMessage::text).toList();
+        assertEquals(List.of("maker created Play room " + roomId, closed), lines);
     }
 
     // CT-12

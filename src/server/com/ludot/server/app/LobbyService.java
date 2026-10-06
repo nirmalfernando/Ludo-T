@@ -63,6 +63,8 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
         post(() -> {
             if (rooms.remove(roomId) != null) {
                 broadcastRooms();
+                // the chat also said "created room ...", so say when it is gone instead of leaving that line dangling
+                publishChat(null, "system", "Room " + roomId + " was closed", true);
             }
         });
     }

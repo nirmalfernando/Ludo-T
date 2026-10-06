@@ -1,6 +1,7 @@
 package com.ludot.client.view;
 
 import com.ludot.protocol.Colour;
+import java.awt.Graphics2D;
 import java.awt.Taskbar;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -15,7 +16,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.transform.Affine;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
@@ -29,6 +29,7 @@ public final class AppIcon {
     private static final int[] SIZES = {16, 32, 48, 64, 128, 256, 512};
     // macOS draws app icons inside a transparent margin, about a tenth of the width on each side
     private static final double DOCK_FILL = 0.8;
+    private static final int DOCK_CANVAS = 512;
     private static final Color NAVY = Color.web("#2b3366");
 
     private AppIcon() {
@@ -42,14 +43,14 @@ public final class AppIcon {
             images.add(render(tile, size));
         }
         stage.getIcons().setAll(images);
-        dock(renderPadded(tile, 512));
+        dock(dockImage(tile));
     }
 
     // the Dock icon is not the window icon: it is set through the Taskbar, which not every system offers
-    private static void dock(Image large) {
+    private static void dock(BufferedImage image) {
         try {
             if (Taskbar.isTaskbarSupported() && Taskbar.getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE)) {
-                Taskbar.getTaskbar().setIconImage(toAwt(large));
+                Taskbar.getTaskbar().setIconImage(image);
             }
         } catch (RuntimeException | LinkageError e) {
             // no Dock or taskbar icon: the window icon is still set
@@ -70,7 +71,7 @@ public final class AppIcon {
         double pawnHeight = 250;
         PawnMascot pawn = new PawnMascot(NAVY, pawnHeight);
         pawn.setLayoutX(DRAWN / 2);
-        pawn.setLayoutY(DRAWN / 2 - pawnHeight * 0.52);
+        pawn.setLayoutY(DRAWN / 2 - pawnHeight * 0.49); // the pawn art is top-heavy: this centres what you see
         return new Group(quadrants, disc, pawn);
     }
 
@@ -87,17 +88,16 @@ public final class AppIcon {
         return tile.snapshot(params, new WritableImage(size, size));
     }
 
-    // the tile shrunk into the middle of a transparent square, so it sits in the Dock at the same size as other apps
-    private static Image renderPadded(Node tile, int size) {
-        double scale = size * DOCK_FILL / DRAWN;
-        double margin = size * (1 - DOCK_FILL) / 2;
-        Affine fit = new Affine();
-        fit.appendTranslation(margin, margin);
-        fit.appendScale(scale, scale);
-        SnapshotParameters params = new SnapshotParameters();
-        params.setFill(Color.TRANSPARENT);
-        params.setTransform(fit);
-        return tile.snapshot(params, new WritableImage(size, size));
+    // the tile shrunk into the middle of a transparent square, so it sits in the Dock at the same size as other apps;
+    // pasted with AWT because a JavaFX snapshot places a translated node relative to its bounds, not to the image
+    static BufferedImage dockImage(Node tile) {
+        int art = (int) Math.round(DOCK_CANVAS * DOCK_FILL);
+        int margin = (DOCK_CANVAS - art) / 2;
+        BufferedImage canvas = new BufferedImage(DOCK_CANVAS, DOCK_CANVAS, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = canvas.createGraphics();
+        g.drawImage(toAwt(render(tile, art)), margin, margin, null);
+        g.dispose();
+        return canvas;
     }
 
     private static BufferedImage toAwt(Image image) {
