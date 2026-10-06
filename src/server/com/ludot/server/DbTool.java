@@ -8,6 +8,7 @@ import com.ludot.server.adapters.persistence.AsyncGameRepository;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -121,7 +122,7 @@ public final class DbTool {
                 total += System.nanoTime() - t;
             }
             System.out.println("Connected in " + connectMs + " ms; a round trip takes about "
-                    + total / trips / 1_000_000.0 + " ms");
+                    + total / (trips * 1_000_000.0) + " ms");
             for (String table : TABLES) {
                 try (Statement statement = connection.createStatement();
                      ResultSet r = statement.executeQuery("SELECT COUNT(*) FROM " + table)) {
@@ -154,25 +155,33 @@ public final class DbTool {
             String status;
             String winner;
             long totalTurns;
-            try (ResultSet r = statement.executeQuery("SELECT status, winner_colour, total_turns FROM rooms WHERE id = '" + id + "'")) {
-                if (!r.next()) {
-                    System.out.println("VERIFY FAIL: room " + id + " is not stored");
-                    return false;
+            try (PreparedStatement room = connection.prepareStatement(
+                    "SELECT status, winner_colour, total_turns FROM rooms WHERE id = ?")) {
+                room.setString(1, id);
+                try (ResultSet r = room.executeQuery()) {
+                    if (!r.next()) {
+                        System.out.println("VERIFY FAIL: room " + id + " is not stored");
+                        return false;
+                    }
+                    status = r.getString(1);
+                    winner = r.getString(2);
+                    totalTurns = r.getLong(3);
                 }
-                status = r.getString(1);
-                winner = r.getString(2);
-                totalTurns = r.getLong(3);
             }
             long steps;
             long min;
             long max;
-            try (ResultSet r = statement.executeQuery("SELECT COUNT(*), MIN(turn_number), MAX(turn_number) FROM decisions WHERE room_id = '" + id + "'")) {
-                r.next();
-                steps = r.getLong(1);
-                min = r.getLong(2);
-                max = r.getLong(3);
+            try (PreparedStatement decisions = connection.prepareStatement(
+                    "SELECT COUNT(*), MIN(turn_number), MAX(turn_number) FROM decisions WHERE room_id = ?")) {
+                decisions.setString(1, id);
+                try (ResultSet r = decisions.executeQuery()) {
+                    r.next();
+                    steps = r.getLong(1);
+                    min = r.getLong(2);
+                    max = r.getLong(3);
+                }
             }
-            long chat = scalar(statement, "SELECT COUNT(*) FROM chat_messages WHERE room_id = '" + id + "'");
+            long chat = countChat(connection, id);
             boolean ok = "FINISHED".equals(status) && winner != null && steps == totalTurns && min == 0 && max == totalTurns - 1;
             System.out.println("room " + id + ": status=" + status + " winner=" + winner + " game steps=" + totalTurns
                     + " stored steps=" + steps + " (numbered " + min + ".." + max + ") chat lines=" + chat);
@@ -182,10 +191,14 @@ public final class DbTool {
         }
     }
 
-    private static long scalar(Statement statement, String sql) throws SQLException {
-        try (ResultSet r = statement.executeQuery(sql)) {
-            r.next();
-            return r.getLong(1);
+    private static long countChat(Connection connection, String roomId) throws SQLException {
+        try (PreparedStatement count = connection.prepareStatement(
+                "SELECT COUNT(*) FROM chat_messages WHERE room_id = ?")) {
+            count.setString(1, roomId);
+            try (ResultSet r = count.executeQuery()) {
+                r.next();
+                return r.getLong(1);
+            }
         }
     }
 

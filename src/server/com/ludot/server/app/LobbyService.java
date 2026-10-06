@@ -166,7 +166,9 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
     public void awaitIdle() throws InterruptedException {
         java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
         post(done::countDown);
-        done.await(10, TimeUnit.SECONDS);
+        if (!done.await(10, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("The lobby did not catch up within 10 s");
+        }
     }
 
     @Override

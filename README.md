@@ -224,10 +224,23 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 
 The concurrency tests fire from many threads behind a start gate and most are repeated 5-20 times.
 
-**Metrics** (`core` module): `./download-tools.sh` once, then `./run-metrics.sh` compiles the core, runs its tests
-under JaCoCo, then Checkstyle, PMD, SpotBugs and a cyclomatic-complexity check. Reports go to `reports/`
-(`reports/jacoco/index.html` for coverage). Thresholds are in `checkstyle.xml`, `complexity.xml`,
-`pmd-ruleset.xml` and `spotbugs-include.xml`.
+**Metrics** (all five modules): run `./download-tools.sh` once, then `./run-metrics.sh`. It builds every module,
+runs all their tests under JaCoCo into one coverage file, runs Checkstyle, PMD, SpotBugs and the cyclomatic-complexity
+check over every module's sources, and ends with a per-module table (also saved to `reports/SUMMARY.txt`):
+
+```
+Module       Lines  Line cov Branch cov | Checkstyle    PMD  SpotBugs  Complexity
+core          1695       93%       82% |         48    132       125           0
+server        1807       90%       81% |          7    112         7           0
+client        1185       16%       16% |          0     63        23           0
+...
+```
+
+Reports go to `reports/` (`reports/jacoco/index.html` for coverage, one XML per tool, `tests-<module>.txt` for each
+suite). The complexity column counts breaches of `complexity.xml` (cyclomatic complexity 10, NPath 200, 30 statements
+per method, class fan-out 35) and is 0 for every module. Client coverage is low because the JavaFX screens are only
+exercised by hand. Thresholds live in `checkstyle.xml`, `complexity.xml`, `pmd-ruleset.xml` and `spotbugs-include.xml`.
+`run-metrics.bat` still analyses the `core` module only and is untested on Windows.
 
 ---
 
