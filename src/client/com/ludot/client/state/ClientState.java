@@ -33,6 +33,7 @@ public final class ClientState {
     private final ObservableList<RoomSummary> rooms = FXCollections.observableArrayList();
     private final ObservableList<ChatMessage> lobbyChat = FXCollections.observableArrayList();
     private final ObjectProperty<RoomModel> room = new SimpleObjectProperty<>();
+    private final ObjectProperty<ReplayModel> replay = new SimpleObjectProperty<>();
     private final Consumer<String> requestSnapshot;
     private final ClockSync clock = new ClockSync();
     private String myId = "";
@@ -60,6 +61,8 @@ public final class ClientState {
             }
         } else if (message instanceof ServerMessage.RoomSnapshot snapshot) {
             enterIfNew(snapshot).apply(snapshot);
+        } else if (message instanceof ServerMessage.ReplayEvent || message instanceof ServerMessage.ReplayEnded) {
+            routeToReplay(message);
         } else {
             routeToRoom(message);
         }
@@ -75,6 +78,18 @@ public final class ClientState {
         return current;
     }
 
+    private void routeToReplay(ServerMessage message) {
+        ReplayModel current = replay.get();
+        if (current == null) {
+            return;
+        }
+        if (message instanceof ServerMessage.ReplayEvent step) {
+            current.apply(step);
+        } else if (message instanceof ServerMessage.ReplayEnded finish) {
+            current.apply(finish);
+        }
+    }
+
     private void routeToRoom(ServerMessage message) {
         RoomModel current = room.get();
         if (current == null) {
@@ -85,6 +100,21 @@ public final class ClientState {
         } else if (message instanceof ServerMessage.YourTurn turn && current.roomId().equals(turn.roomId())) {
             current.apply(turn);
         }
+    }
+
+    /** A replay has been started: its steps will now be routed to the returned model. */
+    public ReplayModel beginReplay(String replayId, com.ludot.protocol.FinishedGame game, com.ludot.protocol.Speed speed) {
+        ReplayModel model = new ReplayModel(replayId, game, speed);
+        replay.set(model);
+        return model;
+    }
+
+    public void endReplay() {
+        replay.set(null);
+    }
+
+    public ObjectProperty<ReplayModel> replayProperty() {
+        return replay;
     }
 
     /** Called after we leave a room. */

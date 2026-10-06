@@ -51,7 +51,7 @@ class ReplayFromDatabaseTest {
 
             RecordingSink sink = new RecordingSink();
             Participant viewer = new Participant(new PlayerIdentity("v", "viewer", "t"), sink);
-            ReplayService service = new ReplayService(history, scheduler, SessionConfig.defaults().withDelays(0, 1, 1));
+            ReplayService service = new ReplayService(history, scheduler, speed -> 0L);
             List<Object> answers = new ArrayList<>();
             service.start(viewer, new ClientMessage.StartReplay(UUID.randomUUID(), "R-0001", Speed.FAST), answers::add);
 

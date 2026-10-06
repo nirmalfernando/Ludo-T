@@ -69,7 +69,7 @@ final class RouterKit implements AutoCloseable {
         this.directory = new PlayerDirectory(scheduler, reconnectGraceMs);
         this.lobby = new LobbyService(config, clock::get, repository);
         this.registry = new RoomRegistry(config, scheduler, lobby, repository, clock::get);
-        this.replays = new ReplayService(repository, scheduler, config);
+        this.replays = new ReplayService(repository, scheduler, speed -> 1L);
         this.router = new RequestRouter(directory, registry, lobby, repository, repository, replays);
     }
 

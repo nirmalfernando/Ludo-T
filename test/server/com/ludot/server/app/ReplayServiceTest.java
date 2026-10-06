@@ -58,9 +58,9 @@ class ReplayServiceTest {
         };
     }
 
-    // steps are paced by SessionConfig.delayMs: FAST 0 ms, NORMAL 20 ms
+    // FAST replays with no pause at all, NORMAL and SLOW with 20 ms
     private ReplayService service(ReplayData... games) {
-        return new ReplayService(historyOf(games), scheduler, SessionConfig.defaults().withDelays(0, 20, 20));
+        return new ReplayService(historyOf(games), scheduler, speed -> speed == Speed.FAST ? 0L : 20L);
     }
 
     private String start(ReplayService service, String gameId, Speed speed) {

@@ -449,3 +449,17 @@
     -fx-border-color: #8fb8ff;
 }
 
+/* replay progress */
+.playful .progress-bar > .track {
+    -fx-background-color: #e4e9fb;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-pref-height: 12;
+}
+.playful .progress-bar > .bar {
+    -fx-background-color: #3d9bff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+}
+

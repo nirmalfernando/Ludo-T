@@ -32,14 +32,19 @@ public final class LobbyScreen extends StackPane {
     private final Session session;
     private final Toasts toasts;
     private final Runnable onSignOut;
+    private final Runnable onFinishedGames;
     private final ListView<RoomSummary> rooms = new ListView<>();
 
-    /** @param onSignOut called when the user wants to leave the lobby and go back to the connect screen */
-    public LobbyScreen(ClientState state, Session session, Toasts toasts, Runnable onSignOut) {
+    /**
+     * @param onSignOut called when the user wants to leave the lobby and go back to the connect screen
+     * @param onFinishedGames called when the user wants to see the finished games
+     */
+    public LobbyScreen(ClientState state, Session session, Toasts toasts, Runnable onSignOut, Runnable onFinishedGames) {
         this.state = state;
         this.session = session;
         this.toasts = toasts;
         this.onSignOut = onSignOut;
+        this.onFinishedGames = onFinishedGames;
         BorderPane layout = new BorderPane();
         layout.setPadding(new Insets(22, 28, 22, 28));
         layout.setTop(topBar());
@@ -59,10 +64,17 @@ public final class LobbyScreen extends StackPane {
         create.setOnAction(event -> NewRoomDialog.show().ifPresent(this::createRoom));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(16, title, spacer, new FeedbackToggles(), account(), create);
+        HBox top = new HBox(16, title, spacer, new FeedbackToggles(), account(), finishedGames(), create);
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(0, 0, 14, 0));
         return top;
+    }
+
+    private Button finishedGames() {
+        Button button = new Button("Finished Games");
+        button.getStyleClass().add("ghost-button");
+        button.setOnAction(event -> onFinishedGames.run());
+        return button;
     }
 
     // one card for "who am I": a pawn in a colour picked from the nickname, the name, the connection light, and Sign Out

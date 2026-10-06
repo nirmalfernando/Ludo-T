@@ -8,7 +8,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.ludot.protocol.Speed;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Starts and controls replays of finished games. Each person has at most one replay at a time; it belongs to their
@@ -18,14 +20,28 @@ public final class ReplayService {
 
     private final GameHistory history;
     private final ScheduledExecutorService scheduler;
-    private final SessionConfig config;
+    private final Function<Speed, Long> delays;
     private final Map<String, Replay> byPlayer = new ConcurrentHashMap<>();
     private final AtomicInteger numbers = new AtomicInteger();
 
-    public ReplayService(GameHistory history, ScheduledExecutorService scheduler, SessionConfig config) {
+    /** Pause between replayed steps: much quicker than live play, since the point is to skim a whole game. */
+    public static long defaultDelayMs(Speed speed) {
+        return switch (speed) {
+            case FAST -> 25;
+            case NORMAL -> 150;
+            case SLOW -> 600;
+        };
+    }
+
+    public ReplayService(GameHistory history, ScheduledExecutorService scheduler) {
+        this(history, scheduler, ReplayService::defaultDelayMs);
+    }
+
+    /** @param delays the pause between steps at each speed (tests make it tiny) */
+    public ReplayService(GameHistory history, ScheduledExecutorService scheduler, Function<Speed, Long> delays) {
         this.history = history;
         this.scheduler = scheduler;
-        this.config = config;
+        this.delays = delays;
     }
 
     /**
@@ -47,7 +63,7 @@ public final class ReplayService {
         }
         stop(who.id()); // one replay per person: starting another ends the first
         String replayId = "RP-" + numbers.incrementAndGet();
-        Replay replay = new Replay(replayId, data.get(), who.sink(), request.speed(), scheduler, config::delayMs,
+        Replay replay = new Replay(replayId, data.get(), who.sink(), request.speed(), scheduler, delays,
                 ended -> byPlayer.remove(who.id(), ended));
         byPlayer.put(who.id(), replay);
         respond.accept(Response.ok(request.requestId(), replayId));

@@ -3,9 +3,14 @@ package com.ludot.client;
 import com.ludot.client.net.Reconnector;
 import com.ludot.client.net.Session;
 import com.ludot.client.state.ClientState;
+import com.ludot.client.state.ReplayModel;
 import com.ludot.client.state.RoomModel;
+import com.ludot.protocol.FinishedGame;
+import com.ludot.protocol.Speed;
 import com.ludot.client.view.AppIcon;
 import com.ludot.client.view.ConnectScreen;
+import com.ludot.client.view.FinishedGamesScreen;
+import com.ludot.client.view.ReplayScreen;
 import com.ludot.client.feedback.Cue;
 import com.ludot.client.feedback.Feedback;
 import com.ludot.client.view.ConnectionBadge;
@@ -138,7 +143,7 @@ public final class ClientApp extends Application {
     }
 
     private void showLobby() {
-        show(new LobbyScreen(state, session, toasts, this::signOut));
+        show(new LobbyScreen(state, session, toasts, this::signOut, this::showFinishedGames));
     }
 
     // back to the first screen; the session is cleared first so closing it is not reported as a lost connection
@@ -147,6 +152,7 @@ public final class ClientApp extends Application {
         Session old = session;
         session = null;
         state.leaveRoom();
+        state.endReplay();
         if (old != null) {
             old.signOut();
         }
@@ -195,6 +201,11 @@ public final class ClientApp extends Application {
     // every screen holds the dead session, so rebuild: the lobby subscribes again, a room is joined again (the server
     // gives a dropped player their seat back and sends a fresh snapshot, which opens the room screen)
     private void resumeScreen() {
+        if (state.replayProperty().get() != null) { // the server ended the replay when the connection dropped
+            state.endReplay();
+            showFinishedGames();
+            return;
+        }
         RoomModel room = state.roomProperty().get();
         if (room == null) {
             showLobby();
@@ -216,6 +227,7 @@ public final class ClientApp extends Application {
         session = null;
         resuming = false;
         state.leaveRoom();
+        state.endReplay();
         if (old != null) {
             old.drop();
         }
@@ -244,6 +256,23 @@ public final class ClientApp extends Application {
         HBox box = new HBox(14, new FeedbackToggles(), new ConnectionBadge(state));
         box.setAlignment(Pos.CENTER_RIGHT);
         return box;
+    }
+
+    private void showFinishedGames() {
+        show(new FinishedGamesScreen(session, toasts, this::showLobby, this::openReplay));
+    }
+
+    // the server has started a replay: its steps now go to this model
+    private void openReplay(String replayId, FinishedGame game) {
+        ReplayModel model = state.beginReplay(replayId, game, Speed.NORMAL);
+        show(new ReplayScreen(model, session, toasts, this::closeReplay));
+    }
+
+    private void closeReplay() {
+        state.endReplay();
+        if (session != null) {
+            showFinishedGames();
+        }
     }
 
     private void showRoom(RoomModel room) {

@@ -40,6 +40,7 @@ public final class BoardView extends Pane {
     private static final double CELL = 40;
     private static final double PIECE_RADIUS = CELL * 0.32;
     private static final double MOVE_MILLIS = 260;
+    private static final long HURRY_MILLIS = 450;
 
     private final Map<String, PieceNode> pieces = new HashMap<>();
     private final Map<String, Point> positions = new HashMap<>();
@@ -48,7 +49,10 @@ public final class BoardView extends Pane {
     private final StackPane mystery = new StackPane();
     private final Label mysteryLabel = new Label();
     private final ScaleTransition mysteryPulse;
+    private final Map<String, TranslateTransition> slides = new HashMap<>();
     private boolean firstUpdate = true;
+    private long lastUpdateNanos;
+    private boolean hurried; // updates are arriving faster than the animations can play
     private List<MoveOption> offered = List.of();
 
     public BoardView() {
@@ -183,6 +187,9 @@ public final class BoardView extends Pane {
 
     /** Moves every piece to where the board says it is, animating pieces that changed place. */
     public void update(BoardDto board, boolean animate) {
+        long now = System.nanoTime();
+        hurried = lastUpdateNanos != 0 && (now - lastUpdateNanos) / 1_000_000 < HURRY_MILLIS;
+        lastUpdateNanos = now;
         Map<String, List<PieceDto>> shared = new HashMap<>();
         for (PieceDto piece : board.pieces()) {
             shared.computeIfAbsent(spotKey(piece), k -> new ArrayList<>()).add(piece);
@@ -227,8 +234,12 @@ public final class BoardView extends Pane {
         Point previous = positions.put(pieceKey, target);
         double x = target.x() * CELL;
         double y = target.y() * CELL;
-        if (!animate || previous == null || previous.equals(target)) {
-            node.setTranslateX(x);
+        TranslateTransition running = slides.remove(pieceKey);
+        if (running != null) {
+            running.stop(); // a new move for a piece still sliding replaces the old slide instead of fighting it
+        }
+        if (!animate || hurried || previous == null || previous.equals(target)) {
+            node.setTranslateX(x); // in a rush the piece simply jumps: smoothness matters less than being correct
             node.setTranslateY(y);
             return;
         }
@@ -236,17 +247,22 @@ public final class BoardView extends Pane {
         TranslateTransition slide = new TranslateTransition(Duration.millis(MOVE_MILLIS), node);
         slide.setToX(x);
         slide.setToY(y);
+        slides.put(pieceKey, slide);
+        slide.setOnFinished(event -> slides.remove(pieceKey));
         if (toBase) {
             node.sendHome(); // a piece going back to its base has been captured
         } else {
-            slide.setOnFinished(event -> node.land());
+            slide.setOnFinished(event -> {
+                slides.remove(pieceKey);
+                node.land();
+            });
         }
         slide.play();
     }
 
     /** A short sideways shake of the whole board: something dramatic happened (a capture, a triple six). */
     public void jolt() {
-        if (Feedback.get().motionOn()) {
+        if (Feedback.get().motionOn() && !hurried) {
             TranslateTransition shake = new TranslateTransition(Duration.millis(45), this);
             shake.setFromX(-5);
             shake.setToX(5);

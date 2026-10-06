@@ -1,6 +1,6 @@
 package com.ludot.client.view;
 
-import com.ludot.client.state.RoomModel;
+import javafx.collections.ObservableList;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ListChangeListener;
@@ -15,14 +15,14 @@ final class NarrationPane extends VBox {
 
     private static final int LINES = 4;
 
-    private final RoomModel model;
+    private final ObservableList<String> lines;
 
-    NarrationPane(RoomModel model) {
+    NarrationPane(ObservableList<String> lines) {
         super(3);
-        this.model = model;
+        this.lines = lines;
         getStyleClass().add("panel");
         setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
-        model.log().addListener((ListChangeListener<String>) change -> refresh());
+        lines.addListener((ListChangeListener<String>) change -> refresh());
         refresh();
     }
 
@@ -45,8 +45,8 @@ final class NarrationPane extends VBox {
     // the last few one-line events; the end-of-round status report is a long multi-line table, not something that happened
     private List<String> recentEvents() {
         List<String> events = new ArrayList<>();
-        for (int i = model.log().size() - 1; i >= 0 && events.size() < LINES; i--) {
-            String line = model.log().get(i);
+        for (int i = lines.size() - 1; i >= 0 && events.size() < LINES; i--) {
+            String line = lines.get(i);
             if (!line.contains("\n")) {
                 events.add(0, line);
             }

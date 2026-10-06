@@ -64,9 +64,9 @@ class MessageValidationTest {
 
     @Test @DisplayName("speed delays follow the spec")
     void speedDelays() {
-        assertEquals(150, Speed.FAST.delayMs());
-        assertEquals(700, Speed.NORMAL.delayMs());
-        assertEquals(1500, Speed.SLOW.delayMs());
+        assertEquals(400, Speed.FAST.delayMs());
+        assertEquals(1000, Speed.NORMAL.delayMs());
+        assertEquals(2000, Speed.SLOW.delayMs());
     }
 
     @Test @DisplayName("board geometry matches the documented cells")
