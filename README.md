@@ -1,6 +1,61 @@
-# LUDO-T
+# LUDO-T Online
 
-A Java implementation of a modified Ludo board game featuring custom rules, player strategies, and a software metrics pipeline.
+A multi-user, multi-tier, client-server version of **LUDO-T**, a modified Ludo with mystery cells, effects and
+blockades. Several people play together from JavaFX clients, AI players fill the empty seats, anyone else can
+watch and chat, and every game is stored in a PostgreSQL database.
+
+It is the Assignment 2 refactoring of the Phase 1 console simulation (COMP63038, Clean Coding and Concurrent
+Programming). The Phase 1 game rules, strategies and Clean Architecture are unchanged: the golden-log tests
+replay four seeded games and require the output to be byte-identical to the original.
+
+| | |
+|---|---|
+| **Play mode** | People claim colours and play; AI fills the other seats. Everyone else spectates. |
+| **Bot match** | All four seats are AI and everyone watches. The room's host can pause, resume and change the speed for everyone. |
+| **Chat** | Every room has its own chat, and the lobby has a global chat. Everyone sees messages in the same order. |
+| **Turn timers** | A person has 30 s per phase; then the AI plays for them, and after two misses in a row the seat is "away" until they take it back. |
+
+---
+
+## Three applications, three tiers
+
+```
+ ┌──────────────────────┐   TCP :5555    ┌─────────────────────────────┐  JDBC / SSL  ┌─────────────────────┐
+ │ JavaFX client (many) │◄──────────────►│ Server                      │◄────────────►│ PostgreSQL          │
+ │ bots, stress clients │  Java records  │ rooms, lobby, AI, timers    │  one writer  │ (Supabase, or H2)   │
+ └──────────────────────┘                └─────────────────────────────┘              └─────────────────────┘
+        depends on: protocol only              depends on: core, protocol                 players, rooms, seats,
+                                                                                          every step, chat
+```
+
+The **server is authoritative**: it rolls the dice, computes the legal moves and applies them. Clients only send
+intentions ("roll", "choose move 2") and draw what the server reports.
+
+| Module | Source | What it is | May use |
+|---|---|---|---|
+| `core` | `src/core` | The Phase 1 game: board, pieces, rules, strategies, events (Clean Architecture entities and use cases) | nothing |
+| `protocol` | `src/protocol` | Messages, DTOs, error codes, the framed transport and the shared client connection | nothing |
+| `server` | `src/server` | Rooms, lobby, connections, persistence, `ServerMain`, `DbTool` | `core`, `protocol` |
+| `client` | `src/client` | The JavaFX GUI | `protocol` (and JavaFX) |
+| `bot` | `src/bot` | Network bots and the stress client | `protocol` |
+
+`compile.sh` builds each module with **only its allowed dependencies on the classpath**, so the compiler enforces
+the architecture: for example, the client cannot even name a core class, so it cannot contain game logic.
+
+### How concurrency is handled (the short version)
+
+| Mechanism | Where | Why |
+|---|---|---|
+| One single-thread executor per room (an actor) with a bounded queue (10,000) | `GameSession` | All requests, timers and AI moves for a room are processed one at a time, in arrival order, so room state needs no locks. When the queue is full the sender gets `SERVER_BUSY`. |
+| A second actor for the lobby | `LobbyService` | Room-list updates and lobby chat share one ordering. |
+| Blocking I/O, one reader and one writer thread per connection; bounded outbound queue (1,000) | `ConnectionHandler` | A slow client is dropped without ever blocking a room. |
+| A window of at most 256 unanswered requests per connection | `ConnectionHandler` | A client that pipelines faster than it can read is slowed by TCP instead of being dropped. |
+| Turn numbers on every gameplay request, request ids for duplicates | `GameSession` | Late timers, stale clicks and double-sends are rejected or replayed, never applied twice. |
+| Asynchronous batched database writer (`db-writer`) | `AsyncGameRepository` | A database round trip to Supabase takes about 60 ms; a game never waits for it. |
+| JavaFX Application Thread rule, `Platform.runLater`, `CompletableFuture` requests | client | The UI never blocks on the network. |
+
+Threads are named (`acceptor`, `conn-reader-N`, `conn-writer-N`, `room-<id>`, `lobby`, `scheduler-N`,
+`db-writer`), so they are easy to show in VisualVM or a thread dump.
 
 ---
 
@@ -8,57 +63,234 @@ A Java implementation of a modified Ludo board game featuring custom rules, play
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| Java JDK | 17 or higher | Must be on your system `PATH` |
-| Git | Any | To clone the repository |
+| Java JDK | 17 or newer | `java` and `javac` on the `PATH`. The code is compiled with `--release 17`. |
+| Internet | once | `download-tools` fetches the JavaFX SDK, the JDBC drivers and the metrics tools |
+| PostgreSQL | optional | A free [Supabase](https://supabase.com) project, or the built-in H2 fallback, or no database at all |
 
-No Maven, Gradle, or IDE installation is required.
+There is no Maven or Gradle: shell scripts compile everything.
 
 ---
 
-## Getting Started
-
-### 1. Clone the repository
+## Quick start (macOS / Linux)
 
 ```bash
-git clone <repository-url>
-cd Ludo-T
+./download-tools.sh     # once: JavaFX SDK, PostgreSQL + H2 drivers, metrics tools
+./compile.sh            # builds every module into dist/<module>.jar
+./test.sh               # runs every module's tests (about 550)
+
+./run-server.sh         # terminal 1: the server on port 5555 (games kept in memory)
+./run-client.sh         # terminal 2: a GUI client; run it again for a second player
 ```
 
-### 2. Run the game
+In the client: **Connect** (nickname 3-16 letters, digits or `_`) → **New room…** → take a seat → **Start game** →
+**Roll** → click a glowing piece. A second client can join the same room, as a spectator or by taking a seat.
 
-```bat
-compile.bat
-```
+To watch the game with no one playing: create a **Bot match** and join it from a second window.
 
-```bat
-run.bat
-```
-
-This will automatically compile the source files on the first run and then launch the game. Output is printed to the console and also saved to `game_log.txt`.
-
-To run with a specific random seed (for reproducible games):
-
-```bat
-run.bat 12345
-```
-
-If no seed is provided, the default seed `42` is used.
+> **Windows:** every script has a `.bat` twin (`compile.bat`, `test.bat`, `run-server.bat`, `run-client.bat`,
+> `run-bot.bat`, `run-bots.bat`, `run-stress.bat`, `run-dbtool.bat`, `run-h2.bat`, `download-tools.bat`). They are
+> written to match the shell scripts but were **not run on Windows**; try them before relying on them.
+> `run-evidence.sh` is shell-only (use Git Bash or WSL).
 
 ---
 
-## Scenario Seeds
+## Configuration
 
-Each seed below produces a fully reproducible game that clearly demonstrates a specific LUDO-T rule.
-Run any of them with `run.bat <seed>` and search the output for the quoted line to jump straight to the scenario.
+Copy `config/server.properties.example` to `config/server.properties` (git-ignored, because it holds the database
+password). Every key is optional.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `server.port` | `5555` | TCP port |
+| `db.mode` / `db.url` / `db.user` / `db.password` | none | The database. No `db.url` (or `db.mode=none`) keeps games in memory only |
+| `turn.timeoutSeconds` | `30` | Time a person has to roll, then to move (0 = no timers) |
+| `afk.timeoutsBeforeAfk` | `2` | Consecutive missed turns before the seat is played by the AI until taken back |
+| `speed.fastMs` / `normalMs` / `slowMs` | `150` / `700` / `1500` | Pause between AI actions |
+| `room.queueCapacity` | `10000` | Commands one room may have waiting |
+| `room.requestMemory` | `1024` | Recent answers remembered per player to replay a repeated request id |
+| `room.emptyCloseMs` | `60000` | How long an empty room stays before it closes |
+| `connection.outboundCapacity` | `1000` | Messages queued per client before it is dropped as too slow |
+| `connection.maxInFlight` | `256` | Unanswered requests per connection before reading pauses |
+| `connection.readTimeoutMs` | `15000` | Silence after which a client is dropped (clients ping every 5 s) |
+| `chat.maxLength` / `historySize` / `rateLimitMessages` / `rateLimitWindowMs` | `200` / `30` / `5` / `5000` | Chat limits |
+| `log.queueIntervalMs` | `1000` | How often room queue depths are logged while non-zero |
 
 ---
 
-### Seed 1 — Core rules (T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-14, T-15 + CCW movement)
+## The database
 
-This is the primary demonstration seed. A single game run contains examples of almost every rule.
+The server stores players, rooms, seats, **every roll and move** (numbered by the engine's step counter, so a
+duplicate is impossible at the database level) and chat. Writes go through a queue and a single `db-writer`
+thread that writes batches of up to 50 as one transaction; reads are never on the game's critical path.
 
-```bat
-run.bat 1
+### Option 1: Supabase (PostgreSQL)
+
+1. Create a project (choose the region nearest you). Note the database password.
+2. **Connect → Session pooler → JDBC**: copy host, port, database and user. The *session pooler* works over IPv4;
+   the direct connection may be IPv6-only.
+3. Put them in `config/server.properties`:
+   ```
+   db.mode=postgres
+   db.url=jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require
+   db.user=postgres.<project-ref>
+   db.password=<password>
+   ```
+4. `./run-dbtool.sh reset` creates the tables, seeds two demo people and plays one real finished game into them.
+
+### Option 2: offline H2 fallback (a separate process)
+
+```bash
+./run-h2.sh &                       # H2 server on port 9092, in PostgreSQL mode
+# config/server.properties:
+#   db.mode=h2
+#   db.url=jdbc:h2:tcp://localhost:9092/./ludot;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+#   db.user=sa
+./run-dbtool.sh reset
+```
+
+### DbTool
+
+| Command | Does |
+|---|---|
+| `./run-dbtool.sh reset` | Drop, create, seed and play the demo game: **the demo's initial state**, in one command |
+| `schema` / `seed` / `drop` | Run `db/schema.sql`, `db/seed.sql` or `db/reset.sql` |
+| `demo` | Play and store one more finished game |
+| `status` | Connection time, round-trip time and row counts |
+| `verify [room]` | Check a finished game is stored completely (default: the latest) |
+
+The SQL lives in `db/` and is run over JDBC, so neither `psql` nor the Supabase console is needed. The same SQL
+runs unchanged on PostgreSQL and H2. Room numbers continue after the highest stored room when the server restarts.
+
+---
+
+## Automatic clients
+
+**Bots** are separate network clients that play one colour with a per-colour style (Red goes for captures, Green
+for blockades, Yellow races home, Blue is random). Create a Play room in the GUI, then:
+
+```bash
+./run-bots.sh R-0001                      # four bots, one per colour (they take every seat)
+./run-bot.sh --room R-0001 --colour RED --delay 800 --host 192.168.1.20
+```
+
+**The stress client** floods a room with asynchronous requests from several threads: real moves, stale and
+out-of-turn requests, duplicates, bad indexes, host-only actions from a non-host, snapshots and chat bursts. It
+judges every answer against what that request *should* produce, and reports anything else as `UNEXPECTED`.
+
+```bash
+./run-stress.sh --create --name stressA --seat RED  --speed fast --start-game --start-at <epochMs>
+./run-stress.sh --room R-0002 --name stressB --seat BLUE --start-at <epochMs>
+# options: --requests 2000 --threads 4 --rate N --host H --port P --wait <seconds for the game to end>
+```
+
+Give both the same `--start-at` (epoch milliseconds, a few seconds ahead) so they start flooding together. The
+report shows throughput, latency percentiles, outcome counts, `UNEXPECTED`, whether every update matched its own
+state hash, a hash of the chat order (identical on both clients if ordering holds) and whether the final state
+equals the server's.
+
+**`./run-evidence.sh`** does all of it in one go for the report and the demo: it resets the database, starts the
+server, runs two stress clients against a fresh room while two GUI spectators watch, takes a thread dump, checks
+the database holds exactly what was played, and writes everything to `evidence/run-<time>/`.
+
+---
+
+## Two machines
+
+1. On the server machine find its IP address and allow inbound TCP **5555** in the firewall.
+2. On the second machine: `./run-client.sh --host <server-ip> --port 5555` (or type it on the connect screen).
+3. Both clients now see the same room, with matching state hashes in the bottom status bar.
+
+If the campus network blocks peer-to-peer traffic, use a phone hotspot.
+
+Client options: `--host H --port P --nickname N --connect` (connect straight away), `--join R-0001` (enter a room),
+`--seat RED` (take a seat after joining), `--screenshot file.png [--screenshot-after ms]` (save the window and exit).
+
+---
+
+## Tests and metrics
+
+```bash
+./compile.sh && ./test.sh
+```
+
+| Suite | What it covers |
+|---|---|
+| `core` (264) | The original Phase 1 unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the Assignment 1 output byte for byte; phased-turn tests |
+| `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
+| `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
+| `client` (21) | Board geometry, state model and sequence-gap handling, countdown clock |
+| `bot` (14) | Bot strategies, request mix, statistics |
+| `integration` (3) | Four bots finish a game; two stress clients flood one room, all against a live server |
+
+The concurrency tests fire from many threads behind a start gate and most are repeated 5-20 times.
+
+**Metrics** (`core` module): `./download-tools.sh` once, then `./run-metrics.sh` compiles the core, runs its tests
+under JaCoCo, then Checkstyle, PMD, SpotBugs and a cyclomatic-complexity check. Reports go to `reports/`
+(`reports/jacoco/index.html` for coverage). Thresholds are in `checkstyle.xml`, `complexity.xml`,
+`pmd-ruleset.xml` and `spotbugs-include.xml`.
+
+---
+
+## Project layout
+
+```
+Ludo-T/
+├── src/
+│   ├── core/com/ludot/        # Phase 1 game: model, rules, command, strategy, engine, events, effects, factory, dice
+│   ├── protocol/com/ludot/protocol/   # messages, DTOs, MessageChannel, ServerLink, StateHash
+│   ├── server/com/ludot/server/
+│   │   ├── app/               # use cases and ports: GameSession (room actor), LobbyService, RequestRouter, ...
+│   │   ├── game/              # RoomGame: the only place that touches core types; DTO and event mapping
+│   │   ├── adapters/          # net (sockets), jdbc, persistence (async writer), memory
+│   │   └── GameServer, ServerMain, DbTool, DemoGameSeeder   # composition roots
+│   ├── client/com/ludot/client/   # ClientApp, state/ (RoomModel, ClientState), view/ (screens, BoardView), net/
+│   └── bot/com/ludot/bot/     # BotClient, StressClient, strategies, statistics
+├── test/<module>/             # tests mirror the modules; test/integration spans all of them
+├── test-resources/golden/     # the four Assignment 1 game logs
+├── db/                        # schema.sql, seed.sql, reset.sql
+├── config/                    # server.properties.example (the real file is git-ignored)
+├── lib/                       # JUnit and Mockito (committed); JavaFX SDK, JDBC drivers (downloaded, ignored)
+├── out/, dist/, reports/, evidence/   # build and run output (git-ignored)
+└── compile.sh test.sh run-*.sh        # and their .bat twins
+```
+
+---
+
+## Known limitations
+
+* A client that loses its connection cannot re-attach: its seat is handed to the AI, and it must join again.
+* Finished games are stored but there is no "finished games" list or replay screen yet.
+* Identity is a nickname only (no accounts), and the link is plain TCP with Java serialization behind a class
+  allow-list and a 1 MB frame cap. JSON over TLS would be the production choice.
+* One server instance owns the database (room numbers and writes assume that).
+* The GUI has no event-log filters or dark theme, and pieces slide straight to their new cell.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `JavaFX runtime components are missing` / client will not start | Run `./download-tools.sh`; start with `./run-client.sh`, which passes the JavaFX module path |
+| `Address already in use` | Another server is on 5555: stop it or set `server.port` |
+| `Cannot use the database` at server start | Check `config/server.properties`; the session pooler details, not the direct connection; or use the H2 fallback; or remove `db.url` to run without storage |
+| Hello refused: `INVALID_NICKNAME` | Nicknames are 3-16 letters, digits or `_`, and must be unique among connected people |
+| A client "was too slow" and disconnected | The server drops a client whose 1,000-message outbound queue fills; look for `outbound queue is full` in the server log |
+
+---
+
+# Phase 1: the LUDO-T rules and scenario seeds
+
+The core game is still runnable on its own, with no server: `./run.sh <seed>` (or `run.bat <seed>` on Windows).
+It plays four AI strategies against each other and prints a narrated log. With no seed it uses `42`. Save the
+output with `./run.sh 1 > game_log.txt`.
+
+The seeds below each produce a fully reproducible game that clearly demonstrates a rule. Run one and search
+the output for the quoted line. The same seeds work in a **Bot match** (set the seed in *New room…*), and
+the golden-log tests prove they are unchanged.
+
+### Seed 1: core rules (T-1 to T-11, T-14, T-15, and counter-clockwise movement)
+
+```bash
+./run.sh 1
 ```
 
 | Rule | What to look for in the output |
@@ -75,53 +307,32 @@ run.bat 1
 | **T-9** Capture + return to base | `Yellow piece Y4 lands on square 2, captures Red piece R1, and returns it to the base.` |
 | **T-10** Mystery cell spawns | `A mystery cell has spawned in location 32 and will be at this location for the next 4 rounds.` |
 | **T-11** Mystery teleport | `Y1 lands on mystery cell! Teleporting...` → `Y1 teleported to Start Cell (cell 0)` |
-| **T-14** Gamma — direction reversal | `Y1 teleported to Gamma Cell (cell 33)` → `Yellow piece Y1, which was moving clockwise, has changed to moving counter-clockwise.` |
+| **T-14** Gamma: direction reversal | `Y1 teleported to Gamma Cell (cell 33)` → `Yellow piece Y1, which was moving clockwise, has changed to moving counter-clockwise.` |
 | **T-15** Mystery cell expiry | `Mystery cell expires.` |
 | Home straight entry | `Y4 enters the home straight!` |
 | Piece reaches home | `Y4 reaches Home!` |
 
----
-
-### Seed 2 — Alpha (Sick) + Beta Briefing (T-12 Sick, T-13)
-
-```bat
-run.bat 2
-```
+### Seed 2: Alpha (Sick) and Beta Briefing (T-12, T-13)
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-12** Alpha → Sick effect | `R1 teleported to Alpha Cell (cell 20)` → `Red piece R1 feels sick, and movement speed halves.` |
+| **T-12** Alpha → Sick | `R1 teleported to Alpha Cell (cell 20)` → `Red piece R1 feels sick, and movement speed halves.` |
 | **T-13** Beta → Briefing lock | `G1 teleported to Beta Cell (cell 45)` → `Green piece G1 attends briefing and cannot move for four rounds.` |
 
----
-
-### Seed 3 — Alpha (Energised) (T-12 Energised)
-
-```bat
-run.bat 3
-```
+### Seed 3: Alpha (Energised) (T-12)
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-12** Alpha → Energised effect | `Y4 teleported to Alpha Cell (cell 10)` → `Yellow piece Y4 feels energized, and movement speed doubles.` |
+| **T-12** Alpha → Energised | `Y4 teleported to Alpha Cell (cell 10)` → `Yellow piece Y4 feels energized, and movement speed doubles.` |
 
----
+### Seed 2069: Beta Briefing escape via triple-3 (T-13 escape)
 
-### Seed 2069 — Beta Briefing escape via triple-3 (T-13 escape)
-
-This is the rarest scenario: a piece in Briefing state rolls three consecutive 3s and escapes early.
-
-```bat
-run.bat 2069
-```
+The rarest scenario: a piece in Briefing rolls three consecutive 3s and escapes early. This is also the seed of the
+demo game that `DbTool reset` stores.
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
 | **T-13** Briefing early escape | `Red piece R3 is movement-restricted and has rolled three consecutively. Teleporting piece R3 to base.` |
-
----
-
-### Quick reference
 
 | Seed | Primary scenario |
 |------|-----------------|
@@ -129,115 +340,3 @@ run.bat 2069
 | `2` | T-12 Alpha Sick · T-13 Beta Briefing |
 | `3` | T-12 Alpha Energised |
 | `2069` | T-13 Beta Briefing escape (triple-3) |
-
----
-
-## Running the Tests
-
-```bat
-test.bat
-```
-
-This compiles all test sources and runs the full JUnit 5 test suite (250 tests). No setup needed.
-
----
-
-## Software Metrics
-
-The project includes a metrics pipeline that runs four analysis tools plus a dedicated cyclomatic complexity check.
-
-### Step 1 — Download the tool JARs (one-time setup)
-
-```bat
-download-tools.bat
-```
-
-This downloads the following tools into the `tools/` folder:
-
-| Tool | Version | Purpose |
-|------|---------|---------|
-| JaCoCo | 0.8.11 | Code coverage (line + branch) |
-| Checkstyle | 10.14.0 | Code style enforcement |
-| PMD | 7.3.0 | Static analysis |
-| SpotBugs | 4.8.6 | Bug pattern detection |
-
-The `tools/` folder is git-ignored so the JARs are not committed to the repository.
-
-### Step 2 — Run the metrics
-
-```bat
-run-metrics.bat
-```
-
-This compiles the project, runs all 250 tests under JaCoCo coverage instrumentation, then runs all four analysis tools. Reports are saved to the `reports/` folder.
-
-| Report | Location |
-|--------|----------|
-| JaCoCo coverage | `reports/jacoco/index.html` (open in browser) |
-| Checkstyle | `reports/checkstyle/checkstyle-src.xml` |
-| PMD | `reports/pmd/pmd-result.xml` |
-| SpotBugs | `reports/spotbugs/spotbugs-result.xml` |
-| Cyclomatic Complexity | `reports/complexity/complexity-result.xml` |
-
----
-
-## Project Structure
-
-```
-Ludo-T/
-├── src/                        # Production source code
-│   └── com/ludot/
-│       ├── Main.java           # Entry point
-│       ├── engine/             # Game loop, turn management, move execution
-│       ├── model/              # Board, Cell, Piece, Player, GameState
-│       ├── rules/              # Rule engine, move/capture/block/dice rules
-│       ├── command/            # Move command objects (Command pattern)
-│       ├── strategy/           # Player AI strategies
-│       ├── events/             # Event bus, event types, visitor (Observer + Visitor)
-│       ├── effects/            # Piece effects (Energised, Sick, NoEffect)
-│       ├── factory/            # Builders and factories (Factory Method)
-│       └── dice/               # Random number providers
-├── test/                       # JUnit 5 test sources (mirrors src/ structure)
-├── lib/                        # Runtime JARs (JUnit 5, Mockito — committed)
-├── tools/                      # Metrics tool JARs (downloaded, git-ignored)
-├── reports/                    # Generated reports (git-ignored)
-├── out/                        # Compiled classes (git-ignored)
-├── checkstyle.xml              # Checkstyle style rules
-├── complexity.xml              # Cyclomatic complexity thresholds
-├── pmd-ruleset.xml             # PMD static analysis rules
-├── spotbugs-include.xml        # SpotBugs filter config
-├── compile.bat                 # Compile sources (used by run.bat / test.bat)
-├── run.bat                     # Compile and run the game
-├── test.bat                    # Compile and run all tests
-├── download-tools.bat          # Download metrics tool JARs (run once)
-├── run-metrics.bat             # Run full metrics pipeline
-└── game_log.txt                # Last game output (git-ignored)
-```
-
----
-
-## Configuring the Metrics Thresholds
-
-| File | What it controls |
-|------|-----------------|
-| `checkstyle.xml` | Code style rules (naming, braces, whitespace, imports) |
-| `complexity.xml` | Cyclomatic complexity max (default 10), NPath max (default 200), fan-out max (default 35) |
-| `pmd-ruleset.xml` | Static analysis rules (best practices, design, error-prone, performance) |
-| `spotbugs-include.xml` | SpotBugs bug categories to include |
-
----
-
-## Unix / macOS
-
-Shell script equivalents are provided for all batch files:
-
-| Windows | Unix/macOS |
-|---------|-----------|
-| `download-tools.bat` | `./download-tools.sh` |
-| `run-metrics.bat` | `./run-metrics.sh` |
-
-Make the scripts executable after cloning:
-
-```bash
-chmod +x download-tools.sh run-metrics.sh
-```
