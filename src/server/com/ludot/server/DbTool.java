@@ -14,7 +14,7 @@ import java.sql.Statement;
 import java.util.List;
 
 /**
- * Sets up and inspects the database: {@code DbTool [--config file] reset|schema|seed|demo|drop|status}.
+ * Sets up and inspects the database: {@code DbTool [--config file] reset|schema|seed|demo|drop|status|verify [room]}.
  * It runs the .sql files in db/ over JDBC, so it needs neither psql nor the Supabase web console.
  * "reset" restores the initial state in one go: drop, create, seed, then play the demo game.
  */
@@ -31,11 +31,14 @@ public final class DbTool {
         try {
             String configFile = "config/server.properties";
             String command = null;
+            String argument = null;
             for (int i = 0; i < args.length; i++) {
                 if (args[i].equals("--config") && i + 1 < args.length) {
                     configFile = args[++i];
-                } else {
+                } else if (command == null) {
                     command = args[i];
+                } else {
+                    argument = args[i];
                 }
             }
             if (command == null) {
@@ -47,14 +50,19 @@ public final class DbTool {
                 System.err.println("No database configured in " + configFile + " (set db.url, db.user and db.password).");
                 System.exit(2);
             }
-            run(command, new Database(config.database()));
+            boolean ok = command.equals("verify") ? verify(new Database(config.database()), argument)
+                    : run(command, new Database(config.database()));
+            if (!ok) {
+                System.exit(3);
+            }
         } catch (Exception e) {
             System.err.println("DbTool failed: " + e.getMessage());
             System.exit(1);
         }
     }
 
-    static void run(String command, Database database) throws Exception {
+    /** @return false only when a check (verify) failed */
+    static boolean run(String command, Database database) throws Exception {
         switch (command) {
             case "drop" -> script(database, "reset.sql");
             case "schema" -> script(database, "schema.sql");
@@ -70,6 +78,7 @@ public final class DbTool {
             }
             default -> usage();
         }
+        return true;
     }
 
     private static void script(Database database, String name) throws IOException, SQLException {
@@ -125,11 +134,67 @@ public final class DbTool {
         }
     }
 
+    /**
+     * Checks that the database holds exactly what a finished game played: the room is FINISHED with a winner,
+     * and it has one stored step for every step the game took, numbered 0 to N-1 with no gap. With no room id the
+     * most recent finished room is checked.
+     */
+    static boolean verify(Database database, String roomId) throws SQLException {
+        try (Connection connection = database.open(); Statement statement = connection.createStatement()) {
+            String id = roomId;
+            if (id == null) {
+                try (ResultSet r = statement.executeQuery("SELECT id FROM rooms WHERE status = 'FINISHED' ORDER BY finished_at DESC, id DESC")) {
+                    id = r.next() ? r.getString(1) : null;
+                }
+            }
+            if (id == null) {
+                System.out.println("VERIFY FAIL: no finished room found");
+                return false;
+            }
+            String status;
+            String winner;
+            long totalTurns;
+            try (ResultSet r = statement.executeQuery("SELECT status, winner_colour, total_turns FROM rooms WHERE id = '" + id + "'")) {
+                if (!r.next()) {
+                    System.out.println("VERIFY FAIL: room " + id + " is not stored");
+                    return false;
+                }
+                status = r.getString(1);
+                winner = r.getString(2);
+                totalTurns = r.getLong(3);
+            }
+            long steps;
+            long min;
+            long max;
+            try (ResultSet r = statement.executeQuery("SELECT COUNT(*), MIN(turn_number), MAX(turn_number) FROM decisions WHERE room_id = '" + id + "'")) {
+                r.next();
+                steps = r.getLong(1);
+                min = r.getLong(2);
+                max = r.getLong(3);
+            }
+            long chat = scalar(statement, "SELECT COUNT(*) FROM chat_messages WHERE room_id = '" + id + "'");
+            boolean ok = "FINISHED".equals(status) && winner != null && steps == totalTurns && min == 0 && max == totalTurns - 1;
+            System.out.println("room " + id + ": status=" + status + " winner=" + winner + " game steps=" + totalTurns
+                    + " stored steps=" + steps + " (numbered " + min + ".." + max + ") chat lines=" + chat);
+            System.out.println(ok ? "VERIFY PASS: the database holds exactly what the game played"
+                    : "VERIFY FAIL: stored steps do not match the game");
+            return ok;
+        }
+    }
+
+    private static long scalar(Statement statement, String sql) throws SQLException {
+        try (ResultSet r = statement.executeQuery(sql)) {
+            r.next();
+            return r.getLong(1);
+        }
+    }
+
     private static void usage() {
-        System.out.println("Usage: DbTool [--config file] reset | schema | seed | demo | drop | status");
+        System.out.println("Usage: DbTool [--config file] reset | schema | seed | demo | drop | status | verify [room-id]");
         System.out.println("  reset   drop, create, seed and play the demo game (the demo's initial state)");
         System.out.println("  schema  create the tables if missing      seed  insert the demo people");
         System.out.println("  demo    play and store one finished game  drop  remove all tables");
         System.out.println("  status  show round-trip time and row counts");
+        System.out.println("  verify  check a finished game is stored completely (default: the latest)");
     }
 }

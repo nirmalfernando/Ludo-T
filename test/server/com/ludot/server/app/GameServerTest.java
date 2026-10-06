@@ -234,6 +234,24 @@ class GameServerTest {
                 .contains(response.errorCode()), String.valueOf(response));
     }
 
+    @Test @DisplayName("a client pipelining 3,000 snapshot requests into a tiny outbound queue is slowed, not dropped")
+    void inFlightWindowProtectsAFastClient() throws IOException {
+        start(ServerConfig.defaults().withPort(0).withOutboundCapacity(40).withMaxInFlight(16)
+                .withSession(SessionConfig.defaults().withDelays(0, 1, 1)));
+        TestClient flooder = client("flooder");
+        String roomId = createPlayRoom(flooder, 1);
+        List<UUID> ids = new ArrayList<>();
+        for (int i = 0; i < 3000; i++) {
+            ClientMessage.RequestSnapshot request = new ClientMessage.RequestSnapshot(id(), roomId);
+            ids.add(request.requestId());
+            flooder.send(request);
+        }
+        for (UUID requestId : ids) {
+            assertTrue(flooder.inbox.responseTo(requestId).isOk());
+        }
+        assertFalse(flooder.awaitDisconnected(50), "the server must not drop a client it can slow down instead");
+    }
+
     @Test @DisplayName("lobby updates reach a connected client when someone else creates a room")
     void lobbyIsLiveOverTcp() throws IOException {
         TestClient watcher = client("watcher");

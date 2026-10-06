@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -30,6 +31,7 @@ final class ConnectionHandler implements ClientSink {
 
     private static final Logger LOG = Logger.getLogger(ConnectionHandler.class.getName());
     private static final long FLUSH_BEFORE_CLOSE_MS = 200;
+    private static final long WINDOW_WAIT_SECONDS = 5;
 
     private final Socket socket;
     private final MessageChannel<ServerMessage, ClientMessage> channel;
@@ -37,11 +39,15 @@ final class ConnectionHandler implements ClientSink {
     private final RequestRouter router;
     private final ClientSession session = new ClientSession(this);
     private final Runnable onClosed;
+    private final Semaphore window;          // one permit per request that has not yet had its answer sent
+    private final int maxInFlight;
     private final AtomicBoolean closed = new AtomicBoolean();
     private volatile Thread writerThread;
 
     ConnectionHandler(Socket socket, RequestRouter router, int outboundCapacity, int readTimeoutMs,
-                      Runnable onClosed) throws IOException {
+                      int maxInFlight, Runnable onClosed) throws IOException {
+        this.maxInFlight = maxInFlight;
+        this.window = new Semaphore(maxInFlight);
         this.socket = socket;
         this.router = router;
         this.onClosed = onClosed;
@@ -57,7 +63,15 @@ final class ConnectionHandler implements ClientSink {
 
     @Override
     public boolean offer(ServerMessage message) {
-        return !closed.get() && outbound.offer(message);
+        if (closed.get()) {
+            return false;
+        }
+        if (outbound.offer(message)) {
+            return true;
+        }
+        LOG.warning("Closing " + remoteAddress() + ": its outbound queue is full (" + outbound.size()
+                + " messages waiting), so the client is too slow to keep up");
+        return false;
     }
 
     @Override
@@ -84,11 +98,16 @@ final class ConnectionHandler implements ClientSink {
         try {
             while (!closed.get()) {
                 ClientMessage message = channel.receive();
+                if (message instanceof ClientMessage.Request) {
+                    awaitWindow();
+                }
                 if (!router.route(session, message)) {
                     protocolViolation = true;
                     break;
                 }
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch (SocketTimeoutException e) {
             LOG.info("No heartbeat from " + remoteAddress() + "; closing");
         } catch (EOFException e) {
@@ -111,7 +130,11 @@ final class ConnectionHandler implements ClientSink {
         writerThread = Thread.currentThread();
         try {
             while (!closed.get()) {
-                channel.send(outbound.take());
+                ServerMessage message = outbound.take();
+                channel.send(message);
+                if (message instanceof ServerMessage.Response) {
+                    releaseWindow(); // the answer is on the wire: the client may have another request in flight
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -119,6 +142,24 @@ final class ConnectionHandler implements ClientSink {
             LOG.fine("Write failed to " + remoteAddress() + ": " + e.getMessage());
         } finally {
             close();
+        }
+    }
+
+    /**
+     * Backpressure on a client that pipelines faster than it can take answers: at most maxInFlight requests may be
+     * unanswered (or answered but not yet sent). Past that the reader stops reading, the socket buffer fills and
+     * TCP slows the sender, instead of the answers piling up until the client is dropped as too slow. If answers
+     * somehow stop (they should not), the wait is capped so the connection cannot stall for good.
+     */
+    private void awaitWindow() throws InterruptedException {
+        if (!window.tryAcquire(WINDOW_WAIT_SECONDS, TimeUnit.SECONDS)) {
+            LOG.warning(remoteAddress() + " has had no answers for " + WINDOW_WAIT_SECONDS + " s; reading on regardless");
+        }
+    }
+
+    private void releaseWindow() {
+        if (window.availablePermits() < maxInFlight) {
+            window.release();
         }
     }
 

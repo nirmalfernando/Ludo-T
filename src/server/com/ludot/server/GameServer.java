@@ -44,7 +44,8 @@ public final class GameServer implements AutoCloseable {
         this.registry = new RoomRegistry(config.session(), scheduler, lobby, repository, System::currentTimeMillis,
                 lastRoomNumber);
         RequestRouter router = new RequestRouter(new PlayerDirectory(), registry, lobby, repository);
-        this.acceptor = new ConnectionAcceptor(config.port(), router, config.outboundCapacity(), config.readTimeoutMs());
+        this.acceptor = new ConnectionAcceptor(config.port(), router, config.outboundCapacity(), config.readTimeoutMs(),
+                config.maxInFlight());
     }
 
     /** Binds the port and starts accepting connections. */

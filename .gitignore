@@ -58,3 +58,6 @@ dist/
 
 # Offline H2 database files
 h2data/
+
+# Output of run-evidence.sh (regenerate it; copy the run you cite into the report)
+evidence/

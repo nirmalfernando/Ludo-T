@@ -19,6 +19,7 @@ db.password=<your-password>
 # turn.timeoutSeconds=30        seconds a person has to roll or move before the AI does it (0 = no timer)
 # afk.timeoutsBeforeAfk=2       consecutive missed turns before the seat is played by the AI until taken back
 # connection.outboundCapacity=1000
+# connection.maxInFlight=256     unanswered requests one connection may have at once (backpressure on fast senders)
 # connection.readTimeoutMs=15000
 # room.queueCapacity=10000
 # room.requestMemory=1024

@@ -295,6 +295,9 @@ public final class GameSession {
         boolean newcomer = existing == null;
         if (newcomer) {
             members.put(from.id(), new Member(from.identity(), from.sink()));
+            if (hostId == null) {
+                hostId = from.id(); // the first person into an empty room becomes its host
+            }
         } else {
             existing.sink = from.sink();
         }

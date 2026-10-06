@@ -25,13 +25,16 @@ public final class ConnectionAcceptor implements AutoCloseable {
     private final RequestRouter router;
     private final int outboundCapacity;
     private final int readTimeoutMs;
+    private final int maxInFlight;
     private final ExecutorService readers = Executors.newCachedThreadPool(new NamedThreadFactory("conn-reader", true));
     private final ExecutorService writers = Executors.newCachedThreadPool(new NamedThreadFactory("conn-writer", true));
     private final Set<ConnectionHandler> connections = ConcurrentHashMap.newKeySet();
     private ServerSocket serverSocket;
     private Thread acceptorThread;
 
-    public ConnectionAcceptor(int port, RequestRouter router, int outboundCapacity, int readTimeoutMs) {
+    public ConnectionAcceptor(int port, RequestRouter router, int outboundCapacity, int readTimeoutMs,
+                              int maxInFlight) {
+        this.maxInFlight = maxInFlight;
         this.requestedPort = port;
         this.router = router;
         this.outboundCapacity = outboundCapacity;
@@ -67,7 +70,7 @@ public final class ConnectionAcceptor implements AutoCloseable {
     private void handOff(Socket socket) {
         try {
             ConnectionHandler[] holder = new ConnectionHandler[1];
-            holder[0] = new ConnectionHandler(socket, router, outboundCapacity, readTimeoutMs,
+            holder[0] = new ConnectionHandler(socket, router, outboundCapacity, readTimeoutMs, maxInFlight,
                     () -> connections.remove(holder[0]));
             connections.add(holder[0]);
             writers.execute(holder[0]::writeLoop);

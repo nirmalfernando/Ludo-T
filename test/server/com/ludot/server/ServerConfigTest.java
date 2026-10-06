@@ -16,6 +16,7 @@ class ServerConfigTest {
         assertEquals(30_000, config.session().turnTimeoutMs());
         assertEquals(2, config.session().afkAfterTimeouts());
         assertEquals(1_024, config.session().requestMemory());
+        assertEquals(256, config.maxInFlight());
         assertFalse(config.database().enabled());
     }
 
@@ -24,7 +25,7 @@ class ServerConfigTest {
         Path file = Files.createTempFile("ludot", ".properties");
         try {
             Files.writeString(file, "server.port=6000\nturn.timeoutSeconds=12\nafk.timeoutsBeforeAfk=3\n"
-                    + "room.requestMemory=2048\nspeed.fastMs=10\n"
+                    + "room.requestMemory=2048\nspeed.fastMs=10\nconnection.maxInFlight=64\n"
                     + "db.url=jdbc:postgresql://host:5432/postgres\ndb.user=u\ndb.password=p\n");
             ServerConfig config = ServerConfig.load(file);
             assertEquals(6000, config.port());
@@ -32,6 +33,7 @@ class ServerConfigTest {
             assertEquals(3, config.session().afkAfterTimeouts());
             assertEquals(2_048, config.session().requestMemory());
             assertEquals(10, config.session().fastMs());
+            assertEquals(64, config.maxInFlight());
             assertTrue(config.database().enabled());
             assertEquals("postgres", config.database().mode());
             assertEquals("u", config.database().user());

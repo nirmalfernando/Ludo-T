@@ -139,6 +139,21 @@ class GameSessionTest {
 
     // ---------------------------------------------------------------- seats
 
+    @Test @DisplayName("the first person to join an empty room becomes its host and gets a normal snapshot")
+    void joiningAnEmptyRoomMakesYouHost() {
+        Participant alice = Kit.person("alice");
+        Participant bob = Kit.person("bob");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 1, alice);
+        assertTrue(Kit.call(room, alice, new ClientMessage.LeaveRoom(id(), room.roomId())).isOk());
+        Kit.settle(room, alice);
+
+        assertTrue(Kit.call(room, bob, Kit.join(room)).isOk());
+        ServerMessage.RoomSnapshot snapshot = Kit.sink(bob).await(ServerMessage.RoomSnapshot.class, 5000);
+        assertEquals(bob.id(), snapshot.hostId());
+        // and the host's powers are real
+        assertRejected(ErrorCode.NO_HUMAN_SEATS, start(room, bob));
+    }
+
     @Test @DisplayName("a seat claim is broadcast, a second claim on it is refused, and a player can switch seats")
     void claimingSeats() {
         Participant alice = Kit.person("alice");
