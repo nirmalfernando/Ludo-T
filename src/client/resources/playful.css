@@ -214,6 +214,9 @@
 }
 .playful .list-cell {
     -fx-background-color: transparent;
+    -fx-padding: 3 6 3 6;
+}
+.playful .room-list .list-cell {
     -fx-padding: 0 0 12 0;
 }
 .playful .list-cell:filled:selected,
@@ -284,3 +287,124 @@
     -fx-background-color: white;
     -fx-padding: 4 20 18 20;
 }
+
+/* ---- the game room ---------------------------------------------------------------------------------------------- */
+
+.playful .small-button {
+    -fx-padding: 4 14 4 14;
+    -fx-font-size: 13px;
+}
+
+.playful .amber-button {
+    -fx-background-color: #c98a00, #ffc233;
+    -fx-background-insets: 0 0 -3 0, 0;
+    -fx-background-radius: 18, 18;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+.playful .amber-button:hover {
+    -fx-background-color: #c98a00, #ffd24d;
+}
+
+.playful .seat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 20;
+    -fx-padding: 6 14 6 12;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.10), 10, 0.1, 0, 3);
+}
+.playful .seat-active {
+    -fx-border-color: #ffb300;
+    -fx-effect: dropshadow(gaussian, rgba(255, 179, 0, 0.55), 16, 0.3, 0, 0);
+}
+.playful .seat-name {
+    -fx-font-size: 17px;
+}
+
+.playful .board-frame {
+    -fx-background-color: white;
+    -fx-background-radius: 28;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 28;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.18), 24, 0.1, 0, 8);
+}
+
+.playful .label.paused-banner {
+    -fx-background-color: rgba(43, 51, 102, 0.88);
+    -fx-background-radius: 24;
+    -fx-padding: 14 32 14 32;
+    -fx-text-fill: white;
+    -fx-font-size: 30px;
+}
+
+/* Slow | Normal | Fast */
+.playful .segment {
+    -fx-background-color: #eaeefc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5 14 5 14;
+    -fx-font-size: 13px;
+    -fx-text-fill: #5a639a;
+    -fx-cursor: hand;
+}
+.playful .segment:hover {
+    -fx-background-color: #dde3fa;
+}
+.playful .segment:selected {
+    -fx-background-color: #3d9bff;
+    -fx-text-fill: white;
+}
+.playful .segment-first {
+    -fx-background-radius: 16 0 0 16;
+}
+.playful .segment-last {
+    -fx-background-radius: 0 16 16 0;
+}
+
+/* tabs (Chat, Event Log) */
+.playful .tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+.playful .tab-pane > .tab-header-area {
+    -fx-padding: 0 0 6 0;
+}
+.playful .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #e4e9fb;
+    -fx-background-insets: 0;
+    -fx-background-radius: 16;
+    -fx-padding: 3 18 3 18;
+    -fx-cursor: hand;
+}
+.playful .tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #3d9bff;
+}
+.playful .tab .tab-label {
+    -fx-text-fill: #5a639a;
+    -fx-font-size: 15px;
+}
+.playful .tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+.playful .tab-pane > .tab-content-area {
+    -fx-background-color: white;
+    -fx-background-radius: 22;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 22;
+    -fx-padding: 8;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.10), 12, 0.1, 0, 4);
+}
+.playful .event-log .list-cell {
+    -fx-text-fill: #4a5380;
+    -fx-font-size: 13px;
+}
+.playful .tab-pane {
+    -fx-tab-min-height: 30px;
+    -fx-tab-max-height: 30px;
+}
+

@@ -55,8 +55,8 @@ public final class ClientApp extends Application {
         root.getChildren().add(screenHolder);
         stage.setTitle("LUDO-T Online");
         stage.setScene(new Scene(root, 1240, 780));
-        stage.setMinWidth(1100);
-        stage.setMinHeight(720);
+        stage.setMinWidth(1230);
+        stage.setMinHeight(740);
         stage.show();
 
         state.roomProperty().addListener((obs, old, now) -> {

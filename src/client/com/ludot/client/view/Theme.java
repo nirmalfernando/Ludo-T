@@ -13,9 +13,6 @@ public final class Theme {
     public static final Color BOARD_BACKGROUND = Color.web("#fafafa");
     public static final Color GRID_LINE = Color.web("#b0bec5");
     public static final Color HIGHLIGHT = Color.web("#ffb300");
-    public static final String PANEL_STYLE = "-fx-background-color: #f5f7fa; -fx-padding: 10;";
-    public static final String CARD_STYLE = "-fx-background-color: white; -fx-border-color: #d5dbe1; "
-            + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;";
 
     /** Style class carried by the screens that use the friendly look (see playful.css). */
     public static final String PLAYFUL = "playful";

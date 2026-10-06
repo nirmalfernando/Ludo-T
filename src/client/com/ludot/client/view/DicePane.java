@@ -25,10 +25,12 @@ public final class DicePane extends VBox {
     public DicePane(Runnable onRoll) {
         super(8);
         setAlignment(Pos.CENTER);
-        setStyle(Theme.CARD_STYLE);
+        getStyleClass().add("panel");
+        setPadding(new javafx.geometry.Insets(14));
         banner.setWrapText(true);
         banner.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-alignment: center;");
         die.setStyle("-fx-font-size: 64; -fx-text-fill: #263238;");
+        roll.getStyleClass().add("big-button");
         roll.setDefaultButton(true);
         roll.setDisable(true);
         roll.setOnAction(event -> {

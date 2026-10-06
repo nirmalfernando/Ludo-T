@@ -20,7 +20,8 @@ final class NarrationPane extends VBox {
     NarrationPane(RoomModel model) {
         super(3);
         this.model = model;
-        setStyle(Theme.CARD_STYLE);
+        getStyleClass().add("panel");
+        setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
         model.log().addListener((ListChangeListener<String>) change -> refresh());
         refresh();
     }

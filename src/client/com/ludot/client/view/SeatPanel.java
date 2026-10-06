@@ -57,10 +57,13 @@ public final class SeatPanel extends VBox {
         }
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox row = new HBox(8, new Circle(9, Theme.strong(seat.colour())), text, spacer, turnMark(active));
+        HBox row = new HBox(10, new PawnMascot(seat.colour(), 40), text, spacer, turnMark(active));
         row.setAlignment(Pos.CENTER_LEFT);
         seatAction(seat, mine, joinable).ifPresent(button -> row.getChildren().add(button));
-        row.setStyle(Theme.CARD_STYLE + (active ? "-fx-border-color: #ffb300; -fx-border-width: 2;" : ""));
+        row.getStyleClass().add("seat-card");
+        if (active) {
+            row.getStyleClass().add("seat-active");
+        }
         return row;
     }
 
@@ -76,7 +79,7 @@ public final class SeatPanel extends VBox {
 
     private static Label nameLabel(SeatDto seat, boolean mine) {
         Label name = new Label(Theme.display(seat.colour()) + (mine ? "  (you)" : ""));
-        name.setStyle("-fx-font-weight: bold;");
+        name.getStyleClass().add("seat-name");
         return name;
     }
 
@@ -103,7 +106,7 @@ public final class SeatPanel extends VBox {
 
     private Button takeBackButton() {
         Button takeBack = new Button("Take back");
-        takeBack.setStyle("-fx-base: #ffb300;");
+        takeBack.getStyleClass().addAll("amber-button", "small-button");
         takeBack.setOnAction(event -> onReclaim.run());
         return takeBack;
     }
@@ -112,11 +115,13 @@ public final class SeatPanel extends VBox {
     private Optional<Button> seatAction(SeatDto seat, boolean mine, boolean joinable) {
         if (joinable && seat.controller() == Controller.FREE) {
             Button take = new Button("Take");
+            take.getStyleClass().addAll("blue-button", "small-button");
             take.setOnAction(event -> onClaim.accept(seat.colour()));
             return Optional.of(take);
         }
         if (joinable && mine) {
             Button leave = new Button("Leave");
+            leave.getStyleClass().addAll("ghost-button", "small-button");
             leave.setOnAction(event -> onRelease.run());
             return Optional.of(leave);
         }

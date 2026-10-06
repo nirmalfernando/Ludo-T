@@ -86,11 +86,7 @@ final class NewRoomDialog {
         card.setUserData(value);
         card.setToggleGroup(group);
         card.setSelected(selected);
-        card.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_RELEASED, event -> {
-            if (card.isSelected()) {
-                event.consume();
-            }
-        });
+        Toggles.keepSelected(card);
     }
 
     private static VBox content(ToggleGroup mode, ToggleGroup rules, TextField seed) {

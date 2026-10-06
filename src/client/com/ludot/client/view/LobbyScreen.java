@@ -122,6 +122,7 @@ public final class LobbyScreen extends StackPane {
     private void buildList() {
         rooms.setItems(state.rooms());
         rooms.setFocusTraversable(false);
+        rooms.getStyleClass().add("room-list");
         rooms.setPlaceholder(emptyState());
         rooms.setCellFactory(view -> new ListCell<>() {
             @Override

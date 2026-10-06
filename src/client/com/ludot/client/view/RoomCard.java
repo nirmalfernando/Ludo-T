@@ -39,19 +39,12 @@ final class RoomCard extends HBox {
         Label id = new Label(room.roomId());
         id.getStyleClass().add("room-id");
         HBox chips = new HBox(6,
-                chip(RoomPresentation.statusLabel(room.status()), RoomPresentation.statusColour(room.status())),
-                chip(RoomPresentation.modeLabel(room.mode()), "#3d9bff"),
-                chip(RoomPresentation.rulesLabel(room.variant()), "#8f7bd8"));
+                Chips.chip(RoomPresentation.statusLabel(room.status()), RoomPresentation.statusColour(room.status())),
+                Chips.chip(RoomPresentation.modeLabel(room.mode()), Chips.MODE),
+                Chips.chip(RoomPresentation.rulesLabel(room.variant()), Chips.RULES));
         VBox box = new VBox(6, id, chips);
         box.setMinWidth(210);
         return box;
-    }
-
-    private static Label chip(String text, String colour) {
-        Label chip = new Label(text);
-        chip.getStyleClass().add("chip");
-        chip.setStyle("-fx-background-color: " + colour + ";");
-        return chip;
     }
 
     private static VBox seatStrip(RoomSummary room) {
