@@ -91,6 +91,9 @@ class GameSessionConcurrencyTest {
 
         Participant winner = contenders.get(responses.indexOf(responses.stream().filter(Response::isOk).findFirst().get()));
         Kit.call(room, host, new ClientMessage.RequestSnapshot(id(), room.roomId()));
+        // the response comes before the snapshot push it caused; the room handles one command at a time, so once a
+        // second request is answered the first one's push has certainly been delivered
+        Kit.settle(room, host);
         ServerMessage.RoomSnapshot snapshot = Kit.sink(host).of(ServerMessage.RoomSnapshot.class).stream()
                 .reduce((a, b) -> b).get();
         assertTrue(snapshot.seats().stream().anyMatch(s -> s.colour() == Colour.RED

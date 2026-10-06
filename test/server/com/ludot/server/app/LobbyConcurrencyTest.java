@@ -166,6 +166,10 @@ class LobbyConcurrencyTest {
             activity.add(() -> creator.call(new ClientMessage.CreateRoom(id(), RoomMode.PLAY, Variant.LUDO_T, 1L)).isOk());
         }
         fireTogether(activity);
+        // each room tells the lobby about itself from its own thread: let the rooms finish first, then the lobby
+        for (GameSession room : kit.registry.all()) {
+            room.awaitIdle();
+        }
         kit.lobby.awaitIdle();
 
         List<List<String>> orders = new ArrayList<>();

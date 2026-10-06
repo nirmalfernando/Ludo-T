@@ -105,6 +105,15 @@ public final class GameSession {
         actor.shutdownNow();
     }
 
+    /** Waits until everything submitted so far has run, including the summaries it sent to the lobby; for tests. */
+    void awaitIdle() throws InterruptedException {
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        actor.submitInternal(done::countDown);
+        if (!done.await(10, java.util.concurrent.TimeUnit.SECONDS)) {
+            throw new IllegalStateException("The room did not catch up within 10 s");
+        }
+    }
+
     /** Test hook: behaves exactly as if the deadline for that turn had just passed. */
     void injectTimeoutForTest(int turn) {
         actor.submitInternal(() -> turns.onTurnTimeout(turn));
