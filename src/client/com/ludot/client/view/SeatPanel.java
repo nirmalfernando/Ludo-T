@@ -6,6 +6,7 @@ import com.ludot.protocol.Controller;
 import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.RoomStatus;
 import com.ludot.protocol.SeatDto;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -46,41 +47,69 @@ public final class SeatPanel extends VBox {
 
     private HBox card(SeatDto seat, boolean joinable) {
         boolean mine = model.mySeat().map(s -> s.colour() == seat.colour()).orElse(false);
-        boolean active = model.statusProperty().get() == RoomStatus.RUNNING && model.turnProperty().get() != null
-                && model.turnProperty().get().colour() == seat.colour();
+        boolean active = isActive(seat);
 
-        Circle dot = new Circle(9, Theme.strong(seat.colour()));
-        Label name = new Label(Theme.display(seat.colour()) + (mine ? "  (you)" : ""));
-        name.setStyle("-fx-font-weight: bold;");
-        Label who = new Label(describe(seat));
-        who.setStyle("-fx-text-fill: #546e7a; -fx-font-size: 12;");
-        VBox text = new VBox(2, name, who);
-        Label turnMark = new Label(active ? "▶" : "");
-        turnMark.setStyle("-fx-text-fill: #ff8f00; -fx-font-size: 16;");
-
+        VBox text = new VBox(2, nameLabel(seat, mine), whoLabel(seat));
+        if (isAway(seat, mine)) {
+            text.getChildren().add(takeBackButton()); // under the labels: the card is too narrow for it beside them
+        }
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox row = new HBox(8, dot, text, spacer, turnMark);
+        HBox row = new HBox(8, new Circle(9, Theme.strong(seat.colour())), text, spacer, turnMark(active));
         row.setAlignment(Pos.CENTER_LEFT);
+        seatAction(seat, mine, joinable).ifPresent(button -> row.getChildren().add(button));
+        row.setStyle(Theme.CARD_STYLE + (active ? "-fx-border-color: #ffb300; -fx-border-width: 2;" : ""));
+        return row;
+    }
+
+    private boolean isActive(SeatDto seat) {
+        var turn = model.turnProperty().get();
+        return model.statusProperty().get() == RoomStatus.RUNNING && turn != null && turn.colour() == seat.colour();
+    }
+
+    private boolean isAway(SeatDto seat, boolean mine) {
+        boolean waitingForYou = seat.controller() == Controller.AFK || seat.controller() == Controller.DISCONNECTED;
+        return mine && waitingForYou && model.statusProperty().get() == RoomStatus.RUNNING;
+    }
+
+    private static Label nameLabel(SeatDto seat, boolean mine) {
+        Label name = new Label(Theme.display(seat.colour()) + (mine ? "  (you)" : ""));
+        name.setStyle("-fx-font-weight: bold;");
+        return name;
+    }
+
+    private static Label whoLabel(SeatDto seat) {
+        Label who = new Label(describe(seat));
+        who.setStyle("-fx-text-fill: #546e7a; -fx-font-size: 12;");
+        return who;
+    }
+
+    private static Label turnMark(boolean active) {
+        Label mark = new Label(active ? "▶" : "");
+        mark.setStyle("-fx-text-fill: #ff8f00; -fx-font-size: 16;");
+        return mark;
+    }
+
+    private Button takeBackButton() {
+        Button takeBack = new Button("Take back");
+        takeBack.setStyle("-fx-base: #ffb300;");
+        takeBack.setOnAction(event -> onReclaim.run());
+        return takeBack;
+    }
+
+    // before the game: "Take" on a free seat, "Leave" on your own
+    private Optional<Button> seatAction(SeatDto seat, boolean mine, boolean joinable) {
         if (joinable && seat.controller() == Controller.FREE) {
             Button take = new Button("Take");
             take.setOnAction(event -> onClaim.accept(seat.colour()));
-            row.getChildren().add(take);
-        } else if (joinable && mine) {
+            return Optional.of(take);
+        }
+        if (joinable && mine) {
             Button leave = new Button("Leave");
             leave.setOnAction(event -> onRelease.run());
-            row.getChildren().add(leave);
+            return Optional.of(leave);
         }
-        boolean away = mine && (seat.controller() == Controller.AFK || seat.controller() == Controller.DISCONNECTED)
-                && model.statusProperty().get() == RoomStatus.RUNNING;
-        if (away) {
-            Button takeBack = new Button("Take back");
-            takeBack.setStyle("-fx-base: #ffb300;");
-            takeBack.setOnAction(event -> onReclaim.run());
-            text.getChildren().add(takeBack); // under the labels: the card is too narrow for it beside them
-        }
-        row.setStyle(Theme.CARD_STYLE + (active ? "-fx-border-color: #ffb300; -fx-border-width: 2;" : ""));
-        return row;
+        return Optional.empty();
     }
 
     private static String describe(SeatDto seat) {

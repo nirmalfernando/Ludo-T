@@ -359,22 +359,31 @@ public class OutputFormatter {
     // Static so MoveExecutor can call it without holding an OutputFormatter instance.
     public static String buildEffectDescription(Piece piece, TeleportDestination dest, Direction dirBefore) {
         if (dest == null) return "";
-        String colour = piece.getColour().name();
-        String capColour = Character.toUpperCase(colour.charAt(0)) + colour.substring(1).toLowerCase();
-        String name = capColour + " piece " + piece.getName();
+        String name = pieceLabel(piece);
         return switch (dest) {
-            case ALPHA -> piece.getActiveEffect() instanceof EnergisedEffect
-                    ? name + " feels energized, and movement speed doubles."
-                    : name + " feels sick, and movement speed halves.";
-            case GAMMA -> {
-                String oldDir = dirBefore == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
-                String newDir = piece.getDirection() == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
-                yield name + ", which was moving " + oldDir + ", has changed to moving " + newDir + ".";
-            }
+            case ALPHA         -> describeAlpha(piece, name);
+            case GAMMA         -> name + ", which was moving " + directionWord(dirBefore)
+                    + ", has changed to moving " + directionWord(piece.getDirection()) + ".";
             case BETA          -> name + " attends briefing and cannot move for four rounds.";
             case BASE          -> name + " has been sent back to base.";
             case START_CELL    -> name + " teleported to their start cell.";
             case APPROACH_CELL -> name + " teleported to their approach cell.";
         };
+    }
+
+    // "Red piece R1": the colour in sentence case followed by the piece's name
+    private static String pieceLabel(Piece piece) {
+        String colour = piece.getColour().name();
+        return Character.toUpperCase(colour.charAt(0)) + colour.substring(1).toLowerCase() + " piece " + piece.getName();
+    }
+
+    private static String describeAlpha(Piece piece, String name) {
+        return piece.getActiveEffect() instanceof EnergisedEffect
+                ? name + " feels energized, and movement speed doubles."
+                : name + " feels sick, and movement speed halves.";
+    }
+
+    private static String directionWord(Direction direction) {
+        return direction == Direction.CLOCKWISE ? "clockwise" : "counter-clockwise";
     }
 }

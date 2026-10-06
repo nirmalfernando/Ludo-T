@@ -53,31 +53,27 @@ public final class CellFactory {
         board.initialize(cells, homeStraights);
     }
 
-    // explicit colour mapping — avoids any dependence on Colour.values() enum order
+    // explicit colour mapping: each special cell is named, so nothing depends on Colour.values() enum order
+    private static final Map<Integer, Colour> START_CELL_COLOURS = Map.of(
+            GameConstants.YELLOW_START_CELL_ID, Colour.YELLOW,
+            GameConstants.BLUE_START_CELL_ID, Colour.BLUE,
+            GameConstants.RED_START_CELL_ID, Colour.RED,
+            GameConstants.GREEN_START_CELL_ID, Colour.GREEN);
+
+    private static final Map<Integer, Colour> APPROACH_CELL_COLOURS = Map.of(
+            GameConstants.YELLOW_APPROACH_CELL_ID, Colour.YELLOW,
+            GameConstants.BLUE_APPROACH_CELL_ID, Colour.BLUE,
+            GameConstants.RED_APPROACH_CELL_ID, Colour.RED,
+            GameConstants.GREEN_APPROACH_CELL_ID, Colour.GREEN);
+
     private static Cell buildStandardPathCell(int id) {
-        if (id == GameConstants.YELLOW_START_CELL_ID) {
-            return createStartCell(id, Colour.YELLOW);
+        Colour startOf = START_CELL_COLOURS.get(id);
+        if (startOf != null) {
+            return createStartCell(id, startOf);
         }
-        if (id == GameConstants.BLUE_START_CELL_ID) {
-            return createStartCell(id, Colour.BLUE);
-        }
-        if (id == GameConstants.RED_START_CELL_ID) {
-            return createStartCell(id, Colour.RED);
-        }
-        if (id == GameConstants.GREEN_START_CELL_ID) {
-            return createStartCell(id, Colour.GREEN);
-        }
-        if (id == GameConstants.YELLOW_APPROACH_CELL_ID) {
-            return createApproachCell(id, Colour.YELLOW);
-        }
-        if (id == GameConstants.BLUE_APPROACH_CELL_ID) {
-            return createApproachCell(id, Colour.BLUE);
-        }
-        if (id == GameConstants.RED_APPROACH_CELL_ID) {
-            return createApproachCell(id, Colour.RED);
-        }
-        if (id == GameConstants.GREEN_APPROACH_CELL_ID) {
-            return createApproachCell(id, Colour.GREEN);
+        Colour approachOf = APPROACH_CELL_COLOURS.get(id);
+        if (approachOf != null) {
+            return createApproachCell(id, approachOf);
         }
         return createStandardCell(id);
     }

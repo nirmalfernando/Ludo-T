@@ -46,11 +46,11 @@ the architecture: for example, the client cannot even name a core class, so it c
 
 | Mechanism | Where | Why |
 |---|---|---|
-| One single-thread executor per room (an actor) with a bounded queue (10,000) | `GameSession` | All requests, timers and AI moves for a room are processed one at a time, in arrival order, so room state needs no locks. When the queue is full the sender gets `SERVER_BUSY`. |
+| One single-thread executor per room (an actor) with a bounded queue (10,000) | `RoomActor`, used by `GameSession` | All requests, timers and AI moves for a room are processed one at a time, in arrival order, so room state needs no locks. When the queue is full the sender gets `SERVER_BUSY`. |
 | A second actor for the lobby | `LobbyService` | Room-list updates and lobby chat share one ordering. |
 | Blocking I/O, one reader and one writer thread per connection; bounded outbound queue (1,000) | `ConnectionHandler` | A slow client is dropped without ever blocking a room. |
 | A window of at most 256 unanswered requests per connection | `ConnectionHandler` | A client that pipelines faster than it can read is slowed by TCP instead of being dropped. |
-| Turn numbers on every gameplay request, request ids for duplicates | `GameSession` | Late timers, stale clicks and double-sends are rejected or replayed, never applied twice. |
+| Turn numbers on every gameplay request, request ids for duplicates | `GamePlay`, `RoomActor` | Late timers, stale clicks and double-sends are rejected or replayed, never applied twice. |
 | Asynchronous batched database writer (`db-writer`) | `AsyncGameRepository` | A database round trip to Supabase takes about 60 ms; a game never waits for it. |
 | JavaFX Application Thread rule, `Platform.runLater`, `CompletableFuture` requests | client | The UI never blocks on the network. |
 
@@ -239,7 +239,8 @@ Ludo-T/
 │   ├── core/com/ludot/        # Phase 1 game: model, rules, command, strategy, engine, events, effects, factory, dice
 │   ├── protocol/com/ludot/protocol/   # messages, DTOs, MessageChannel, ServerLink, StateHash
 │   ├── server/com/ludot/server/
-│   │   ├── app/               # use cases and ports: GameSession (room actor), LobbyService, RequestRouter, ...
+│   │   ├── app/               # use cases and ports: GameSession (room facade) over RoomActor, Membership, Seating,
+│   │   │                      #   GamePlay, TurnDriver, RoomChat, Broadcaster; LobbyService, RequestRouter, ...
 │   │   ├── game/              # RoomGame: the only place that touches core types; DTO and event mapping
 │   │   ├── adapters/          # net (sockets), jdbc, persistence (async writer), memory
 │   │   └── GameServer, ServerMain, DbTool, DemoGameSeeder   # composition roots

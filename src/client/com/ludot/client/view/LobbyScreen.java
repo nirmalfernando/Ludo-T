@@ -36,7 +36,14 @@ public final class LobbyScreen extends BorderPane {
         this.toasts = toasts;
         setPadding(new Insets(14));
         setStyle(Theme.PANEL_STYLE);
+        setTop(topBar());
+        buildTable();
+        setCenter(table);
+        setRight(chatColumn());
+        subscribe();
+    }
 
+    private HBox topBar() {
         Label title = new Label("Lobby");
         title.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
         Label who = new Label();
@@ -51,11 +58,10 @@ public final class LobbyScreen extends BorderPane {
         HBox top = new HBox(12, title, who, spacer, create, join);
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(0, 0, 10, 0));
-        setTop(top);
+        return top;
+    }
 
-        buildTable();
-        setCenter(table);
-
+    private VBox chatColumn() {
         ChatPane chat = new ChatPane(state.lobbyChat(), state.myId(), (text, onRejected) -> session.request(
                 new ClientMessage.SendChat(UUID.randomUUID(), null, text), response -> {
                     if (!response.isOk()) {
@@ -64,13 +70,11 @@ public final class LobbyScreen extends BorderPane {
                 }));
         Label chatTitle = new Label("Lobby chat");
         chatTitle.setStyle("-fx-font-weight: bold;");
-        VBox right = new VBox(6, chatTitle, chat);
+        VBox column = new VBox(6, chatTitle, chat);
         VBox.setVgrow(chat, Priority.ALWAYS);
-        right.setPrefWidth(320);
-        right.setPadding(new Insets(0, 0, 0, 12));
-        setRight(right);
-
-        subscribe();
+        column.setPrefWidth(320);
+        column.setPadding(new Insets(0, 0, 0, 12));
+        return column;
     }
 
     private void buildTable() {

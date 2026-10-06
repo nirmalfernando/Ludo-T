@@ -27,6 +27,23 @@ final class NewRoomDialog {
         dialog.setHeaderText("Create a room");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
+        ChoiceBox<RoomMode> mode = modeChoice();
+        ChoiceBox<Variant> variant = variantChoice();
+        TextField seed = new TextField();
+        seed.setPromptText("random");
+        dialog.getDialogPane().setContent(form(mode, variant, seed));
+        dialog.getDialogPane().lookupButton(ButtonType.OK).disableProperty().bind(
+                Bindings.createBooleanBinding(() -> !validSeed(seed.getText()), seed.textProperty()));
+
+        Optional<ButtonType> answer = dialog.showAndWait();
+        if (answer.isEmpty() || answer.get() != ButtonType.OK) {
+            return Optional.empty();
+        }
+        Long seedValue = seed.getText().isBlank() ? null : Long.parseLong(seed.getText().trim());
+        return Optional.of(new ClientMessage.CreateRoom(UUID.randomUUID(), mode.getValue(), variant.getValue(), seedValue));
+    }
+
+    private static ChoiceBox<RoomMode> modeChoice() {
         ChoiceBox<RoomMode> mode = new ChoiceBox<>();
         mode.getItems().addAll(RoomMode.PLAY, RoomMode.BOT_MATCH);
         mode.setValue(RoomMode.PLAY);
@@ -42,12 +59,17 @@ final class NewRoomDialog {
                 return null;
             }
         });
+        return mode;
+    }
+
+    private static ChoiceBox<Variant> variantChoice() {
         ChoiceBox<Variant> variant = new ChoiceBox<>();
         variant.getItems().addAll(Variant.LUDO_T, Variant.CLASSIC);
         variant.setValue(Variant.LUDO_T);
-        TextField seed = new TextField();
-        seed.setPromptText("random");
+        return variant;
+    }
 
+    private static GridPane form(ChoiceBox<RoomMode> mode, ChoiceBox<Variant> variant, TextField seed) {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -55,16 +77,7 @@ final class NewRoomDialog {
         grid.addRow(0, new Label("Mode"), mode);
         grid.addRow(1, new Label("Rules"), variant);
         grid.addRow(2, new Label("Seed"), seed);
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().lookupButton(ButtonType.OK).disableProperty().bind(
-                Bindings.createBooleanBinding(() -> !validSeed(seed.getText()), seed.textProperty()));
-
-        Optional<ButtonType> answer = dialog.showAndWait();
-        if (answer.isEmpty() || answer.get() != ButtonType.OK) {
-            return Optional.empty();
-        }
-        Long seedValue = seed.getText().isBlank() ? null : Long.parseLong(seed.getText().trim());
-        return Optional.of(new ClientMessage.CreateRoom(UUID.randomUUID(), mode.getValue(), variant.getValue(), seedValue));
+        return grid;
     }
 
     private static boolean validSeed(String text) {

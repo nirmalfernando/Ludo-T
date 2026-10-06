@@ -26,40 +26,33 @@ public final class BoardLayout {
     private BoardLayout() {
     }
 
+    // the loop as twelve straight runs, clockwise from the left arm's outer end; the track cuts across the four
+    // inner corners of the cross, so some runs begin diagonally next to where the last one ended
     private static List<int[]> buildLoop() {
         List<int[]> cells = new ArrayList<>();
-        for (int x = 0; x <= 5; x++) {
-            cells.add(new int[]{x, 6});
-        }
-        for (int y = 5; y >= 0; y--) {
-            cells.add(new int[]{6, y});
-        }
-        cells.add(new int[]{7, 0});
-        cells.add(new int[]{8, 0});
-        for (int y = 1; y <= 5; y++) {
-            cells.add(new int[]{8, y});
-        }
-        for (int x = 9; x <= 14; x++) {
-            cells.add(new int[]{x, 6});
-        }
-        cells.add(new int[]{14, 7});
-        cells.add(new int[]{14, 8});
-        for (int x = 13; x >= 9; x--) {
-            cells.add(new int[]{x, 8});
-        }
-        for (int y = 9; y <= 14; y++) {
-            cells.add(new int[]{8, y});
-        }
-        cells.add(new int[]{7, 14});
-        cells.add(new int[]{6, 14});
-        for (int y = 13; y >= 9; y--) {
-            cells.add(new int[]{6, y});
-        }
-        for (int x = 5; x >= 0; x--) {
-            cells.add(new int[]{x, 8});
-        }
-        cells.add(new int[]{0, 7});
+        addRun(cells, 0, 6, 5, 6);      // left arm, top row, heading in
+        addRun(cells, 6, 5, 6, 0);      // up the top arm's left column
+        addRun(cells, 7, 0, 8, 0);      // across the top end
+        addRun(cells, 8, 1, 8, 5);      // down the top arm's right column
+        addRun(cells, 9, 6, 14, 6);     // right arm, top row, heading out
+        addRun(cells, 14, 7, 14, 8);    // across the right end
+        addRun(cells, 13, 8, 9, 8);     // right arm, bottom row, heading in
+        addRun(cells, 8, 9, 8, 14);     // down the bottom arm's right column
+        addRun(cells, 7, 14, 6, 14);    // across the bottom end
+        addRun(cells, 6, 13, 6, 9);     // up the bottom arm's left column
+        addRun(cells, 5, 8, 0, 8);      // left arm, bottom row, heading out
+        addRun(cells, 0, 7, 0, 7);      // the last cell, closing the loop
         return List.copyOf(cells);
+    }
+
+    // appends the straight run of cells from (fromX, fromY) to (toX, toY), both included
+    private static void addRun(List<int[]> cells, int fromX, int fromY, int toX, int toY) {
+        int dx = Integer.signum(toX - fromX);
+        int dy = Integer.signum(toY - fromY);
+        int length = Math.max(Math.abs(toX - fromX), Math.abs(toY - fromY));
+        for (int i = 0; i <= length; i++) {
+            cells.add(new int[]{fromX + dx * i, fromY + dy * i});
+        }
     }
 
     /** Column and row of a track cell (0 to 51). */

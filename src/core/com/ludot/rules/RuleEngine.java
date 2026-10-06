@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class RuleEngine {
 
@@ -78,14 +79,11 @@ public class RuleEngine {
     }
 
     private void addMoveFromBase(MoveFromBase mfb, List<Move> valid) {
-        Direction dir = moveValidator.assignDirection(mfb.getPiece());
-        mfb.getPiece().setDirection(dir);
-        Cell startCell = mfb.getPiece().getBoard().getStartCell(mfb.getPiece().getColour());
-        if (blockRule != null && blockRule.isBlocked(mfb.getPiece(), startCell)) {
-            if (eventBus != null) {
-                eventBus.publish(new PieceBlockedEvent(mfb.getPiece(), null, startCell,
-                        List.copyOf(startCell.getPieces())));
-            }
+        Piece piece = mfb.getPiece();
+        piece.setDirection(moveValidator.assignDirection(piece));
+        Cell startCell = piece.getBoard().getStartCell(piece.getColour());
+        if (isBlocked(piece, startCell)) {
+            publishBlocked(piece, null, startCell);
             return;
         }
         valid.add(mfb);
@@ -101,17 +99,15 @@ public class RuleEngine {
             }
             return;
         }
+        moveValidator.getDestinationCell(p, mob.getSteps())
+                .ifPresent(destination -> addMoveTo(destination, mob, valid));
+    }
 
-        Optional<Cell> destOpt = moveValidator.getDestinationCell(p, mob.getSteps());
-        if (destOpt.isEmpty()) {
-            return;
-        }
-        Cell dest = destOpt.get();
-        if (blockRule != null && blockRule.isBlocked(p, dest)) {
-            if (eventBus != null) {
-                eventBus.publish(new PieceBlockedEvent(p, p.getPosition(), dest,
-                        List.copyOf(dest.getPieces())));
-            }
+    // a single piece's move to a known destination: stopped short by a blockade, a capture, or a plain move
+    private void addMoveTo(Cell dest, MoveOnBoard mob, List<Move> valid) {
+        Piece p = mob.getPiece();
+        if (isBlocked(p, dest)) {
+            publishBlocked(p, p.getPosition(), dest);
             int partialSteps = stepsBeforeBlock(p, mob.getSteps());
             if (partialSteps > 0) {
                 valid.add(new MoveOnBoard(p, partialSteps));
@@ -119,10 +115,17 @@ public class RuleEngine {
             return;
         }
         Piece opponent = singleOpponent(dest, p);
-        if (opponent != null) {
-            valid.add(new CaptureMove(p, opponent, dest, mob.getSteps()));
-        } else {
-            valid.add(mob);
+        valid.add(opponent != null ? new CaptureMove(p, opponent, dest, mob.getSteps()) : mob);
+    }
+
+    // the blockade rule and the event bus are optional collaborators, so both are checked in one place each
+    private boolean isBlocked(Piece piece, Cell cell) {
+        return blockRule != null && blockRule.isBlocked(piece, cell);
+    }
+
+    private void publishBlocked(Piece piece, Cell from, Cell intendedDest) {
+        if (eventBus != null) {
+            eventBus.publish(new PieceBlockedEvent(piece, from, intendedDest, List.copyOf(intendedDest.getPieces())));
         }
     }
 
@@ -197,28 +200,27 @@ public class RuleEngine {
     private void applyTeleport(Piece piece, TeleportDestination dest) {
         Board board = piece.getBoard();
         switch (dest) {
-            case ALPHA -> {
-                if (effectRule != null) {
-                    effectRule.applyAlpha(piece);
-                }
-            }
-            case BETA -> {
-                if (effectRule != null) {
-                    effectRule.applyBeta(piece);
-                }
-            }
-            case GAMMA -> {
-                Direction dirBefore = piece.getDirection();
-                if (effectRule != null) {
-                    effectRule.applyGamma(piece);
-                }
-                if (dirBefore == Direction.CLOCKWISE && effectRule != null) {
-                    effectRule.applyBeta(piece);
-                }
-            }
+            case ALPHA -> withEffectRule(rule -> rule.applyAlpha(piece));
+            case BETA -> withEffectRule(rule -> rule.applyBeta(piece));
+            case GAMMA -> withEffectRule(rule -> applyGamma(rule, piece));
             case BASE -> piece.sendToBase();
             case START_CELL -> teleportTo(piece, board.getStartCell(piece.getColour()));
             case APPROACH_CELL -> teleportTo(piece, board.getApproachCell(piece.getColour()));
+        }
+    }
+
+    // T-14: Gamma reverses direction; a piece that was going clockwise is then also sent to Briefing (Beta)
+    private static void applyGamma(EffectRule rule, Piece piece) {
+        Direction dirBefore = piece.getDirection();
+        rule.applyGamma(piece);
+        if (dirBefore == Direction.CLOCKWISE) {
+            rule.applyBeta(piece);
+        }
+    }
+
+    private void withEffectRule(Consumer<EffectRule> action) {
+        if (effectRule != null) {
+            action.accept(effectRule);
         }
     }
 
