@@ -39,10 +39,7 @@ public final class ConnectionBadge extends HBox {
         long latency = state.latencyProperty().get();
         text.setText(ConnectionPresentation.statusText(connection, latency));
         dot.setFill(Color.web(ConnectionPresentation.dotColour(connection, latency)));
-        tip.setText(connection == ClientState.Connection.CONNECTED
-                ? "Your connection to the server (TCP) is open. Round trip: "
-                        + (latency < 0 ? "measuring..." : latency + " ms")
-                : "The connection to the server is closed");
+        tip.setText(ConnectionPresentation.tooltip(connection, latency));
     }
 
     // a slow glow so the dot reads as "alive"; it stops by itself when the screen goes away

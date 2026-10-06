@@ -17,8 +17,11 @@ public final class ConnectionPresentation {
     private ConnectionPresentation() {
     }
 
-    /** "Connected · 12 ms", or just "Connected" before the first answer has come back, or "Offline". */
+    /** "Connected · 12 ms", or just "Connected" before the first answer has come back, "Reconnecting...", or "Offline". */
     public static String statusText(Connection connection, long latencyMs) {
+        if (connection == Connection.RECONNECTING) {
+            return "Reconnecting...";
+        }
         if (connection != Connection.CONNECTED) {
             return "Offline";
         }
@@ -26,10 +29,23 @@ public final class ConnectionPresentation {
     }
 
     public static String dotColour(Connection connection, long latencyMs) {
+        if (connection == Connection.RECONNECTING) {
+            return AMBER;
+        }
         if (connection != Connection.CONNECTED) {
             return RED;
         }
         return latencyMs > SLOW_MS ? AMBER : GREEN;
+    }
+
+    /** The hover text of the connection badge. */
+    public static String tooltip(Connection connection, long latencyMs) {
+        return switch (connection) {
+            case CONNECTED -> "Your connection to the server (TCP) is open. Round trip: "
+                    + (latencyMs < 0 ? "measuring..." : latencyMs + " ms");
+            case RECONNECTING -> "The connection was lost: trying to get you back in. Your seat is kept for a short while.";
+            case DISCONNECTED -> "The connection to the server is closed";
+        };
     }
 
     /** Dot beside a player on a seat card: green connected, amber away, red offline; none for AI and free seats. */

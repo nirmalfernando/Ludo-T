@@ -48,4 +48,18 @@ class ConnectionPresentationTest {
         assertEquals("Offline", ConnectionPresentation.seatDotTip(Controller.DISCONNECTED));
         assertTrue(ConnectionPresentation.seatDotTip(Controller.AFK).startsWith("Away"));
     }
+
+    @Test @DisplayName("while reconnecting the badge says so, in amber (not the red of a closed connection)")
+    void reconnecting() {
+        assertEquals("Reconnecting...", ConnectionPresentation.statusText(Connection.RECONNECTING, 12));
+        assertEquals("#ffb300", ConnectionPresentation.dotColour(Connection.RECONNECTING, 12));
+        assertTrue(ConnectionPresentation.tooltip(Connection.RECONNECTING, -1).contains("trying to get you back"));
+    }
+
+    @Test @DisplayName("each connection state has its own hover text")
+    void tooltips() {
+        assertTrue(ConnectionPresentation.tooltip(Connection.CONNECTED, 7).contains("7 ms"));
+        assertTrue(ConnectionPresentation.tooltip(Connection.CONNECTED, -1).contains("measuring"));
+        assertTrue(ConnectionPresentation.tooltip(Connection.DISCONNECTED, -1).contains("closed"));
+    }
 }

@@ -22,7 +22,7 @@ public final class ClientState {
 
     /** Connection status shown in the status bar. */
     public enum Connection {
-        DISCONNECTED, CONNECTED
+        DISCONNECTED, RECONNECTING, CONNECTED
     }
 
     private static final int LOBBY_CHAT_LIMIT = 300;
@@ -36,6 +36,7 @@ public final class ClientState {
     private final Consumer<String> requestSnapshot;
     private final ClockSync clock = new ClockSync();
     private String myId = "";
+    private String token = "";
 
     /** @param requestSnapshot called with a room id when that room's pushes have a gap */
     public ClientState(Consumer<String> requestSnapshot) {
@@ -46,6 +47,7 @@ public final class ClientState {
     public void apply(ServerMessage message) {
         if (message instanceof ServerMessage.Welcome welcome) {
             myId = welcome.playerId();
+            token = welcome.token();
             nickname.set(welcome.nickname());
         } else if (message instanceof ServerMessage.Pong pong) {
             clock.update(pong.serverTimeMs(), System.currentTimeMillis());
@@ -99,6 +101,11 @@ public final class ClientState {
     /** Converts server-time deadlines into time left on this machine. */
     public ClockSync clock() {
         return clock;
+    }
+
+    /** The token from Welcome: what a new connection shows to get this person's identity back. */
+    public String token() {
+        return token;
     }
 
     public String myId() {

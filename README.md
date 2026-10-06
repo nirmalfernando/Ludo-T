@@ -83,7 +83,7 @@ There is no Maven or Gradle: shell scripts compile everything.
 ```
 
 In the client: **Connect** (nickname 3-16 letters, digits or `_`; the server address is under *Server settings*) → **Create game** → take a seat → **Start game** →
-**Roll** → click a glowing piece. A green dot with "Connected · 12 ms" (the round trip of a ping over the TCP connection) is shown in the lobby and the room; a dot beside each seated person shows whether they are connected, away or offline. **Sign Out** (lobby) returns to the first screen. The **Event Log** tab can be filtered (Dice, Moves, Captures, Specials, Turns). Sounds are synthesised in code (no audio files) and the speaker and sparkle buttons in the headers switch sound and motion effects (piece thud, capture shake, dice rattle, winner confetti) on or off; both choices are remembered. With no audio device the game simply stays silent. A second client can join the same room, as a spectator or by taking a seat.
+**Roll** → click a glowing piece. A green dot with "Connected · 12 ms" (the round trip of a ping over the TCP connection) is shown in the lobby and the room; a dot beside each seated person shows whether they are connected, away or offline. **Sign Out** (lobby) returns to the first screen. If the connection drops, the window stays where it is, the badge turns amber ("Reconnecting...") and the client retries for up to 40 s; on success the lobby or room is rebuilt and a held seat is restored. The **Event Log** tab can be filtered (Dice, Moves, Captures, Specials, Turns). Sounds are synthesised in code (no audio files) and the speaker and sparkle buttons in the headers switch sound and motion effects (piece thud, capture shake, dice rattle, winner confetti) on or off; both choices are remembered. With no audio device the game simply stays silent. A second client can join the same room, as a spectator or by taking a seat.
 
 To watch the game with no one playing: create a **Bot match** and join it from a second window.
 
@@ -111,6 +111,7 @@ password). Every key is optional.
 | `room.emptyCloseMs` | `60000` | How long an empty room stays before it closes |
 | `connection.outboundCapacity` | `1000` | Messages queued per client before it is dropped as too slow |
 | `connection.maxInFlight` | `256` | Unanswered requests per connection before reading pauses |
+| `connection.reconnectGraceMs` | `30000` | How long a dropped GUI client keeps its nickname, seat and identity so it can reconnect (0 = off); bots never use it |
 | `connection.readTimeoutMs` | `15000` | Silence after which a client is dropped (clients ping every 5 s) |
 | `chat.maxLength` / `historySize` / `rateLimitMessages` / `rateLimitWindowMs` | `200` / `30` / `5` / `5000` | Chat limits |
 | `log.queueIntervalMs` | `1000` | How often room queue depths are logged while non-zero |
@@ -218,7 +219,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 | `core` (264) | The original Phase 1 unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the Assignment 1 output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
-| `client` (67) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing, event-log categories, the synthesised sounds and their mapping, confetti physics |
+| `client` (80) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing, event-log categories, the synthesised sounds and their mapping, confetti physics, reconnect retry rules and stale-connection detection |
 | `bot` (14) | Bot strategies, request mix, statistics |
 | `integration` (3) | Four bots finish a game; two stress clients flood one room, all against a live server |
 
@@ -273,12 +274,12 @@ Ludo-T/
 
 ## Known limitations
 
-* A client that loses its connection cannot re-attach: its seat is handed to the AI, and it must join again.
+* Reconnecting works within the grace period only (default 30 s). While a player is away their seat is played by the AI; on return they get it back. After a server restart all tokens are gone, so everyone signs in again.
 * Finished games are stored but there is no "finished games" list or replay screen yet.
 * Identity is a nickname only (no accounts), and the link is plain TCP with Java serialization behind a class
   allow-list and a 1 MB frame cap. JSON over TLS would be the production choice.
 * One server instance owns the database (room numbers and writes assume that).
-* The GUI has no event-log filters or dark theme, and pieces slide straight to their new cell.
+* The GUI has no dark theme.
 
 ## Troubleshooting
 

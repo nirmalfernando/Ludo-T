@@ -23,6 +23,7 @@ public final class Pinger implements AutoCloseable {
     private final LongConsumer onRoundTrip;
     private final LongSupplier nanoClock;
     private volatile long sentAtNanos;
+    private volatile long lastPongNanos;
     private volatile ScheduledExecutorService timer;
 
     /** @param onRoundTrip receives the round trip in milliseconds each time a Pong answers a Ping */
@@ -34,10 +35,15 @@ public final class Pinger implements AutoCloseable {
         this.sender = sender;
         this.onRoundTrip = onRoundTrip;
         this.nanoClock = nanoClock;
+        this.lastPongNanos = nanoClock.getAsLong();
     }
 
-    /** Pings now and then every {@code intervalMs}; {@code onFailure} runs if a Ping cannot be sent (the link is dead). */
-    public void start(long intervalMs, Runnable onFailure) {
+    /**
+     * Pings now and then every {@code intervalMs}. {@code onFailure} runs if a Ping cannot be sent, or if no Pong has
+     * come back for {@code staleAfterMs} (a network that died without closing the socket).
+     */
+    public void start(long intervalMs, long staleAfterMs, Runnable onFailure) {
+        lastPongNanos = nanoClock.getAsLong();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(task -> {
             Thread thread = new Thread(task, "session-ping");
             thread.setDaemon(true);
@@ -45,12 +51,21 @@ public final class Pinger implements AutoCloseable {
         });
         executor.scheduleAtFixedRate(() -> {
             try {
-                ping();
+                tick(staleAfterMs);
             } catch (IOException e) {
                 onFailure.run();
             }
         }, 0, intervalMs, TimeUnit.MILLISECONDS);
         timer = executor;
+    }
+
+    // one timer beat: complain if the server has gone quiet, otherwise ping
+    void tick(long staleAfterMs) throws IOException {
+        long quietMs = (nanoClock.getAsLong() - lastPongNanos) / 1_000_000;
+        if (quietMs > staleAfterMs) {
+            throw new IOException("No answer from the server for " + quietMs / 1_000 + " s");
+        }
+        ping();
     }
 
     void ping() throws IOException {
@@ -60,6 +75,7 @@ public final class Pinger implements AutoCloseable {
 
     /** Call when a Pong arrives; only the first Pong after a Ping is timed. */
     public void pongReceived() {
+        lastPongNanos = nanoClock.getAsLong();
         long sent = sentAtNanos;
         if (sent != 0) {
             sentAtNanos = 0;

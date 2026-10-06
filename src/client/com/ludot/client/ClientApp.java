@@ -1,5 +1,6 @@
 package com.ludot.client;
 
+import com.ludot.client.net.Reconnector;
 import com.ludot.client.net.Session;
 import com.ludot.client.state.ClientState;
 import com.ludot.client.state.RoomModel;
@@ -40,6 +41,8 @@ import javafx.stage.Stage;
  */
 public final class ClientApp extends Application {
 
+    private static final long[] RECONNECT_BACKOFF_MS = {1_000, 2_000, 4_000, 8_000};
+    private static final long RECONNECT_GIVE_UP_MS = 40_000; // the server keeps a seat for 30 s by default
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5555;
 
@@ -48,6 +51,8 @@ public final class ClientApp extends Application {
     private final StackPane screenHolder = new StackPane();
     private final Toasts toasts = new Toasts(root);
     private Session session;
+    private Reconnector<Session> reconnector;
+    private boolean resuming; // re-entering a room after a reconnect: do not flash the lobby meanwhile
     private ConnectScreen.Request defaults = new ConnectScreen.Request(DEFAULT_HOST, DEFAULT_PORT, "");
     private String autoJoin;
     private com.ludot.protocol.Colour autoSeat;
@@ -69,16 +74,15 @@ public final class ClientApp extends Application {
 
         state.roomProperty().addListener((obs, old, now) -> {
             if (now != null) {
+                resuming = false;
                 showRoom(now);
-            } else if (session != null) {
+            } else if (session != null && !resuming) {
                 showLobby();
             }
         });
         state.connectionProperty().addListener((obs, old, now) -> {
             if (now == ClientState.Connection.DISCONNECTED && session != null) {
-                session = null;
-                state.leaveRoom();
-                showConnect("The connection to the server was lost");
+                connectionLost();
             }
         });
         showConnect(null);
@@ -112,6 +116,7 @@ public final class ClientApp extends Application {
 
     @Override
     public void stop() {
+        cancelReconnect();
         if (session != null) {
             session.close();
         }
@@ -138,13 +143,91 @@ public final class ClientApp extends Application {
 
     // back to the first screen; the session is cleared first so closing it is not reported as a lost connection
     private void signOut() {
+        cancelReconnect();
         Session old = session;
         session = null;
         state.leaveRoom();
         if (old != null) {
-            old.close();
+            old.signOut();
         }
         showConnect(null);
+    }
+
+    // ------------------------------------------------------------------ reconnecting
+
+    // the connection dropped by itself: stay on this screen, say so, and keep trying for a while
+    private void connectionLost() {
+        if (state.token().isEmpty()) {
+            backToStart("The connection to the server was lost");
+            return;
+        }
+        state.connectionProperty().set(ClientState.Connection.RECONNECTING);
+        toasts.info("Connection lost. Reconnecting...");
+        Reconnector<Session> keeper = new Reconnector<>(RECONNECT_BACKOFF_MS, RECONNECT_GIVE_UP_MS);
+        reconnector = keeper;
+        ConnectScreen.Request server = defaults;
+        String token = state.token();
+        Thread worker = new Thread(() -> {
+            Reconnector.Result<Session> result = keeper.run(() -> Session.reconnect(server.host(), server.port(), token, state));
+            Platform.runLater(() -> reconnectFinished(keeper, result));
+        }, "reconnector");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private void reconnectFinished(Reconnector<Session> keeper, Reconnector.Result<Session> result) {
+        if (keeper != reconnector) { // the person signed out meanwhile
+            if (result.succeeded()) {
+                result.value().close();
+            }
+            return;
+        }
+        reconnector = null;
+        if (!result.succeeded()) {
+            backToStart(result.failure());
+            return;
+        }
+        session = result.value();
+        toasts.info("Back online");
+        resumeScreen();
+    }
+
+    // every screen holds the dead session, so rebuild: the lobby subscribes again, a room is joined again (the server
+    // gives a dropped player their seat back and sends a fresh snapshot, which opens the room screen)
+    private void resumeScreen() {
+        RoomModel room = state.roomProperty().get();
+        if (room == null) {
+            showLobby();
+            return;
+        }
+        resuming = true;
+        state.leaveRoom();
+        session.request(new ClientMessage.JoinRoom(UUID.randomUUID(), room.roomId()), () -> { }, reason -> {
+            resuming = false;
+            toasts.error(reason);
+            showLobby();
+        });
+    }
+
+    // gives up on the connection and shows the first screen with a note
+    private void backToStart(String note) {
+        cancelReconnect();
+        Session old = session;
+        session = null;
+        resuming = false;
+        state.leaveRoom();
+        if (old != null) {
+            old.drop();
+        }
+        state.connectionProperty().set(ClientState.Connection.DISCONNECTED);
+        showConnect(note);
+    }
+
+    private void cancelReconnect() {
+        if (reconnector != null) {
+            reconnector.cancel();
+            reconnector = null;
+        }
     }
 
     // every button press anywhere in the window makes a small click

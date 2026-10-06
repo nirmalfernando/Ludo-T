@@ -187,4 +187,13 @@ class RoomModelTest {
         assertEquals(1, model.logLines().size());
         assertNull(model.logLines().get(0).type());
     }
+
+    @Test @DisplayName("ClientState keeps the token from Welcome, which is what a reconnect shows the server")
+    void tokenFromWelcome() {
+        ClientState state = new ClientState(id -> { });
+        assertEquals("", state.token());
+        state.apply(new ServerMessage.Welcome("player-1", "alice", "secret-token"));
+        assertEquals("secret-token", state.token());
+        assertEquals("player-1", state.myId());
+    }
 }
