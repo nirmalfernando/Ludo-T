@@ -3,6 +3,10 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
+# the JUnit launcher does not expand lib/* the way java -cp does, so list the jars out
+LIBS=$(printf '%s:' lib/*.jar)
+LIBS=${LIBS%:}
+
 # run_tests <name> <dependency modules...>
 run_tests() {
     local name=$1; shift
@@ -15,7 +19,7 @@ run_tests() {
         fx=(--module-path lib/javafx-sdk/lib --add-modules javafx.controls,javafx.graphics)
     fi
     java ${fx[@]+"${fx[@]}"} -jar lib/junit-platform-console-standalone-1.10.2.jar \
-        --class-path "$cp:lib/*" \
+        --class-path "$cp:$LIBS" \
         --scan-class-path "out/test/$name"
 }
 

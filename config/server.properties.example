@@ -1,8 +1,25 @@
-# Copy to config/server.properties (git-ignored) and fill in the Supabase session-pooler details.
+# Copy to config/server.properties (git-ignored) and fill in the details.
 server.port=5555
 
-# db.mode=postgres uses Supabase; db.mode=h2 uses the offline fallback.
+# --- Database -------------------------------------------------------------
+# Supabase (hosted PostgreSQL): use the SESSION POOLER details (Connect -> Session pooler -> JDBC).
 db.mode=postgres
 db.url=jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require
 db.user=postgres.<project-ref>
 db.password=<your-password>
+
+# Offline fallback (a separate H2 process started with ./run-h2.sh):
+#   db.mode=h2
+#   db.url=jdbc:h2:tcp://localhost:9092/./ludot;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+#   db.user=sa
+#   db.password=
+# Leave db.url out (or set db.mode=none) to run without storage: games then live only in memory.
+
+# --- Tuning (all optional; these are the defaults) --------------------------
+# connection.outboundCapacity=1000
+# connection.readTimeoutMs=15000
+# room.queueCapacity=10000
+# room.requestMemory=1024
+# speed.fastMs=150
+# speed.normalMs=700
+# speed.slowMs=1500

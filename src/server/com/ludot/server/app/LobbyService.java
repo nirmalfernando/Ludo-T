@@ -39,9 +39,11 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
     private final Map<String, Participant> subscribers = new LinkedHashMap<>();
     private final ChatChannel chat;
     private final RequestLog requests;
+    private final GameRepository repository;
     private long lobbySeq;
 
-    public LobbyService(SessionConfig config, LongSupplier clock) {
+    public LobbyService(SessionConfig config, LongSupplier clock, GameRepository repository) {
+        this.repository = repository;
         this.chat = new ChatChannel(config, clock);
         this.requests = new RequestLog(config.requestMemory());
     }
@@ -121,6 +123,7 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
         ChatMessage message = new ChatMessage(null, ++lobbySeq, senderId, nickname, null, null, text,
                 chat.now(), system);
         chat.remember(message);
+        repository.record(new ChatRecord(null, message.seq(), senderId, text, system, message.sentAt()));
         broadcast(message);
     }
 

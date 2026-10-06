@@ -50,6 +50,7 @@ final class RouterKit implements AutoCloseable {
     final SessionConfig config;
     final LobbyService lobby;
     final RoomRegistry registry;
+    final InMemoryGameRepository repository = new InMemoryGameRepository();
     final PlayerDirectory directory = new PlayerDirectory();
     final RequestRouter router;
 
@@ -59,9 +60,9 @@ final class RouterKit implements AutoCloseable {
 
     RouterKit(SessionConfig config) {
         this.config = config;
-        this.lobby = new LobbyService(config, clock::get);
-        this.registry = new RoomRegistry(config, scheduler, lobby, new InMemoryGameRepository(), clock::get);
-        this.router = new RequestRouter(directory, registry, lobby);
+        this.lobby = new LobbyService(config, clock::get, repository);
+        this.registry = new RoomRegistry(config, scheduler, lobby, repository, clock::get);
+        this.router = new RequestRouter(directory, registry, lobby, repository);
     }
 
     Client connect() {

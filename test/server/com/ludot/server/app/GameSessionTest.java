@@ -359,6 +359,34 @@ class GameSessionTest {
         Kit.sink(host).await(ServerMessage.RoomStateChanged.class, s -> s.speed() == Speed.SLOW, 5000);
     }
 
+    @Test @DisplayName("what happens in a room is recorded for storage: room, seats, status changes, steps and chat")
+    void roomActivityIsRecorded() {
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 1, alice);
+        claim(room, alice, Colour.RED);
+        Kit.call(room, alice, new ClientMessage.SendChat(id(), room.roomId(), "recorded?"));
+        start(room, alice);
+        playToTheEnd(room, alice, 60_000);
+        Kit.settle(room, alice);
+
+        assertEquals(1, kit.repository.rooms().size());
+        assertEquals(alice.id(), kit.repository.rooms().get(0).hostId());
+        assertEquals(1L, kit.repository.rooms().get(0).seed());
+        assertTrue(kit.repository.operations().stream().anyMatch(op -> op instanceof SeatsRecord seats
+                && seats.seats().size() == 4));
+        List<RoomStatusRecord> statuses = kit.repository.statuses();
+        assertEquals(RoomStatus.RUNNING, statuses.get(0).status());
+        assertEquals(RoomStatus.FINISHED, statuses.get(statuses.size() - 1).status());
+        assertNotNull(statuses.get(statuses.size() - 1).winner());
+        assertTrue(statuses.get(statuses.size() - 1).totalTurns() > 0);
+        assertTrue(kit.repository.chats().stream().anyMatch(c -> c.text().equals("recorded?") && !c.system()));
+        // steps are numbered 0..N-1 with no gap or repeat
+        List<Integer> turns = kit.repository.decisions().stream().map(DecisionRecord::turnNumber).toList();
+        for (int i = 0; i < turns.size(); i++) {
+            assertEquals(i, turns.get(i));
+        }
+    }
+
     @Test @DisplayName("an abandoned bot match shows as PAUSED in the lobby straight away")
     void abandonedBotMatchSummaryIsPaused() {
         Participant host = Kit.person("host");

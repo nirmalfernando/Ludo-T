@@ -1,5 +1,6 @@
 package com.ludot.server;
 
+import com.ludot.server.adapters.jdbc.DatabaseConfig;
 import com.ludot.server.app.SessionConfig;
 import java.io.IOException;
 import java.io.Reader;
@@ -9,26 +10,30 @@ import java.util.Properties;
 
 /** Everything configurable about a server process; defaults match the design document. */
 public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, long queueLogIntervalMs,
-                           SessionConfig session) {
+                           SessionConfig session, DatabaseConfig database) {
 
     public static ServerConfig defaults() {
-        return new ServerConfig(5555, 1_000, 15_000, 1_000, SessionConfig.defaults());
+        return new ServerConfig(5555, 1_000, 15_000, 1_000, SessionConfig.defaults(), DatabaseConfig.none());
     }
 
     public ServerConfig withPort(int newPort) {
-        return new ServerConfig(newPort, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session);
+        return new ServerConfig(newPort, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database);
     }
 
     public ServerConfig withOutboundCapacity(int capacity) {
-        return new ServerConfig(port, capacity, readTimeoutMs, queueLogIntervalMs, session);
+        return new ServerConfig(port, capacity, readTimeoutMs, queueLogIntervalMs, session, database);
     }
 
     public ServerConfig withReadTimeoutMs(int millis) {
-        return new ServerConfig(port, outboundCapacity, millis, queueLogIntervalMs, session);
+        return new ServerConfig(port, outboundCapacity, millis, queueLogIntervalMs, session, database);
     }
 
     public ServerConfig withSession(SessionConfig newSession) {
-        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, newSession);
+        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, newSession, database);
+    }
+
+    public ServerConfig withDatabase(DatabaseConfig newDatabase) {
+        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, newDatabase);
     }
 
     /** Reads a properties file; a missing file or key falls back to the default. */
@@ -56,7 +61,14 @@ public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, lo
         return new ServerConfig(intOf(props, "server.port", d.port()),
                 intOf(props, "connection.outboundCapacity", d.outboundCapacity()),
                 intOf(props, "connection.readTimeoutMs", d.readTimeoutMs()),
-                longOf(props, "log.queueIntervalMs", d.queueLogIntervalMs()), session);
+                longOf(props, "log.queueIntervalMs", d.queueLogIntervalMs()), session, database(props));
+    }
+
+    // the database is used when db.url is given, unless db.mode says "none"
+    private static DatabaseConfig database(Properties props) {
+        String url = props.getProperty("db.url", "").trim();
+        String mode = props.getProperty("db.mode", url.isEmpty() ? "none" : "postgres").trim();
+        return new DatabaseConfig(mode, url, props.getProperty("db.user", "").trim(), props.getProperty("db.password", ""));
     }
 
     private static int intOf(Properties props, String key, int fallback) {

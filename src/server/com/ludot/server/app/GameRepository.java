@@ -1,24 +1,14 @@
 package com.ludot.server.app;
 
 /**
- * Port for persistence. Implementations must not block the caller for long: the room thread calls
- * these inline, so real databases are reached through an asynchronous decorator.
+ * Port for persistence. Implementations must not block the caller for long: rooms call this inline on
+ * their own thread, so a real database is reached through an asynchronous decorator that only queues.
  */
 public interface GameRepository {
 
-    GameRepository NONE = new GameRepository() {
-        @Override
-        public void recordDecision(DecisionRecord decision) {
-            // persistence disabled
-        }
-
-        @Override
-        public void recordChat(ChatRecord chat) {
-            // persistence disabled
-        }
+    GameRepository NONE = operation -> {
+        // persistence disabled
     };
 
-    void recordDecision(DecisionRecord decision);
-
-    void recordChat(ChatRecord chat);
+    void record(WriteOp operation);
 }

@@ -1,6 +1,7 @@
 # Runs the JUnit tests of every module that has them (mirror of test.sh). Run compile.bat first.
 Set-Location $PSScriptRoot
 $status = 0
+$libs = (Get-ChildItem "lib\*.jar" | ForEach-Object { $_.FullName }) -join ";"
 function Run-Tests($name, $deps) {
     if (-not (Test-Path "out\test\$name")) { return }
     if (-not (Get-ChildItem "out\test\$name" -Recurse -Filter *.class | Select-Object -First 1)) { return }
@@ -9,7 +10,7 @@ function Run-Tests($name, $deps) {
     Write-Host "=== tests: $name"
     $fx = @()
     if ($name -eq "client") { $fx = @("--module-path", "lib\javafx-sdk\lib", "--add-modules", "javafx.controls,javafx.graphics") }
-    & java @fx -jar lib\junit-platform-console-standalone-1.10.2.jar --class-path "$cp;lib\*" --scan-class-path "out\test\$name"
+    & java @fx -jar lib\junit-platform-console-standalone-1.10.2.jar --class-path "$cp;$libs" --scan-class-path "out\test\$name"
     if ($LASTEXITCODE -ne 0) { $script:status = 1 }
 }
 Run-Tests "core"     @()

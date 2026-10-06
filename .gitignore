@@ -55,3 +55,6 @@ supabase/.branches/
 
 # Build output: runnable module JARs
 dist/
+
+# Offline H2 database files
+h2data/

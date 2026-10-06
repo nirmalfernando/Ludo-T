@@ -79,6 +79,15 @@ final class SeatTable {
         return (int) seats.values().stream().filter(seat -> seat.playerId() != null).count();
     }
 
+    /** The seats as persisted when a game starts. */
+    List<SeatsRecord.SeatRow> rows() {
+        List<SeatsRecord.SeatRow> rows = new ArrayList<>();
+        for (Seat seat : seats.values()) {
+            rows.add(new SeatsRecord.SeatRow(seat.colour(), seat.playerId(), seat.controller()));
+        }
+        return rows;
+    }
+
     List<SeatDto> dtos() {
         List<SeatDto> dtos = new ArrayList<>();
         for (Seat seat : seats.values()) {

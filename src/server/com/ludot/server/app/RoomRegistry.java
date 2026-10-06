@@ -37,6 +37,13 @@ public final class RoomRegistry {
 
     public RoomRegistry(SessionConfig config, ScheduledExecutorService scheduler, LobbyService lobby,
                         GameRepository repository, LongSupplier clock) {
+        this(config, scheduler, lobby, repository, clock, 0);
+    }
+
+    /** @param lastRoomNumber the highest room number already used (for example by games stored in the database) */
+    public RoomRegistry(SessionConfig config, ScheduledExecutorService scheduler, LobbyService lobby,
+                        GameRepository repository, LongSupplier clock, long lastRoomNumber) {
+        this.counter.set(lastRoomNumber);
         this.config = config;
         this.scheduler = scheduler;
         this.lobby = lobby;

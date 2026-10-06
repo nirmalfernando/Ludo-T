@@ -33,11 +33,17 @@ public final class GameServer implements AutoCloseable {
     private final Map<String, Integer> lastQueueDepth = new HashMap<>();
 
     public GameServer(ServerConfig config, GameRepository repository) {
+        this(config, repository, 0);
+    }
+
+    /** @param lastRoomNumber the highest room number already stored, so new rooms never reuse an id */
+    public GameServer(ServerConfig config, GameRepository repository, long lastRoomNumber) {
         this.config = config;
         scheduler.setRemoveOnCancelPolicy(true);
-        this.lobby = new LobbyService(config.session(), System::currentTimeMillis);
-        this.registry = new RoomRegistry(config.session(), scheduler, lobby, repository, System::currentTimeMillis);
-        RequestRouter router = new RequestRouter(new PlayerDirectory(), registry, lobby);
+        this.lobby = new LobbyService(config.session(), System::currentTimeMillis, repository);
+        this.registry = new RoomRegistry(config.session(), scheduler, lobby, repository, System::currentTimeMillis,
+                lastRoomNumber);
+        RequestRouter router = new RequestRouter(new PlayerDirectory(), registry, lobby, repository);
         this.acceptor = new ConnectionAcceptor(config.port(), router, config.outboundCapacity(), config.readTimeoutMs());
     }
 

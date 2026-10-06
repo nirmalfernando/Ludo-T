@@ -22,9 +22,12 @@ public final class RequestRouter {
     private final PlayerDirectory directory;
     private final RoomRegistry registry;
     private final LobbyService lobby;
+    private final GameRepository repository;
     private final Map<Class<?>, Handler> handlers = new HashMap<>();
 
-    public RequestRouter(PlayerDirectory directory, RoomRegistry registry, LobbyService lobby) {
+    public RequestRouter(PlayerDirectory directory, RoomRegistry registry, LobbyService lobby,
+                         GameRepository repository) {
+        this.repository = repository;
         this.directory = directory;
         this.registry = registry;
         this.lobby = lobby;
@@ -109,6 +112,7 @@ public final class RequestRouter {
         try {
             PlayerIdentity identity = directory.register(request.nickname());
             session.identify(identity);
+            repository.record(new PlayerRecord(identity.id(), identity.nickname()));
             session.sink().offer(new ServerMessage.Welcome(identity.id(), identity.nickname(), identity.token()));
             respond(session, Response.ok(request.requestId()));
         } catch (RequestRejected rejected) {

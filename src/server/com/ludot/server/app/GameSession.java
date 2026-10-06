@@ -171,6 +171,7 @@ public final class GameSession {
         submitInternal(() -> {
             members.put(creator.id(), new Member(creator.identity(), creator.sink()));
             hostId = creator.id();
+            repository.record(new RoomRecord(roomId, mode, variant, seed, creator.id()));
             creator.sink().offer(snapshot());
             broadcastMembers();
             if (mode == RoomMode.BOT_MATCH) {
@@ -358,6 +359,9 @@ public final class GameSession {
 
     private void closeIfStillEmpty() {
         if (members.isEmpty()) {
+            if (status != RoomStatus.FINISHED) {
+                repository.record(new RoomStatusRecord(roomId, RoomStatus.CLOSED, null, game.turnNumber()));
+            }
             status = RoomStatus.CLOSED;
             cancelFuture(pendingAi);
             summary = buildSummary();
@@ -441,6 +445,8 @@ public final class GameSession {
     private void beginGame() {
         seats.fillFreeSeatsWithAi();
         status = RoomStatus.RUNNING;
+        repository.record(new SeatsRecord(roomId, seats.rows()));
+        repository.record(new RoomStatusRecord(roomId, RoomStatus.RUNNING, null, 0));
         RoomGame.Step step = game.start();
         broadcastSeats();
         broadcastRoomState();
@@ -513,6 +519,7 @@ public final class GameSession {
         status = RoomStatus.FINISHED;
         cancelFuture(pendingAi);
         List<Colour> standings = game.standings();
+        repository.record(new RoomStatusRecord(roomId, RoomStatus.FINISHED, standings.get(0), game.turnNumber()));
         broadcastRoomState();
         broadcast(s -> new ServerMessage.GameOver(roomId, s, standings, roomId));
         postSystem(standings.get(0) + " wins!");
@@ -582,7 +589,7 @@ public final class GameSession {
     }
 
     private void record(int turnNumber, Colour colour, Integer roll, Integer optionIndex, DecisionSource source) {
-        repository.recordDecision(new DecisionRecord(roomId, turnNumber, colour, roll, optionIndex, source));
+        repository.record(new DecisionRecord(roomId, turnNumber, colour, roll, optionIndex, source));
     }
 
     // ------------------------------------------------------------------ host controls
@@ -649,7 +656,7 @@ public final class GameSession {
                 chat.now(), system));
         if (message != null) {
             chat.remember(message);
-            repository.recordChat(new ChatRecord(roomId, message.seq(), senderId, text, system, message.sentAt()));
+            repository.record(new ChatRecord(roomId, message.seq(), senderId, text, system, message.sentAt()));
         }
     }
 
