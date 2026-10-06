@@ -7,7 +7,9 @@ function Run-Tests($name, $deps) {
     $cp = "out\test\$name;out\main\$name"
     foreach ($d in $deps) { $cp += ";out\main\$d" }
     Write-Host "=== tests: $name"
-    & java -jar lib\junit-platform-console-standalone-1.10.2.jar --class-path "$cp;lib\*" --scan-class-path "out\test\$name"
+    $fx = @()
+    if ($name -eq "client") { $fx = @("--module-path", "lib\javafx-sdk\lib", "--add-modules", "javafx.controls,javafx.graphics") }
+    & java @fx -jar lib\junit-platform-console-standalone-1.10.2.jar --class-path "$cp;lib\*" --scan-class-path "out\test\$name"
     if ($LASTEXITCODE -ne 0) { $script:status = 1 }
 }
 Run-Tests "core"     @()

@@ -55,7 +55,7 @@ Write-Host "Building modules..."
 Build-Module "core"     "com.ludot.Main"              @()
 Build-Module "protocol" "-"                           @()
 Build-Module "server"   "com.ludot.server.ServerMain" @("core", "protocol")
-Build-Module "client"   "com.ludot.client.ClientApp"  @("protocol")
+Build-Module "client"   "com.ludot.client.ClientMain"  @("protocol")
 Build-Module "bot"      "com.ludot.bot.BotMain"       @("protocol")
 Build-TestModule "integration" @("core", "protocol", "server", "bot")
 Write-Host "Build complete."

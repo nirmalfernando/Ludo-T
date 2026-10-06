@@ -1,5 +1,6 @@
 package com.ludot.bot;
 
+import com.ludot.protocol.ServerLink;
 import com.ludot.protocol.Colour;
 import java.util.Random;
 

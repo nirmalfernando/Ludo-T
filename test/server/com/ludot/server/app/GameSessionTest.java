@@ -359,6 +359,15 @@ class GameSessionTest {
         Kit.sink(host).await(ServerMessage.RoomStateChanged.class, s -> s.speed() == Speed.SLOW, 5000);
     }
 
+    @Test @DisplayName("an abandoned bot match shows as PAUSED in the lobby straight away")
+    void abandonedBotMatchSummaryIsPaused() {
+        Participant host = Kit.person("host");
+        GameSession room = kit.roomWith(RoomMode.BOT_MATCH, 1, host);
+        Kit.call(room, host, new ClientMessage.LeaveRoom(id(), room.roomId()));
+        Kit.await(() -> room.summary().status() == RoomStatus.PAUSED, 5000);
+        assertEquals(RoomStatus.PAUSED, kit.lobby.changes.get(kit.lobby.changes.size() - 1).status());
+    }
+
     @Test @DisplayName("an empty bot match pauses itself and a room with nobody left closes")
     void emptyRoomPausesAndCloses() {
         kit.config = SessionConfig.defaults().withDelays(5, 5, 5).withEmptyRoomCloseMs(100);

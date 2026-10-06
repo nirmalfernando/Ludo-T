@@ -2,7 +2,6 @@ package com.ludot.integration;
 
 import com.ludot.bot.BotClient;
 import com.ludot.bot.BotStrategies;
-import com.ludot.bot.ServerLink;
 import com.ludot.bot.StressClient;
 import com.ludot.bot.StressOptions;
 import com.ludot.bot.StressReport;
@@ -11,6 +10,7 @@ import com.ludot.protocol.Colour;
 import com.ludot.protocol.ErrorCode;
 import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.ServerMessage.Response;
+import com.ludot.protocol.ServerLink;
 import com.ludot.protocol.Speed;
 import com.ludot.protocol.Variant;
 import com.ludot.server.GameServer;

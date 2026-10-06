@@ -10,7 +10,11 @@ run_tests() {
     local cp="out/test/$name:out/main/$name" dep
     for dep in "$@"; do cp="$cp:out/main/$dep"; done
     echo "=== tests: $name"
-    java -jar lib/junit-platform-console-standalone-1.10.2.jar \
+    local fx=()
+    if [ "$name" = "client" ]; then
+        fx=(--module-path lib/javafx-sdk/lib --add-modules javafx.controls,javafx.graphics)
+    fi
+    java ${fx[@]+"${fx[@]}"} -jar lib/junit-platform-console-standalone-1.10.2.jar \
         --class-path "$cp:lib/*" \
         --scan-class-path "out/test/$name"
 }

@@ -1,8 +1,5 @@
-package com.ludot.bot;
+package com.ludot.protocol;
 
-import com.ludot.protocol.ClientMessage;
-import com.ludot.protocol.MessageChannel;
-import com.ludot.protocol.ServerMessage;
 import com.ludot.protocol.ServerMessage.Response;
 import java.io.IOException;
 import java.net.Socket;
@@ -19,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * A headless connection to the server for the automatic clients. One reader thread decodes
+ * An asynchronous connection to the server, shared by every kind of client (GUI, bot, stress). One reader thread decodes
  * everything the server sends: Responses complete the future of the request they answer, other
  * messages go to listeners. Requests are asynchronous: {@link #request} returns at once with a
  * future that times out after five seconds, so many requests can be in flight on one connection.

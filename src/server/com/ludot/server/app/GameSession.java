@@ -321,12 +321,12 @@ public final class GameSession {
             broadcastRoomState();
         }
         postSystem(member.identity.nickname() + " left");
-        publishSummary();
         if (members.isEmpty()) {
             onEmpty();
         } else if (seatChanged) {
             scheduleNext();
         }
+        publishSummary(); // after onEmpty, which may pause the game, so the lobby shows the real status
     }
 
     // before the game a leaver's seat is freed; during it the seat stays theirs but the AI plays it

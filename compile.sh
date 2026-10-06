@@ -73,7 +73,7 @@ echo "Building modules..."
 build_module core     com.ludot.Main
 build_module protocol -
 build_module server   com.ludot.server.ServerMain core protocol
-build_module client   com.ludot.client.ClientApp  protocol
+build_module client   com.ludot.client.ClientMain protocol
 build_module bot      com.ludot.bot.BotMain       protocol
 build_test_module integration core protocol server bot
 echo "Build complete."

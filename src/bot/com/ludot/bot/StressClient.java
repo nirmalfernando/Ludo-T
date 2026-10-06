@@ -1,5 +1,6 @@
 package com.ludot.bot;
 
+import com.ludot.protocol.ServerLink;
 import com.ludot.protocol.ClientMessage;
 import com.ludot.protocol.ErrorCode;
 import com.ludot.protocol.Phase;
