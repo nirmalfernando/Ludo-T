@@ -23,10 +23,20 @@ public final class RequestRouter {
     private final RoomRegistry registry;
     private final LobbyService lobby;
     private final GameRepository repository;
+    private final GameHistory history;
+    private final ReplayService replays;
     private final Map<Class<?>, Handler> handlers = new HashMap<>();
 
     public RequestRouter(PlayerDirectory directory, RoomRegistry registry, LobbyService lobby,
                          GameRepository repository) {
+        this(directory, registry, lobby, repository, GameHistory.NONE, null);
+    }
+
+    /** @param replays null when replays are not offered (for instance in small tests) */
+    public RequestRouter(PlayerDirectory directory, RoomRegistry registry, LobbyService lobby,
+                         GameRepository repository, GameHistory history, ReplayService replays) {
+        this.history = history;
+        this.replays = replays;
         this.repository = repository;
         this.directory = directory;
         this.registry = registry;
@@ -38,12 +48,9 @@ public final class RequestRouter {
         handlers.put(ClientMessage.ListRooms.class, (s, m) -> listRooms(s, (ClientMessage.ListRooms) m));
         handlers.put(ClientMessage.CreateRoom.class, (s, m) -> createRoom(s, (ClientMessage.CreateRoom) m));
         handlers.put(ClientMessage.SendChat.class, (s, m) -> sendChat(s, (ClientMessage.SendChat) m));
-        handlers.put(ClientMessage.ListFinishedGames.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
-                ErrorCode.INTERNAL_ERROR, "Finished games are not available yet"));
-        handlers.put(ClientMessage.StartReplay.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
-                ErrorCode.INTERNAL_ERROR, "Replays are not available yet"));
-        handlers.put(ClientMessage.ControlReplay.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
-                ErrorCode.INTERNAL_ERROR, "Replays are not available yet"));
+        handlers.put(ClientMessage.ListFinishedGames.class, (s, m) -> listFinished(s, (ClientMessage.ListFinishedGames) m));
+        handlers.put(ClientMessage.StartReplay.class, (s, m) -> startReplay(s, (ClientMessage.StartReplay) m));
+        handlers.put(ClientMessage.ControlReplay.class, (s, m) -> controlReplay(s, (ClientMessage.ControlReplay) m));
     }
 
     /**
@@ -90,6 +97,9 @@ public final class RequestRouter {
             if (room != null) {
                 room.connectionLost(who.id(), session.sink());
             }
+        }
+        if (replays != null) {
+            replays.stop(who.id());
         }
         directory.detach(who.identity(), session); // frees the nickname now, or after the grace period if it may reconnect
     }
@@ -143,6 +153,31 @@ public final class RequestRouter {
     private void signOut(ClientSession session, ClientMessage.SignOut request) {
         directory.release(session.participant().identity());
         respond(session, Response.ok(request.requestId()));
+    }
+
+    // reads from storage on this connection's own reader thread, so a slow database never delays a room or the lobby
+    private void listFinished(ClientSession session, ClientMessage.ListFinishedGames request) {
+        try {
+            respond(session, Response.ok(request.requestId(), history.finished(request.page())));
+        } catch (HistoryException e) {
+            respond(session, Response.error(request.requestId(), ErrorCode.INTERNAL_ERROR, e.getMessage()));
+        }
+    }
+
+    private void startReplay(ClientSession session, ClientMessage.StartReplay request) {
+        if (replays == null) {
+            unsupported(session, request, ErrorCode.INTERNAL_ERROR, "Replays are not available");
+            return;
+        }
+        replays.start(session.participant(), request, response -> respond(session, response));
+    }
+
+    private void controlReplay(ClientSession session, ClientMessage.ControlReplay request) {
+        if (replays == null) {
+            unsupported(session, request, ErrorCode.INTERNAL_ERROR, "Replays are not available");
+            return;
+        }
+        respond(session, replays.control(session.participant(), request));
     }
 
     private void listRooms(ClientSession session, ClientMessage.ListRooms request) {
