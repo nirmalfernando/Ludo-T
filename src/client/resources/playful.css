@@ -408,3 +408,21 @@
     -fx-tab-max-height: 30px;
 }
 
+/* filter pills above the event log */
+.playful .filter-chip {
+    -fx-background-color: #eaeefc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 14;
+    -fx-padding: 2 12 2 12;
+    -fx-font-size: 12px;
+    -fx-text-fill: #5a639a;
+    -fx-cursor: hand;
+}
+.playful .filter-chip:hover {
+    -fx-background-color: #dde3fa;
+}
+.playful .filter-chip:selected {
+    -fx-background-color: #3d9bff;
+    -fx-text-fill: white;
+}
+

@@ -165,4 +165,26 @@ class RoomModelTest {
         state.apply(new ServerMessage.ChatMessage(null, 2, "a", "alice", null, null, "hi lobby", 0L, false));
         assertEquals("hi lobby", state.lobbyChat().get(0).text());
     }
+
+    @Test @DisplayName("typed log lines: snapshot history has no type, live events keep theirs, and they mirror the plain log")
+    void typedLogLines() {
+        RoomModel model = new RoomModel(ROOM, ME, () -> fail("no gap expected"));
+        model.apply(snapshot(10));
+        model.apply(update(11, 1, "Red rolled 4."));
+        assertEquals(2, model.logLines().size());
+        assertNull(model.logLines().get(0).type());
+        assertEquals("earlier line", model.logLines().get(0).text());
+        assertEquals(EventType.DICE_ROLL, model.logLines().get(1).type());
+        assertEquals(model.log(), model.logLines().stream().map(line -> line.text()).toList());
+    }
+
+    @Test @DisplayName("a fresh snapshot replaces the typed lines too, so a resync cannot leave stale lines behind")
+    void snapshotResetsTypedLines() {
+        RoomModel model = new RoomModel(ROOM, ME, () -> fail("no gap expected"));
+        model.apply(snapshot(10));
+        model.apply(update(11, 1, "Red rolled 4."));
+        model.apply(snapshot(20));
+        assertEquals(1, model.logLines().size());
+        assertNull(model.logLines().get(0).type());
+    }
 }

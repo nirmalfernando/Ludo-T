@@ -55,6 +55,7 @@ public final class RoomModel {
     private final ObservableList<SeatDto> seats = FXCollections.observableArrayList();
     private final ObservableList<MemberDto> members = FXCollections.observableArrayList();
     private final ObservableList<String> log = FXCollections.observableArrayList();
+    private final ObservableList<LogLine> logLines = FXCollections.observableArrayList();
     private final ObservableList<ChatMessage> chat = FXCollections.observableArrayList();
 
     /**
@@ -95,6 +96,7 @@ public final class RoomModel {
         seats.setAll(s.seats());
         members.setAll(s.members());
         log.setAll(s.recentLog());
+        logLines.setAll(s.recentLog().stream().map(text -> new LogLine(null, text)).toList());
         chat.setAll(s.recentChat());
         seq.set(s.seq());
         seeded.set(true);
@@ -132,8 +134,14 @@ public final class RoomModel {
         turn.set(update.turn());
         stateHash.set(update.stateHash());
         latestEvents.set(update.events());
-        update.events().stream().map(EventDto::text).filter(t -> !t.isBlank()).forEach(log::add);
+        for (EventDto event : update.events()) {
+            if (!event.text().isBlank()) {
+                log.add(event.text());
+                logLines.add(new LogLine(event.type(), event.text()));
+            }
+        }
         trim(log, LOG_LIMIT);
+        trim(logLines, LOG_LIMIT);
         ServerMessage.YourTurn offered = myTurn.get();
         if (offered != null && offered.turnNumber() < update.turn().turnNumber()) {
             myTurn.set(null); // the game has moved past the offer
@@ -210,6 +218,11 @@ public final class RoomModel {
 
     public ObservableList<MemberDto> members() {
         return members;
+    }
+
+    /** The same lines as {@link #log()}, with each live event's type so the event log can be filtered. */
+    public ObservableList<LogLine> logLines() {
+        return logLines;
     }
 
     public ObservableList<String> log() {
