@@ -33,7 +33,7 @@ intentions ("roll", "choose move 2") and draw what the server reports.
 
 | Module | Source | What it is | May use |
 |---|---|---|---|
-| `core` | `src/core` | The Phase 1 game: board, pieces, rules, strategies, events (Clean Architecture entities and use cases) | nothing |
+| `core` | `src/core` | The game itself: board, pieces, rules, strategies, events (Clean Architecture entities and use cases) | nothing |
 | `protocol` | `src/protocol` | Messages, DTOs, error codes, the framed transport and the shared client connection | nothing |
 | `server` | `src/server` | Rooms, lobby, connections, persistence, `ServerMain`, `DbTool` | `core`, `protocol` |
 | `client` | `src/client` | The JavaFX GUI | `protocol` (and JavaFX) |
@@ -250,7 +250,7 @@ exercised by hand. Thresholds live in `checkstyle.xml`, `complexity.xml`, `pmd-r
 ```
 Ludo-T/
 ├── src/
-│   ├── core/com/ludot/        # Phase 1 game: model, rules, command, strategy, engine, events, effects, factory, dice
+│   ├── core/com/ludot/        # the game: model, rules, command, strategy, engine, events, effects, factory, dice
 │   ├── protocol/com/ludot/protocol/   # messages, DTOs, MessageChannel, ServerLink, StateHash
 │   ├── server/com/ludot/server/
 │   │   ├── app/               # use cases and ports: GameSession (room facade) over RoomActor, Membership, Seating,
