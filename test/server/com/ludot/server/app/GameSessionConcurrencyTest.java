@@ -301,6 +301,42 @@ class GameSessionConcurrencyTest {
         assertTrue(Kit.call(room, alice, new ClientMessage.SendChat(id(), room.roomId(), "later")).isOk());
     }
 
+    // CT-02
+    @RepeatedTest(20) @DisplayName("a timeout and the player's own roll racing for the same turn: exactly one decision is recorded for it")
+    void timeoutVersusRoll() throws Exception {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(3_600_000);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        Kit.call(room, alice, new ClientMessage.ClaimSeat(id(), room.roomId(), Colour.RED));
+        Kit.call(room, alice, new ClientMessage.StartGame(id(), room.roomId()));
+        ServerMessage.YourTurn turn = Kit.sink(alice).await(ServerMessage.YourTurn.class,
+                t -> t.phase() == com.ludot.protocol.Phase.AWAITING_ROLL, 10_000);
+
+        ClientMessage.Roll roll = new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber());
+        List<Callable<Object>> racers = new ArrayList<>();
+        racers.add(() -> {
+            room.submit(alice, roll);
+            return null;
+        });
+        racers.add(() -> {
+            room.injectTimeoutForTest(turn.turnNumber());
+            return null;
+        });
+        fireTogether(racers);
+        Kit.settle(room, alice);
+
+        List<com.ludot.server.app.DecisionRecord> atThatTurn = kit.repository.decisions().stream()
+                .filter(d -> d.turnNumber() == turn.turnNumber()).toList();
+        assertEquals(1, atThatTurn.size(), "exactly one decision for the turn: " + atThatTurn);
+        Response answer = Kit.sink(alice).responseTo(roll.requestId());
+        if (atThatTurn.get(0).source() == com.ludot.server.app.DecisionSource.HUMAN) {
+            assertTrue(answer.isOk());
+        } else {
+            assertEquals(com.ludot.server.app.DecisionSource.TIMEOUT, atThatTurn.get(0).source());
+            assertFalse(answer.isOk(), "the late roll must be refused, not applied a second time");
+        }
+    }
+
     // CT-03
     @RepeatedTest(20) @DisplayName("pausing mid-flood: no game update is ever applied after the pause notice")
     void pauseVersusAi() {

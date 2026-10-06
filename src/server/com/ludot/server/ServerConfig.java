@@ -57,7 +57,9 @@ public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, lo
                 longOf(props, "chat.rateLimitWindowMs", s.chatRateLimitWindowMs()),
                 longOf(props, "room.emptyCloseMs", s.emptyRoomCloseMs()),
                 s.recentLogSize(),
-                intOf(props, "room.requestMemory", s.requestMemory()));
+                intOf(props, "room.requestMemory", s.requestMemory()),
+                longOf(props, "turn.timeoutSeconds", s.turnTimeoutMs() / 1_000) * 1_000,
+                intOf(props, "afk.timeoutsBeforeAfk", s.afkAfterTimeouts()));
         return new ServerConfig(intOf(props, "server.port", d.port()),
                 intOf(props, "connection.outboundCapacity", d.outboundCapacity()),
                 intOf(props, "connection.readTimeoutMs", d.readTimeoutMs()),

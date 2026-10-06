@@ -16,6 +16,8 @@ db.password=<your-password>
 # Leave db.url out (or set db.mode=none) to run without storage: games then live only in memory.
 
 # --- Tuning (all optional; these are the defaults) --------------------------
+# turn.timeoutSeconds=30        seconds a person has to roll or move before the AI does it (0 = no timer)
+# afk.timeoutsBeforeAfk=2       consecutive missed turns before the seat is played by the AI until taken back
 # connection.outboundCapacity=1000
 # connection.readTimeoutMs=15000
 # room.queueCapacity=10000

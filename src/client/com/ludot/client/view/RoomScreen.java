@@ -42,6 +42,7 @@ public final class RoomScreen extends BorderPane {
     private final Session session;
     private final Toasts toasts;
     private final Runnable onLeft;
+    private final com.ludot.client.state.ClockSync clock;
 
     private final BoardView board = new BoardView();
     private final DicePane dice = new DicePane(this::roll);
@@ -54,7 +55,9 @@ public final class RoomScreen extends BorderPane {
     private final VBox gameOver = new VBox(10);
     private boolean updatingSpeed;
 
-    public RoomScreen(RoomModel model, Session session, Toasts toasts, Runnable onLeft, String myId) {
+    public RoomScreen(RoomModel model, Session session, Toasts toasts, Runnable onLeft, String myId,
+                      com.ludot.client.state.ClockSync clock) {
+        this.clock = clock;
         this.model = model;
         this.session = session;
         this.toasts = toasts;
@@ -63,7 +66,7 @@ public final class RoomScreen extends BorderPane {
         setStyle(Theme.PANEL_STYLE);
 
         setTop(buildTopBar());
-        SeatPanel seats = new SeatPanel(model, this::claim, this::release);
+        SeatPanel seats = new SeatPanel(model, this::claim, this::release, this::reclaim);
         VBox left = new VBox(12, seats, dice);
         left.setPrefWidth(250);
         left.setPadding(new Insets(0, 10, 0, 0));
@@ -75,6 +78,7 @@ public final class RoomScreen extends BorderPane {
         setBottom(statusBar);
 
         wire();
+        startCountdown();
         refreshAll();
         if (model.boardProperty().get() != null) {
             board.update(model.boardProperty().get(), false);
@@ -221,6 +225,30 @@ public final class RoomScreen extends BorderPane {
         return "Waiting for " + Theme.display(turn.colour()) + " (" + controller + ")";
     }
 
+    // everyone sees how long the player whose turn it is has left, in server time corrected for this machine's clock
+    private void startCountdown() {
+        javafx.animation.Timeline ticker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(
+                javafx.util.Duration.millis(250), event -> updateCountdown()));
+        ticker.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        ticker.play();
+        sceneProperty().addListener((obs, old, now) -> {
+            if (now == null) {
+                ticker.stop(); // the screen was replaced
+            }
+        });
+    }
+
+    private void updateCountdown() {
+        var turn = model.turnProperty().get();
+        if (turn == null || turn.deadlineEpochMs() == null || model.statusProperty().get() != RoomStatus.RUNNING) {
+            dice.setCountdown("", false);
+            return;
+        }
+        long remaining = clock.remainingMs(turn.deadlineEpochMs(), System.currentTimeMillis());
+        dice.setCountdown("⏱ " + Theme.display(turn.colour()) + ": " + com.ludot.client.state.ClockSync.format(remaining),
+                remaining <= 5_000);
+    }
+
     private void refreshStatusBar() {
         var turn = model.turnProperty().get();
         statusBar.setText("seq " + model.seqProperty().get() + "   ·   state #" + String.format("%08X", model.stateHashProperty().get())
@@ -274,6 +302,10 @@ public final class RoomScreen extends BorderPane {
     private void choose(ServerMessage.YourTurn offer, int optionIndex) {
         board.clearMoves();
         send(new ClientMessage.ChooseMove(UUID.randomUUID(), model.roomId(), offer.turnNumber(), optionIndex));
+    }
+
+    private void reclaim() {
+        send(new ClientMessage.ReclaimSeat(UUID.randomUUID(), model.roomId()));
     }
 
     private void claim(Colour colour) {

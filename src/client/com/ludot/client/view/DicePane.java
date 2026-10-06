@@ -17,6 +17,7 @@ public final class DicePane extends VBox {
 
     private final Label banner = new Label("Waiting for the game to start");
     private final Label die = new Label("⚀");
+    private final Label countdown = new Label();
     private final Button roll = new Button("Roll the dice");
     private final Random random = new Random();
     private Timeline tumble;
@@ -34,11 +35,18 @@ public final class DicePane extends VBox {
             roll.setDisable(true);
             onRoll.run();
         });
-        getChildren().addAll(banner, die, roll);
+        countdown.setStyle("-fx-font-size: 13; -fx-text-fill: #546e7a;");
+        getChildren().addAll(banner, countdown, die, roll);
     }
 
     public void setBanner(String text) {
         banner.setText(text);
+    }
+
+    /** Shows the time left for whoever must act; an empty text hides it, urgent turns it red. */
+    public void setCountdown(String text, boolean urgent) {
+        countdown.setText(text);
+        countdown.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: " + (urgent ? "#c62828" : "#546e7a") + ";");
     }
 
     public void setRollEnabled(boolean enabled) {

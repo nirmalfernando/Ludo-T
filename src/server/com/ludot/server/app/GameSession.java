@@ -92,6 +92,7 @@ public final class GameSession {
     private final Variant variant;
     private final long seed;
     private final SessionConfig config;
+    private final LongSupplier clock;
     private final ScheduledExecutorService scheduler;
     private final LobbyPublisher lobby;
     private final GameRepository repository;
@@ -112,7 +113,10 @@ public final class GameSession {
     private long seq;
     private boolean autoPaused;
     private ScheduledFuture<?> pendingAi;
+    private ScheduledFuture<?> pendingDeadline;
     private ScheduledFuture<?> closeTimer;
+    private Long currentDeadline;                       // epoch ms by which a person must act, or null
+    private final Map<Colour, Integer> missedTurns = new java.util.EnumMap<>(Colour.class);
 
     private volatile RoomSummary summary;
 
@@ -124,6 +128,7 @@ public final class GameSession {
         this.variant = variant;
         this.seed = seed != null ? seed : ThreadLocalRandom.current().nextLong();
         this.config = config;
+        this.clock = clock;
         this.scheduler = scheduler;
         this.lobby = lobby;
         this.repository = repository;
@@ -194,6 +199,7 @@ public final class GameSession {
     /** Stops the room: no more commands are accepted and timers are cancelled. */
     public void shutdown() {
         cancelFuture(pendingAi);
+        cancelFuture(pendingDeadline);
         cancelFuture(closeTimer);
         executor.shutdownNow();
     }
@@ -324,8 +330,9 @@ public final class GameSession {
         postSystem(member.identity.nickname() + " left");
         if (members.isEmpty()) {
             onEmpty();
-        } else if (seatChanged) {
-            scheduleNext();
+        } else if (seatChanged && game.isStarted() && seats.seat(game.currentColour()).controller() != Controller.HUMAN
+                && (pendingAi == null || pendingAi.isDone())) {
+            scheduleNext(); // the leaver's turn was pending: the AI takes it over
         }
         publishSummary(); // after onEmpty, which may pause the game, so the lobby shows the real status
     }
@@ -420,9 +427,11 @@ public final class GameSession {
             throw reject(ErrorCode.NOT_A_PLAYER, "Your seat is not waiting to be reclaimed");
         }
         seats.setController(seat.colour(), Controller.HUMAN);
+        missedTurns.remove(seat.colour());
         return Reply.ok(request).then(() -> {
             broadcastSeats();
             scheduleNext();
+            broadcastTurnRefresh();
         });
     }
 
@@ -457,6 +466,7 @@ public final class GameSession {
     private Reply roll(Participant from, ClientMessage.Roll request) {
         requireTurn(from, request.turnNumber(), Phase.AWAITING_ROLL);
         Colour colour = game.currentColour();
+        missedTurns.remove(colour);
         RoomGame.Step step = game.roll(colour);
         record(request.turnNumber(), colour, step.rolled(), null, DecisionSource.HUMAN);
         return Reply.ok(request, step.rolled()).then(() -> afterStep(step));
@@ -469,6 +479,7 @@ public final class GameSession {
             throw reject(ErrorCode.INVALID_MOVE, "No such move: " + index);
         }
         Colour colour = game.currentColour();
+        missedTurns.remove(colour);
         Integer rolled = game.lastRoll();
         RoomGame.Step step = game.applyMove(colour, index);
         record(request.turnNumber(), colour, rolled, index, DecisionSource.HUMAN);
@@ -505,19 +516,22 @@ public final class GameSession {
     }
 
     private void afterStep(RoomGame.Step step) {
-        broadcast(s -> new ServerMessage.StateUpdate(roomId, s, game.turnInfo(null), step.events(),
+        armTurn(); // decides the next deadline first, so the update can carry it to every client
+        broadcast(s -> new ServerMessage.StateUpdate(roomId, s, game.turnInfo(currentDeadline), step.events(),
                 game.board(), game.stateHash()));
         remember(step);
         if (game.isFinished()) {
             finishGame();
         } else {
-            scheduleNext();
+            announceTurn();
         }
     }
 
     private void finishGame() {
         status = RoomStatus.FINISHED;
         cancelFuture(pendingAi);
+        cancelFuture(pendingDeadline);
+        currentDeadline = null;
         List<Colour> standings = game.standings();
         repository.record(new RoomStatusRecord(roomId, RoomStatus.FINISHED, standings.get(0), game.turnNumber()));
         broadcastRoomState();
@@ -535,19 +549,84 @@ public final class GameSession {
 
     // ------------------------------------------------------------------ AI and pacing
 
-    /** Decides what happens next: tell a human it is their turn, or schedule the AI to act after the pacing delay. */
+    /** Arms the timers for whoever acts next and tells a person it is their turn. */
     private void scheduleNext() {
+        armTurn();
+        announceTurn();
+    }
+
+    /**
+     * Decides what happens next and sets the clocks. A person gets a deadline; a seat played by the AI gets an
+     * AI action after the pacing delay. Nothing is sent here: the caller announces the turn once it has
+     * broadcast the update that carries the deadline.
+     */
+    private void armTurn() {
         cancelFuture(pendingAi);
+        cancelFuture(pendingDeadline);
+        currentDeadline = null;
+        if (status != RoomStatus.RUNNING || game.isFinished()) {
+            return;
+        }
+        SeatTable.Seat seat = seats.seat(game.currentColour());
+        int expectedTurn = game.turnNumber();
+        if (seat.controller() == Controller.HUMAN && !nothingToDecide()) {
+            if (config.turnTimeoutMs() > 0) {
+                currentDeadline = clock.getAsLong() + config.turnTimeoutMs();
+                pendingDeadline = schedule(() -> submitInternal(() -> onTurnTimeout(expectedTurn)),
+                        config.turnTimeoutMs());
+            }
+            return;
+        }
+        pendingAi = schedule(() -> submitInternal(() -> aiAct(expectedTurn)), config.delayMs(speed));
+    }
+
+    private void announceTurn() {
         if (status != RoomStatus.RUNNING || game.isFinished()) {
             return;
         }
         SeatTable.Seat seat = seats.seat(game.currentColour());
         if (seat.controller() == Controller.HUMAN && !nothingToDecide()) {
             notifyHumanTurn(seat);
+        }
+    }
+
+    /**
+     * The deadline passed. Like every other action this is a queued command carrying the turn it was set
+     * for, so if the person acted first (or the game moved on for any reason) it finds a different turn and
+     * does nothing. Otherwise the seat's own strategy completes the phase, and a second miss in a row hands the
+     * seat to the AI until the person takes it back.
+     */
+    private void onTurnTimeout(int expectedTurn) {
+        if (status != RoomStatus.RUNNING || game.isFinished() || game.turnNumber() != expectedTurn) {
             return;
         }
-        int expectedTurn = game.turnNumber();
-        pendingAi = schedule(() -> submitInternal(() -> aiAct(expectedTurn)), config.delayMs(speed));
+        Colour colour = game.currentColour();
+        SeatTable.Seat seat = seats.seat(colour);
+        if (seat.controller() != Controller.HUMAN) {
+            return;
+        }
+        int missed = missedTurns.merge(colour, 1, Integer::sum);
+        RoomGame.Step step;
+        if (game.phase() == Phase.AWAITING_ROLL) {
+            step = game.roll(colour);
+            record(expectedTurn, colour, step.rolled(), null, DecisionSource.TIMEOUT);
+        } else {
+            int choice = game.strategyChoice();
+            Integer rolled = game.lastRoll();
+            step = game.applyMove(colour, choice);
+            record(expectedTurn, colour, rolled, choice, DecisionSource.TIMEOUT);
+        }
+        if (missed >= config.afkAfterTimeouts()) {
+            seats.setController(colour, Controller.AFK);
+            broadcastSeats();
+            postSystem(seat.nickname() + " is away: the AI plays " + colour + " until they take it back");
+        }
+        afterStep(step);
+    }
+
+    /** Test hook: behaves exactly as if the deadline for that turn had just passed. */
+    void injectTimeoutForTest(int turn) {
+        submitInternal(() -> onTurnTimeout(turn));
     }
 
     private boolean nothingToDecide() {
@@ -560,7 +639,7 @@ public final class GameSession {
             return;
         }
         deliver(member, new ServerMessage.YourTurn(roomId, game.turnNumber(), game.phase(), game.lastRoll(),
-                game.options(), null));
+                game.options(), currentDeadline));
     }
 
     // runs on the room thread; a stale or paused action does nothing, a started one always completes
@@ -599,6 +678,8 @@ public final class GameSession {
         requireRunning();
         status = RoomStatus.PAUSED;
         cancelFuture(pendingAi);
+        cancelFuture(pendingDeadline);
+        currentDeadline = null;
         return Reply.ok(request).then(() -> {
             broadcastRoomState();
             postSystem("The host paused the game");
@@ -618,6 +699,7 @@ public final class GameSession {
             broadcastRoomState();
             postSystem("The host resumed the game");
             scheduleNext();
+            broadcastTurnRefresh();
             publishSummary();
         });
     }
@@ -627,7 +709,9 @@ public final class GameSession {
         speed = request.speed();
         return Reply.ok(request).then(() -> {
             broadcastRoomState();
-            scheduleNext();
+            if (pendingAi != null && !pendingAi.isDone()) {
+                armTurn(); // re-times the AI's next action at the new speed; a person's deadline is untouched
+            }
         });
     }
 
@@ -696,6 +780,14 @@ public final class GameSession {
         }
     }
 
+    // lets every client pick up a new deadline without any move having happened (after a resume or a reclaim)
+    private void broadcastTurnRefresh() {
+        if (currentDeadline != null) {
+            broadcast(s -> new ServerMessage.StateUpdate(roomId, s, game.turnInfo(currentDeadline), List.of(),
+                    game.board(), game.stateHash()));
+        }
+    }
+
     private void broadcastSeats() {
         broadcast(s -> new ServerMessage.SeatsUpdated(roomId, s, seats.dtos()));
     }
@@ -711,7 +803,7 @@ public final class GameSession {
 
     private ServerMessage.RoomSnapshot snapshot() {
         return new ServerMessage.RoomSnapshot(roomId, seq, mode, variant, seed, status, hostId,
-                status == RoomStatus.PAUSED, speed, seats.dtos(), game.board(), game.turnInfo(null),
+                status == RoomStatus.PAUSED, speed, seats.dtos(), game.board(), game.turnInfo(currentDeadline),
                 memberDtos(), List.copyOf(log), chat.recent(), game.stateHash());
     }
 

@@ -31,6 +31,7 @@ public final class ClientState {
     private final ObservableList<ChatMessage> lobbyChat = FXCollections.observableArrayList();
     private final ObjectProperty<RoomModel> room = new SimpleObjectProperty<>();
     private final Consumer<String> requestSnapshot;
+    private final ClockSync clock = new ClockSync();
     private String myId = "";
 
     /** @param requestSnapshot called with a room id when that room's pushes have a gap */
@@ -43,6 +44,8 @@ public final class ClientState {
         if (message instanceof ServerMessage.Welcome welcome) {
             myId = welcome.playerId();
             nickname.set(welcome.nickname());
+        } else if (message instanceof ServerMessage.Pong pong) {
+            clock.update(pong.serverTimeMs(), System.currentTimeMillis());
         } else if (message instanceof ServerMessage.LobbyUpdate update) {
             rooms.setAll(update.rooms());
         } else if (message instanceof ServerMessage.ChatMessage chat && chat.roomId() == null) {
@@ -88,6 +91,11 @@ public final class ClientState {
     public void showLobby(java.util.List<RoomSummary> list, java.util.List<ChatMessage> recentChat) {
         rooms.setAll(list);
         lobbyChat.setAll(recentChat);
+    }
+
+    /** Converts server-time deadlines into time left on this machine. */
+    public ClockSync clock() {
+        return clock;
     }
 
     public String myId() {

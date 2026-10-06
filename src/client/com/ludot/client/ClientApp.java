@@ -124,7 +124,7 @@ public final class ClientApp extends Application {
     }
 
     private void showRoom(RoomModel room) {
-        show(new RoomScreen(room, session, toasts, this::leftRoom, state.myId()));
+        show(new RoomScreen(room, session, toasts, this::leftRoom, state.myId(), state.clock()));
     }
 
     private void leftRoom() {

@@ -22,12 +22,14 @@ public final class SeatPanel extends VBox {
     private final RoomModel model;
     private final Consumer<Colour> onClaim;
     private final Runnable onRelease;
+    private final Runnable onReclaim;
 
-    public SeatPanel(RoomModel model, Consumer<Colour> onClaim, Runnable onRelease) {
+    public SeatPanel(RoomModel model, Consumer<Colour> onClaim, Runnable onRelease, Runnable onReclaim) {
         super(8);
         this.model = model;
         this.onClaim = onClaim;
         this.onRelease = onRelease;
+        this.onReclaim = onReclaim;
         model.seats().addListener((javafx.collections.ListChangeListener<SeatDto>) change -> rebuild());
         model.turnProperty().addListener((obs, old, now) -> rebuild());
         model.statusProperty().addListener((obs, old, now) -> rebuild());
@@ -69,6 +71,14 @@ public final class SeatPanel extends VBox {
             leave.setOnAction(event -> onRelease.run());
             row.getChildren().add(leave);
         }
+        boolean away = mine && (seat.controller() == Controller.AFK || seat.controller() == Controller.DISCONNECTED)
+                && model.statusProperty().get() == RoomStatus.RUNNING;
+        if (away) {
+            Button takeBack = new Button("Take back");
+            takeBack.setStyle("-fx-base: #ffb300;");
+            takeBack.setOnAction(event -> onReclaim.run());
+            text.getChildren().add(takeBack); // under the labels: the card is too narrow for it beside them
+        }
         row.setStyle(Theme.CARD_STYLE + (active ? "-fx-border-color: #ffb300; -fx-border-width: 2;" : ""));
         return row;
     }
@@ -78,8 +88,8 @@ public final class SeatPanel extends VBox {
             case FREE -> "free";
             case AI -> "AI player";
             case HUMAN -> seat.nickname();
-            case AFK -> seat.nickname() + " (away, AI plays)";
-            case DISCONNECTED -> seat.nickname() + " (disconnected, AI plays)";
+            case AFK -> seat.nickname() + " (away)";
+            case DISCONNECTED -> seat.nickname() + " (offline)";
         };
     }
 }

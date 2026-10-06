@@ -482,6 +482,179 @@ class GameSessionTest {
                 .anyMatch(m -> m.members().size() == 1 && m.members().get(0).playerId().equals(host.id())));
     }
 
+    // ---------------------------------------------------------------- turn timers and AFK
+
+    private static final long NEVER_MS = 3_600_000;
+
+    private ServerMessage.YourTurn awaitTurnAfter(Participant who, int afterTurn) {
+        return Kit.sink(who).await(ServerMessage.YourTurn.class, t -> t.turnNumber() > afterTurn, 20_000);
+    }
+
+    private static long count(GameSession room, Kit kit, DecisionSource source) {
+        return kit.repository.decisions().stream().filter(d -> d.source() == source).count();
+    }
+
+    // alice holds RED in a started game; returns her first turn
+    private ServerMessage.YourTurn startWithAlice(GameSession room, Participant alice) {
+        claim(room, alice, Colour.RED);
+        start(room, alice);
+        return awaitTurnAfter(alice, -1);
+    }
+
+    @Test @DisplayName("a person's turn carries a deadline, told to the player and to every spectator")
+    void deadlineIsAnnounced() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(NEVER_MS);
+        Participant alice = Kit.person("alice");
+        Participant bob = Kit.person("bob");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        Kit.call(room, bob, Kit.join(room));
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+
+        assertEquals(1_000_000 + NEVER_MS, turn.deadlineEpochMs());
+        ServerMessage.StateUpdate seen = Kit.sink(bob).await(ServerMessage.StateUpdate.class,
+                u -> u.turn().colour() == Colour.RED && u.turn().turnNumber() == turn.turnNumber(), 5000);
+        assertEquals(turn.deadlineEpochMs(), seen.turn().deadlineEpochMs());
+    }
+
+    @Test @DisplayName("a bot match has no deadlines at all: nobody there needs one")
+    void botMatchHasNoDeadlines() {
+        Participant host = Kit.person("host");
+        GameSession room = kit.roomWith(RoomMode.BOT_MATCH, 1, host);
+        Kit.sink(host).await(ServerMessage.GameOver.class, 60_000);
+        assertTrue(Kit.sink(host).of(ServerMessage.StateUpdate.class).stream()
+                .allMatch(u -> u.turn().deadlineEpochMs() == null));
+    }
+
+    @Test @DisplayName("a person who does not act in time has the AI roll for them (a real timer)")
+    void realTimerRollsForThem() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(150);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+
+        Kit.await(() -> count(room, kit, DecisionSource.TIMEOUT) >= 1, 5000);
+        DecisionRecord decision = kit.repository.decisions().stream()
+                .filter(d -> d.source() == DecisionSource.TIMEOUT).findFirst().get();
+        assertEquals(turn.turnNumber(), decision.turnNumber());
+        assertEquals(Colour.RED, decision.colour());
+        assertNull(decision.optionIndex(), "the missed phase was the roll");
+        assertEquals(RoomStatus.RUNNING, room.summary().status());
+    }
+
+    @Test @DisplayName("two missed turns in a row hand the seat to the AI, which keeps playing it")
+    void twoMissesMakeTheSeatAway() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(NEVER_MS);
+        Participant alice = Kit.person("alice");
+        Participant bob = Kit.person("bob");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        Kit.call(room, bob, Kit.join(room));
+        ServerMessage.YourTurn first = startWithAlice(room, alice);
+
+        room.injectTimeoutForTest(first.turnNumber());
+        ServerMessage.YourTurn second = awaitTurnAfter(alice, first.turnNumber());
+        assertTrue(Kit.sink(bob).of(ServerMessage.SeatsUpdated.class).stream().noneMatch(
+                u -> u.seats().stream().anyMatch(x -> x.controller() == Controller.AFK)), "one miss is not enough");
+        room.injectTimeoutForTest(second.turnNumber());
+
+        Kit.sink(bob).await(ServerMessage.SeatsUpdated.class, u -> u.seats().stream().anyMatch(
+                x -> x.colour() == Colour.RED && x.controller() == Controller.AFK && "alice".equals(x.nickname())), 5000);
+        Kit.sink(bob).await(ServerMessage.ChatMessage.class, m -> m.system() && m.text().contains("alice is away"), 5000);
+        assertEquals(2, count(room, kit, DecisionSource.TIMEOUT));
+
+        // RED now plays by itself: more RED actions appear, as AI decisions
+        int before = kit.repository.decisions().size();
+        Kit.await(() -> kit.repository.decisions().stream().skip(before)
+                .anyMatch(d -> d.colour() == Colour.RED && d.source() == DecisionSource.AI), 10_000);
+    }
+
+    @Test @DisplayName("acting in time resets the count, so misses must be consecutive to make a seat away")
+    void actingResetsTheCount() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(NEVER_MS);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+
+        room.injectTimeoutForTest(turn.turnNumber());                 // miss 1
+        turn = awaitTurnAfter(alice, turn.turnNumber());
+        ClientMessage.Request act = turn.phase() == Phase.AWAITING_ROLL
+                ? new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber())
+                : new ClientMessage.ChooseMove(id(), room.roomId(), turn.turnNumber(), 0);
+        assertTrue(Kit.call(room, alice, act).isOk());               // acts: count back to zero
+        turn = awaitTurnAfter(alice, turn.turnNumber());
+        room.injectTimeoutForTest(turn.turnNumber());                 // miss 1 again, not 2
+
+        Kit.settle(room, alice);
+        assertTrue(Kit.sink(alice).of(ServerMessage.SeatsUpdated.class).stream().noneMatch(
+                u -> u.seats().stream().anyMatch(x -> x.controller() == Controller.AFK)));
+    }
+
+    @Test @DisplayName("an away person cannot act until they take the seat back, and then it is theirs again")
+    void reclaimAfterAway() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(NEVER_MS);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+        room.injectTimeoutForTest(turn.turnNumber());
+        turn = awaitTurnAfter(alice, turn.turnNumber());
+        room.injectTimeoutForTest(turn.turnNumber());
+        Kit.sink(alice).await(ServerMessage.SeatsUpdated.class,
+                u -> u.seats().stream().anyMatch(x -> x.controller() == Controller.AFK), 5000);
+
+        // while away, she is refused (it is the AI's seat now)
+        assertRejected(ErrorCode.NOT_YOUR_TURN,
+                Kit.call(room, alice, new ClientMessage.Roll(id(), room.roomId(), 0)));
+        final int lastOffered = turn.turnNumber();
+
+        assertTrue(Kit.call(room, alice, new ClientMessage.ReclaimSeat(id(), room.roomId())).isOk());
+        Kit.sink(alice).await(ServerMessage.SeatsUpdated.class, u -> u.seats().stream().anyMatch(
+                x -> x.colour() == Colour.RED && x.controller() == Controller.HUMAN), 5000);
+        ServerMessage.YourTurn back = awaitTurnAfter(alice, lastOffered);
+        assertEquals(1_000_000 + NEVER_MS, back.deadlineEpochMs());
+    }
+
+    @Test @DisplayName("pausing stops the deadline; resuming gives a fresh one that everyone is told about")
+    void pauseStopsTheClock() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(300);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+
+        assertTrue(Kit.call(room, alice, new ClientMessage.PauseGame(id(), room.roomId())).isOk());
+        Kit.sleep(700); // longer than two deadlines
+        assertEquals(0, count(room, kit, DecisionSource.TIMEOUT), "no timeout may fire while paused");
+
+        int updatesBefore = Kit.sink(alice).of(ServerMessage.StateUpdate.class).size();
+        assertTrue(Kit.call(room, alice, new ClientMessage.ResumeGame(id(), room.roomId())).isOk());
+        ServerMessage.StateUpdate refresh = Kit.sink(alice).of(ServerMessage.StateUpdate.class).stream()
+                .skip(updatesBefore).findFirst().orElseGet(() -> Kit.sink(alice).await(ServerMessage.StateUpdate.class,
+                        u -> u.events().isEmpty() && u.turn().deadlineEpochMs() != null, 5000));
+        assertNotNull(refresh.turn().deadlineEpochMs());
+        assertEquals(turn.turnNumber(), refresh.turn().turnNumber());
+        Kit.await(() -> count(room, kit, DecisionSource.TIMEOUT) >= 1, 5000);
+    }
+
+    @Test @DisplayName("a late timeout for a turn that has already moved on does nothing")
+    void staleTimeoutIgnored() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(NEVER_MS);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+        assertTrue(Kit.call(room, alice, new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber())).isOk());
+
+        room.injectTimeoutForTest(turn.turnNumber()); // the roll already happened
+        Kit.settle(room, alice);
+        assertEquals(0, count(room, kit, DecisionSource.TIMEOUT));
+    }
+
+    @Test @DisplayName("turn timers can be switched off")
+    void timersCanBeDisabled() {
+        kit.config = SessionConfig.defaults().withDelays(0, 1, 1).withTurnTimeoutMs(0);
+        Participant alice = Kit.person("alice");
+        GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
+        ServerMessage.YourTurn turn = startWithAlice(room, alice);
+        assertNull(turn.deadlineEpochMs());
+    }
+
     // ---------------------------------------------------------------- chat
 
     @Test @DisplayName("chat is cleaned, validated, broadcast with a sequence number and stored")

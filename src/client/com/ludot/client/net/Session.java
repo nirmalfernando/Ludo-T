@@ -36,6 +36,7 @@ public final class Session implements AutoCloseable {
         try {
             link.addListener(message -> Platform.runLater(() -> state.apply(message)));
             link.startHeartbeat(HEARTBEAT_MS);
+            link.send(new ClientMessage.Ping()); // an early Pong calibrates the countdown clock
             Response hello = link.request(new ClientMessage.Hello(UUID.randomUUID(), nickname))
                     .get(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (!hello.isOk()) {
