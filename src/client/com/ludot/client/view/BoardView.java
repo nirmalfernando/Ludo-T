@@ -231,6 +231,7 @@ public final class BoardView extends Pane {
             node.setTranslateY(y);
             return;
         }
+        node.flash();
         TranslateTransition slide = new TranslateTransition(Duration.millis(MOVE_MILLIS), node);
         slide.setToX(x);
         slide.setToY(y);

@@ -90,7 +90,7 @@ public final class RoomScreen extends BorderPane {
         SeatPanel seats = new SeatPanel(model, colour -> send(claim(colour)),
                 () -> send(new ClientMessage.ReleaseSeat(UUID.randomUUID(), model.roomId())),
                 () -> send(new ClientMessage.ReclaimSeat(UUID.randomUUID(), model.roomId())));
-        VBox left = new VBox(12, seats, dice);
+        VBox left = new VBox(12, seats, dice, new NarrationPane(model));
         left.setPrefWidth(250);
         left.setPadding(new Insets(0, 10, 0, 0));
         return left;

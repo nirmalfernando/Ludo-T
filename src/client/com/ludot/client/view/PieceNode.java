@@ -19,8 +19,11 @@ import javafx.util.Duration;
 /** One piece on the board: a coloured disc with its number, an effect badge and, when movable, a pulsing ring. */
 final class PieceNode extends Group {
 
+    private static final double FLASH_MILLIS = 1600;
+
     private final Circle body;
     private final Circle ring;
+    private final Circle halo;
     private final Label badge = new Label();
     private final ScaleTransition pulse;
 
@@ -37,12 +40,17 @@ final class PieceNode extends Group {
         ring.setStroke(Theme.HIGHLIGHT);
         ring.setStrokeWidth(3);
         ring.setVisible(false);
+        halo = new Circle(radius + 7, Color.TRANSPARENT);
+        halo.setStroke(Color.web("#ffb300"));
+        halo.setStrokeWidth(4);
+        halo.setOpacity(0);
+        halo.setMouseTransparent(true);
         badge.setStyle("-fx-font-size: 11; -fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 6;"
                 + "-fx-padding: 0 2;");
         badge.setTranslateX(radius * 0.2);
         badge.setTranslateY(-radius * 2.0);
         badge.setMouseTransparent(true);
-        getChildren().addAll(ring, body, number, badge);
+        getChildren().addAll(halo, ring, body, number, badge);
         pulse = new ScaleTransition(Duration.millis(520), ring);
         pulse.setFromX(1);
         pulse.setFromY(1);
@@ -64,6 +72,15 @@ final class PieceNode extends Group {
         }
         badge.setText(text);
         badge.setVisible(!text.isEmpty());
+    }
+
+    /** Shows a gold halo that fades away, so the eye finds the piece that just moved. */
+    void flash() {
+        halo.setOpacity(1);
+        javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(Duration.millis(FLASH_MILLIS), halo);
+        fade.setFromValue(1);
+        fade.setToValue(0);
+        fade.play();
     }
 
     void setMovable(boolean movable, Runnable onClick, Runnable onEnter, Runnable onExit) {
