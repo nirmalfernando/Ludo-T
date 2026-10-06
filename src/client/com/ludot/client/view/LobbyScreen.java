@@ -28,12 +28,15 @@ public final class LobbyScreen extends StackPane {
     private final ClientState state;
     private final Session session;
     private final Toasts toasts;
+    private final Runnable onSignOut;
     private final ListView<RoomSummary> rooms = new ListView<>();
 
-    public LobbyScreen(ClientState state, Session session, Toasts toasts) {
+    /** @param onSignOut called when the user wants to leave the lobby and go back to the connect screen */
+    public LobbyScreen(ClientState state, Session session, Toasts toasts, Runnable onSignOut) {
         this.state = state;
         this.session = session;
         this.toasts = toasts;
+        this.onSignOut = onSignOut;
         BorderPane layout = new BorderPane();
         layout.setPadding(new Insets(22, 28, 22, 28));
         layout.setTop(topBar());
@@ -53,7 +56,10 @@ public final class LobbyScreen extends StackPane {
         create.setOnAction(event -> NewRoomDialog.show().ifPresent(this::createRoom));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(16, title, spacer, who(), create);
+        Button signOut = new Button("Sign Out");
+        signOut.getStyleClass().add("ghost-button");
+        signOut.setOnAction(event -> onSignOut.run());
+        HBox top = new HBox(16, title, spacer, who(), signOut, create);
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(0, 0, 14, 0));
         return top;
@@ -81,7 +87,7 @@ public final class LobbyScreen extends StackPane {
                         onRejected.accept(Session.describe(response));
                     }
                 }));
-        Label chatTitle = new Label("Lobby chat");
+        Label chatTitle = new Label("Lobby Chat");
         chatTitle.getStyleClass().add("panel-title");
         VBox column = new VBox(8, chatTitle, chat);
         VBox.setVgrow(chat, Priority.ALWAYS);

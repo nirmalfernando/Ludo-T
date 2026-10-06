@@ -40,7 +40,7 @@ final class NewRoomDialog {
         ToggleGroup mode = modeChoices();
         ToggleGroup rules = ruleChoices();
         TextField seed = new TextField();
-        seed.setPromptText("random");
+        seed.setPromptText("Random");
         pane.setContent(content(mode, rules, seed));
         Theme.applyPlayful(pane);
         styleButtons(pane, seed);
@@ -57,7 +57,7 @@ final class NewRoomDialog {
     private static ToggleGroup modeChoices() {
         ToggleGroup group = new ToggleGroup();
         card(group, RoomMode.PLAY, "Play", "People take seats, AI fills the rest", true);
-        card(group, RoomMode.BOT_MATCH, "Bot match", "Four AI players, you watch", false);
+        card(group, RoomMode.BOT_MATCH, "Bot Match", "Four AI players, you watch", false);
         return group;
     }
 
@@ -94,7 +94,7 @@ final class NewRoomDialog {
     }
 
     private static VBox content(ToggleGroup mode, ToggleGroup rules, TextField seed) {
-        Label heading = new Label("Create a game");
+        Label heading = new Label("Create a Game");
         heading.setStyle("-fx-font-size: 28;");
         HBox pawns = new HBox(8);
         for (Colour colour : Colour.values()) {
@@ -105,8 +105,8 @@ final class NewRoomDialog {
         Label seedHint = new Label("Same seed, same dice: leave empty for a random game");
         seedHint.getStyleClass().add("muted");
         seedHint.setStyle("-fx-font-size: 13;");
-        VBox box = new VBox(10, top, section("Who plays?"), row(mode), section("Which rules?"), row(rules),
-                section("Seed (optional)"), seed, seedHint);
+        VBox box = new VBox(10, top, section("Who Plays?"), row(mode), section("Which Rules?"), row(rules),
+                section("Seed (Optional)"), seed, seedHint);
         box.setPadding(new Insets(22, 24, 8, 24));
         box.setPrefWidth(560);
         return box;

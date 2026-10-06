@@ -75,7 +75,7 @@ public final class RoomScreen extends BorderPane {
     // ------------------------------------------------------------------ layout
 
     private HBox topBar() {
-        Button leave = new Button("Leave room");
+        Button leave = new Button("Leave Room");
         leave.setOnAction(event -> leaveRoom());
         title.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
         Region spacer = new Region();
@@ -131,7 +131,7 @@ public final class RoomScreen extends BorderPane {
 
     private void refreshAll() {
         title.setText("Room " + model.roomId() + "  ·  " + model.variantProperty().get() + "  ·  "
-                + (model.modeProperty().get() == RoomMode.BOT_MATCH ? "Bot match" : "Play") + "  ·  "
+                + (model.modeProperty().get() == RoomMode.BOT_MATCH ? "Bot Match" : "Play") + "  ·  "
                 + model.statusProperty().get());
         hostControls.refresh();
         pausedOverlay.setVisible(model.statusProperty().get() == RoomStatus.PAUSED);
@@ -162,9 +162,9 @@ public final class RoomScreen extends BorderPane {
 
     private void refreshStatusBar() {
         var turn = model.turnProperty().get();
-        statusBar.setText("seq " + model.seqProperty().get() + "   ·   state #"
+        statusBar.setText("Seq " + model.seqProperty().get() + "   ·   State #"
                 + String.format("%08X", model.stateHashProperty().get())
-                + "   ·   turn " + (turn == null ? "-" : turn.turnNumber()) + "   ·   " + model.members().size() + " here");
+                + "   ·   Turn " + (turn == null ? "-" : turn.turnNumber()) + "   ·   " + model.members().size() + " Here");
     }
 
     // ------------------------------------------------------------------ actions

@@ -35,7 +35,7 @@ public final class ChatPane extends BorderPane {
         list = new ListView<>(items);
         list.setFocusTraversable(false);
         list.setCellFactory(view -> new ChatCell(myId));
-        input.setPromptText("Say something…");
+        input.setPromptText("Say Something…");
         input.getStyleClass().add("chat-input");
         input.setOnAction(event -> send(sender));
         Button send = new Button("Send");
@@ -87,7 +87,7 @@ public final class ChatPane extends BorderPane {
                 return;
             }
             Label line = new Label(message.system() ? message.text()
-                    : message.nickname() + (message.role() == com.ludot.protocol.Role.SPECTATOR ? " (spectator)" : "")
+                    : message.nickname() + (message.role() == com.ludot.protocol.Role.SPECTATOR ? " (Spectator)" : "")
                             + ": " + message.text());
             line.setWrapText(true);
             line.maxWidthProperty().bind(widthProperty().subtract(46));

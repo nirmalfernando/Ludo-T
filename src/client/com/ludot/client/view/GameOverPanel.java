@@ -37,7 +37,7 @@ final class GameOverPanel extends VBox {
             row.setStyle("-fx-font-size: 15;");
             getChildren().add(row);
         }
-        Button back = new Button("Back to lobby");
+        Button back = new Button("Back to Lobby");
         back.setOnAction(event -> onBack.run());
         getChildren().add(back);
         setVisible(true);

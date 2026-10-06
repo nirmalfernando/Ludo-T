@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 /**
- * "What just happened": the last few narrated lines, always visible beside the board. A fast game scrolls the
+ * "What Just Happened": the last few narrated lines, always visible beside the board. A fast game scrolls the
  * event log and toasts away quickly, but this stays put, with the newest line in bold, so it is easy to follow.
  */
 final class NarrationPane extends VBox {
@@ -27,7 +27,7 @@ final class NarrationPane extends VBox {
 
     private void refresh() {
         getChildren().clear();
-        Label heading = new Label("What just happened");
+        Label heading = new Label("What Just Happened");
         heading.setStyle("-fx-font-size: 11; -fx-text-fill: #78909c; -fx-font-weight: bold;");
         getChildren().add(heading);
         List<String> recent = recentEvents();

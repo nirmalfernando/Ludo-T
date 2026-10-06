@@ -122,7 +122,18 @@ public final class ClientApp extends Application {
     }
 
     private void showLobby() {
-        show(new LobbyScreen(state, session, toasts));
+        show(new LobbyScreen(state, session, toasts, this::signOut));
+    }
+
+    // back to the first screen; the session is cleared first so closing it is not reported as a lost connection
+    private void signOut() {
+        Session old = session;
+        session = null;
+        state.leaveRoom();
+        if (old != null) {
+            old.close();
+        }
+        showConnect(null);
     }
 
     private void showRoom(RoomModel room) {

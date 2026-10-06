@@ -18,7 +18,7 @@ import javafx.scene.layout.HBox;
 final class HostControls extends HBox {
 
     private final RoomModel model;
-    private final Button start = new Button("Start game");
+    private final Button start = new Button("Start Game");
     private final Button pause = new Button("Pause");
     private final ChoiceBox<Speed> speed = new ChoiceBox<>();
     private boolean updatingSpeed;
@@ -37,7 +37,7 @@ final class HostControls extends HBox {
         pause.setOnAction(event -> send.accept(model.statusProperty().get() == RoomStatus.PAUSED
                 ? new ClientMessage.ResumeGame(UUID.randomUUID(), model.roomId())
                 : new ClientMessage.PauseGame(UUID.randomUUID(), model.roomId())));
-        getChildren().addAll(start, pause, new Label("AI speed"), speed);
+        getChildren().addAll(start, pause, new Label("AI Speed"), speed);
         managedProperty().bind(visibleProperty());
         visibleProperty().bind(Bindings.createBooleanBinding(model::isHost, model.hostIdProperty()));
     }

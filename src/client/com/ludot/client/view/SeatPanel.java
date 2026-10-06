@@ -114,7 +114,7 @@ public final class SeatPanel extends VBox {
 
     private static String describe(SeatDto seat) {
         return switch (seat.controller()) {
-            case FREE -> "free";
+            case FREE -> "Free";
             case AI -> "AI player";
             case HUMAN -> seat.nickname();
             case AFK -> seat.nickname() + " (away)";

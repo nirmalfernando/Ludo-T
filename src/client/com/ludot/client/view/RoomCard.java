@@ -82,7 +82,7 @@ final class RoomCard extends HBox {
     }
 
     private static VBox details(RoomSummary room) {
-        Label host = new Label("host: " + room.hostNickname());
+        Label host = new Label("Host: " + room.hostNickname());
         Label watching = new Label(RoomPresentation.watchersText(room.spectators()));
         watching.getStyleClass().add("muted");
         watching.setStyle("-fx-font-size: 13;");

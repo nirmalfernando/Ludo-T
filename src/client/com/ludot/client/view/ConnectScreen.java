@@ -13,7 +13,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-/** The first screen: who you are and, tucked away under "Server settings", where the server is. */
+/** The first screen: who you are and, tucked away under "Server Settings", where the server is. */
 public final class ConnectScreen extends StackPane {
 
     /** What the user asked for. */
@@ -88,9 +88,9 @@ public final class ConnectScreen extends StackPane {
     }
 
     private VBox panel() {
-        Label ask = new Label("What's your name?");
+        Label ask = new Label("What's Your Name?");
         ask.getStyleClass().add("panel-title");
-        Button settings = new Button("Server settings  ▾");
+        Button settings = new Button("Server Settings  ▾");
         settings.getStyleClass().add("link-button");
         settings.setOnAction(event -> toggleServer(settings));
         buildServerForm();
@@ -119,7 +119,7 @@ public final class ConnectScreen extends StackPane {
     private void toggleServer(Button settings) {
         boolean show = !server.isVisible();
         setServerVisible(show);
-        settings.setText(show ? "Server settings  ▴" : "Server settings  ▾");
+        settings.setText(show ? "Server Settings  ▴" : "Server Settings  ▾");
     }
 
     private void setServerVisible(boolean visible) {

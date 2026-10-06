@@ -18,7 +18,7 @@ public final class DicePane extends VBox {
     private final Label banner = new Label("Waiting for the game to start");
     private final Label die = new Label("⚀");
     private final Label countdown = new Label();
-    private final Button roll = new Button("Roll the dice");
+    private final Button roll = new Button("Roll the Dice");
     private final Random random = new Random();
     private Timeline tumble;
 

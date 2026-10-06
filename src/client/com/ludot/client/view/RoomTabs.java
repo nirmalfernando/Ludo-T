@@ -25,7 +25,7 @@ final class RoomTabs extends TabPane {
                                 ? "You are sending too fast: slow down" : Session.describe(response));
                     }
                 }));
-        getTabs().addAll(fixed("Chat", chat), fixed("Event log", eventLog(model)));
+        getTabs().addAll(fixed("Chat", chat), fixed("Event Log", eventLog(model)));
         setPrefWidth(WIDTH);
         setPadding(new Insets(0, 0, 0, 10));
     }

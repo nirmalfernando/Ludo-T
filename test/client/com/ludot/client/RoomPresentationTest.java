@@ -68,9 +68,9 @@ class RoomPresentationTest {
 
     @Test @DisplayName("people and watcher texts handle singular, plural and none")
     void texts() {
-        assertEquals("1 person, 0 AI", RoomPresentation.peopleText(room(RoomMode.PLAY, RoomStatus.WAITING, 1, 0, 0)));
-        assertEquals("2 people, 2 AI", RoomPresentation.peopleText(room(RoomMode.PLAY, RoomStatus.RUNNING, 2, 2, 0)));
-        assertEquals("nobody watching", RoomPresentation.watchersText(0));
-        assertEquals("3 watching", RoomPresentation.watchersText(3));
+        assertEquals("1 Person, 0 AI", RoomPresentation.peopleText(room(RoomMode.PLAY, RoomStatus.WAITING, 1, 0, 0)));
+        assertEquals("2 People, 2 AI", RoomPresentation.peopleText(room(RoomMode.PLAY, RoomStatus.RUNNING, 2, 2, 0)));
+        assertEquals("Nobody Watching", RoomPresentation.watchersText(0));
+        assertEquals("3 Watching", RoomPresentation.watchersText(3));
     }
 }

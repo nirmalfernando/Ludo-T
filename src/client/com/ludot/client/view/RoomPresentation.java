@@ -69,11 +69,11 @@ public final class RoomPresentation {
     }
 
     public static String peopleText(RoomSummary room) {
-        String people = room.humanSeats() == 1 ? "1 person" : room.humanSeats() + " people";
+        String people = room.humanSeats() == 1 ? "1 Person" : room.humanSeats() + " People";
         return people + ", " + room.aiSeats() + " AI";
     }
 
     public static String watchersText(int spectators) {
-        return spectators == 0 ? "nobody watching" : spectators + " watching";
+        return spectators == 0 ? "Nobody Watching" : spectators + " Watching";
     }
 }
