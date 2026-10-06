@@ -5,7 +5,10 @@ import com.ludot.client.state.ClientState;
 import com.ludot.client.state.RoomModel;
 import com.ludot.client.view.AppIcon;
 import com.ludot.client.view.ConnectScreen;
+import com.ludot.client.feedback.Cue;
+import com.ludot.client.feedback.Feedback;
 import com.ludot.client.view.ConnectionBadge;
+import com.ludot.client.view.FeedbackToggles;
 import com.ludot.client.view.LobbyScreen;
 import com.ludot.client.view.RoomScreen;
 import com.ludot.client.view.Theme;
@@ -18,6 +21,10 @@ import java.util.List;
 import java.util.UUID;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
+import javafx.scene.control.ButtonBase;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.animation.PauseTransition;
 import javafx.scene.Scene;
@@ -52,6 +59,7 @@ public final class ClientApp extends Application {
         parseArguments(getParameters().getRaw());
         Theme.loadFonts();
         AppIcon.install(stage);
+        clickSoundOnButtons();
         root.getChildren().add(screenHolder);
         stage.setTitle("LUDO-T Online");
         stage.setScene(new Scene(root, 1240, 780));
@@ -139,9 +147,25 @@ public final class ClientApp extends Application {
         showConnect(null);
     }
 
+    // every button press anywhere in the window makes a small click
+    private void clickSoundOnButtons() {
+        root.addEventFilter(ActionEvent.ACTION, event -> {
+            if (event.getTarget() instanceof ButtonBase) {
+                Feedback.get().play(Cue.CLICK);
+            }
+        });
+    }
+
+    // the sound and motion switches beside the connection light, shown in the room header
+    private Node headerStatus() {
+        HBox box = new HBox(14, new FeedbackToggles(), new ConnectionBadge(state));
+        box.setAlignment(Pos.CENTER_RIGHT);
+        return box;
+    }
+
     private void showRoom(RoomModel room) {
         show(new RoomScreen(room, session, toasts, this::leftRoom, state.myId(), state.clock(),
-                new ConnectionBadge(state)));
+                headerStatus()));
     }
 
     private void leftRoom() {

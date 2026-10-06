@@ -42,7 +42,7 @@ public final class RoomScreen extends StackPane {
     private final Label statusBar = new Label();
     private final Label pausedOverlay = new Label("Paused by the host");
     private final HostControls hostControls;
-    private final GameOverPanel gameOver = new GameOverPanel(this::leaveRoom);
+    private final RoomEnding ending = new RoomEnding(this::leaveRoom);
     private final RoomEventReactions reactions;
     private final TurnCountdown countdown;
 
@@ -56,7 +56,7 @@ public final class RoomScreen extends StackPane {
         this.connection = connection;
         this.heading = new RoomHeading(model);
         this.hostControls = new HostControls(model, this::send);
-        this.reactions = new RoomEventReactions(dice, toasts);
+        this.reactions = new RoomEventReactions(dice, toasts, board, model);
         this.countdown = new TurnCountdown(model, clock, dice);
         layout.setPadding(new Insets(14, 12, 10, 12));
         layout.setTop(topBar());
@@ -110,7 +110,7 @@ public final class RoomScreen extends StackPane {
         pausedOverlay.getStyleClass().add("paused-banner");
         pausedOverlay.setVisible(false);
         pausedOverlay.setMouseTransparent(true);
-        StackPane area = new StackPane(board, pausedOverlay, gameOver);
+        StackPane area = new StackPane(board, pausedOverlay, ending);
         area.getStyleClass().add("board-frame");
         area.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         area.setAlignment(Pos.CENTER);
@@ -132,7 +132,7 @@ public final class RoomScreen extends StackPane {
         model.hostIdProperty().addListener((obs, old, now) -> refreshAll());
         model.seats().addListener((ListChangeListener<SeatDto>) change -> refreshAll());
         model.myTurnProperty().addListener((obs, old, now) -> refreshMyTurn());
-        model.standingsProperty().addListener((obs, old, now) -> gameOver.show(now));
+        model.standingsProperty().addListener((obs, old, now) -> ending.show(now));
         model.stateHashProperty().addListener((obs, old, now) -> refreshStatusBar());
     }
 

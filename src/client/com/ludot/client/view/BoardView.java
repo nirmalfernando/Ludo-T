@@ -1,6 +1,7 @@
 package com.ludot.client.view;
 
 import com.ludot.client.view.BoardLayout.Point;
+import com.ludot.client.feedback.Feedback;
 import com.ludot.protocol.BoardDto;
 import com.ludot.protocol.BoardGeometry;
 import com.ludot.protocol.Colour;
@@ -192,7 +193,7 @@ public final class BoardView extends Pane {
             Point offset = BoardLayout.stackOffset(together.indexOf(piece), together.size());
             Point base = pointOf(piece);
             moveTo(key(piece.colour(), piece.index()), new Point(base.x() + offset.x(), base.y() + offset.y()),
-                    animate && !firstUpdate);
+                    animate && !firstUpdate, piece.location() == Location.BASE);
             PieceNode node = pieces.get(key(piece.colour(), piece.index()));
             node.showState(piece);
             node.toFront();
@@ -221,7 +222,7 @@ public final class BoardView extends Pane {
         };
     }
 
-    private void moveTo(String pieceKey, Point target, boolean animate) {
+    private void moveTo(String pieceKey, Point target, boolean animate, boolean toBase) {
         PieceNode node = pieces.get(pieceKey);
         Point previous = positions.put(pieceKey, target);
         double x = target.x() * CELL;
@@ -235,7 +236,33 @@ public final class BoardView extends Pane {
         TranslateTransition slide = new TranslateTransition(Duration.millis(MOVE_MILLIS), node);
         slide.setToX(x);
         slide.setToY(y);
+        if (toBase) {
+            node.sendHome(); // a piece going back to its base has been captured
+        } else {
+            slide.setOnFinished(event -> node.land());
+        }
         slide.play();
+    }
+
+    /** A short sideways shake of the whole board: something dramatic happened (a capture, a triple six). */
+    public void jolt() {
+        if (Feedback.get().motionOn()) {
+            TranslateTransition shake = new TranslateTransition(Duration.millis(45), this);
+            shake.setFromX(-5);
+            shake.setToX(5);
+            shake.setAutoReverse(true);
+            shake.setCycleCount(6);
+            shake.setOnFinished(event -> setTranslateX(0));
+            shake.play();
+        }
+    }
+
+    /** Pops the piece that has just reached home. */
+    public void celebrate(Colour colour, int index) {
+        PieceNode node = pieces.get(key(colour, index));
+        if (node != null) {
+            node.celebrate();
+        }
     }
 
     private void showMystery(List<MysteryCellDto> cells) {

@@ -1,10 +1,13 @@
 package com.ludot.client.view;
 
+import com.ludot.client.feedback.Feedback;
 import com.ludot.protocol.Colour;
 import com.ludot.protocol.EffectType;
 import com.ludot.protocol.Location;
 import com.ludot.protocol.PieceDto;
 import javafx.animation.Animation;
+import javafx.animation.ParallelTransition;
+import javafx.animation.RotateTransition;
 import javafx.animation.ScaleTransition;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
@@ -26,6 +29,7 @@ final class PieceNode extends Group {
     private final Circle halo;
     private final Label badge = new Label();
     private final ScaleTransition pulse;
+    private Animation motion; // the squash, spin or pop currently playing
 
     PieceNode(Colour colour, int index, double radius) {
         body = new Circle(radius, Theme.strong(colour));
@@ -72,6 +76,69 @@ final class PieceNode extends Group {
         }
         badge.setText(text);
         badge.setVisible(!text.isEmpty());
+    }
+
+    /** A small squash-and-settle when the piece lands, like a counter being put down on the board. */
+    void land() {
+        if (Feedback.get().motionOn()) {
+            ScaleTransition squash = new ScaleTransition(Duration.millis(110), this);
+            squash.setFromX(1);
+            squash.setFromY(1);
+            squash.setToX(1.2);
+            squash.setToY(0.8);
+            squash.setAutoReverse(true);
+            squash.setCycleCount(2);
+            play(squash);
+        }
+    }
+
+    /** A captured piece spins and shrinks on its way back to its base. */
+    void sendHome() {
+        if (Feedback.get().motionOn()) {
+            RotateTransition spin = new RotateTransition(Duration.millis(260), this);
+            spin.setFromAngle(0);
+            spin.setByAngle(360);
+            ScaleTransition shrink = new ScaleTransition(Duration.millis(130), this);
+            shrink.setFromX(1);
+            shrink.setFromY(1);
+            shrink.setToX(0.55);
+            shrink.setToY(0.55);
+            shrink.setAutoReverse(true);
+            shrink.setCycleCount(2);
+            play(new ParallelTransition(spin, shrink));
+        }
+    }
+
+    /** A bigger pop with a halo: the piece has reached home. */
+    void celebrate() {
+        flash();
+        if (Feedback.get().motionOn()) {
+            ScaleTransition pop = new ScaleTransition(Duration.millis(240), this);
+            pop.setFromX(1);
+            pop.setFromY(1);
+            pop.setToX(1.6);
+            pop.setToY(1.6);
+            pop.setAutoReverse(true);
+            pop.setCycleCount(2);
+            play(pop);
+        }
+    }
+
+    // one body animation at a time; a new one replaces the old and every one ends with the piece upright and full size
+    private void play(Animation next) {
+        if (motion != null) {
+            motion.stop();
+        }
+        resetPose();
+        motion = next;
+        next.setOnFinished(event -> resetPose());
+        next.play();
+    }
+
+    private void resetPose() {
+        setScaleX(1);
+        setScaleY(1);
+        setRotate(0);
     }
 
     /** Shows a gold halo that fades away, so the eye finds the piece that just moved. */

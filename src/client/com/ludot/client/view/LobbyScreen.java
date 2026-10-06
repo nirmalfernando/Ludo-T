@@ -59,7 +59,7 @@ public final class LobbyScreen extends StackPane {
         create.setOnAction(event -> NewRoomDialog.show().ifPresent(this::createRoom));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(16, title, spacer, account(), create);
+        HBox top = new HBox(16, title, spacer, new FeedbackToggles(), account(), create);
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(0, 0, 14, 0));
         return top;

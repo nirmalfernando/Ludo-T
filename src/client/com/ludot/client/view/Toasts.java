@@ -1,5 +1,7 @@
 package com.ludot.client.view;
 
+import com.ludot.client.feedback.Cue;
+import com.ludot.client.feedback.Feedback;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
@@ -39,6 +41,7 @@ public final class Toasts {
     }
 
     public void error(String message) {
+        Feedback.get().play(Cue.ERROR);
         show(message, "#c62828");
     }
 

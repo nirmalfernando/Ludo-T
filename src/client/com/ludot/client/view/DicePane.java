@@ -1,7 +1,9 @@
 package com.ludot.client.view;
 
+import com.ludot.client.feedback.Feedback;
 import java.util.Random;
 import javafx.animation.KeyFrame;
+import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -21,6 +23,7 @@ public final class DicePane extends VBox {
     private final Button roll = new Button("Roll the Dice");
     private final Random random = new Random();
     private Timeline tumble;
+    private RotateTransition shake;
 
     public DicePane(Runnable onRoll) {
         super(8);
@@ -68,5 +71,23 @@ public final class DicePane extends VBox {
         tumble.getKeyFrames().add(new KeyFrame(Duration.millis((TUMBLE_FRAMES + 1) * 55),
                 event -> die.setText(FACES[Math.max(0, Math.min(5, value - 1))])));
         tumble.play();
+        shakeDie();
+    }
+
+    // the die rattles from side to side while it tumbles
+    private void shakeDie() {
+        if (shake != null) {
+            shake.stop();
+        }
+        die.setRotate(0);
+        if (Feedback.get().motionOn()) {
+            shake = new RotateTransition(Duration.millis(60), die);
+            shake.setFromAngle(-12);
+            shake.setToAngle(12);
+            shake.setAutoReverse(true);
+            shake.setCycleCount(8);
+            shake.setOnFinished(event -> die.setRotate(0));
+            shake.play();
+        }
     }
 }
