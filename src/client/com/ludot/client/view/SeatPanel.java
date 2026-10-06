@@ -11,10 +11,12 @@ import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 /** Four seat cards: who plays each colour, whose turn it is, and buttons to take or leave a seat before the game starts. */
@@ -49,7 +51,7 @@ public final class SeatPanel extends VBox {
         boolean mine = model.mySeat().map(s -> s.colour() == seat.colour()).orElse(false);
         boolean active = isActive(seat);
 
-        VBox text = new VBox(2, nameLabel(seat, mine), whoLabel(seat));
+        VBox text = new VBox(2, nameLabel(seat, mine), whoRow(seat));
         if (isAway(seat, mine)) {
             text.getChildren().add(takeBackButton()); // under the labels: the card is too narrow for it beside them
         }
@@ -78,10 +80,19 @@ public final class SeatPanel extends VBox {
         return name;
     }
 
-    private static Label whoLabel(SeatDto seat) {
+    // the player's name, led by a dot showing whether they are connected (green), away (amber) or offline (red)
+    private static HBox whoRow(SeatDto seat) {
         Label who = new Label(describe(seat));
         who.setStyle("-fx-text-fill: #546e7a; -fx-font-size: 12;");
-        return who;
+        HBox row = new HBox(6);
+        row.setAlignment(Pos.CENTER_LEFT);
+        ConnectionPresentation.seatDot(seat.controller()).ifPresent(colour -> {
+            Circle dot = new Circle(4.5, Color.web(colour));
+            Tooltip.install(dot, new Tooltip(ConnectionPresentation.seatDotTip(seat.controller())));
+            row.getChildren().add(dot);
+        });
+        row.getChildren().add(who);
+        return row;
     }
 
     private static Label turnMark(boolean active) {

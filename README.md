@@ -83,7 +83,7 @@ There is no Maven or Gradle: shell scripts compile everything.
 ```
 
 In the client: **Connect** (nickname 3-16 letters, digits or `_`; the server address is under *Server settings*) → **Create game** → take a seat → **Start game** →
-**Roll** → click a glowing piece. A second client can join the same room, as a spectator or by taking a seat.
+**Roll** → click a glowing piece. A green dot with "Connected · 12 ms" (the round trip of a ping over the TCP connection) is shown in the lobby and the room; a dot beside each seated person shows whether they are connected, away or offline. **Sign Out** (lobby) returns to the first screen. A second client can join the same room, as a spectator or by taking a seat.
 
 To watch the game with no one playing: create a **Bot match** and join it from a second window.
 
@@ -218,7 +218,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 | `core` (264) | The original Phase 1 unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the Assignment 1 output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
-| `client` (28) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card looks |
+| `client` (38) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing |
 | `bot` (14) | Bot strategies, request mix, statistics |
 | `integration` (3) | Four bots finish a game; two stress clients flood one room, all against a live server |
 

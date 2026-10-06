@@ -3,7 +3,9 @@ package com.ludot.client;
 import com.ludot.client.net.Session;
 import com.ludot.client.state.ClientState;
 import com.ludot.client.state.RoomModel;
+import com.ludot.client.view.AppIcon;
 import com.ludot.client.view.ConnectScreen;
+import com.ludot.client.view.ConnectionBadge;
 import com.ludot.client.view.LobbyScreen;
 import com.ludot.client.view.RoomScreen;
 import com.ludot.client.view.Theme;
@@ -49,6 +51,7 @@ public final class ClientApp extends Application {
     public void start(Stage stage) {
         parseArguments(getParameters().getRaw());
         Theme.loadFonts();
+        AppIcon.install(stage);
         root.getChildren().add(screenHolder);
         stage.setTitle("LUDO-T Online");
         stage.setScene(new Scene(root, 1240, 780));
@@ -137,7 +140,8 @@ public final class ClientApp extends Application {
     }
 
     private void showRoom(RoomModel room) {
-        show(new RoomScreen(room, session, toasts, this::leftRoom, state.myId(), state.clock()));
+        show(new RoomScreen(room, session, toasts, this::leftRoom, state.myId(), state.clock(),
+                new ConnectionBadge(state)));
     }
 
     private void leftRoom() {

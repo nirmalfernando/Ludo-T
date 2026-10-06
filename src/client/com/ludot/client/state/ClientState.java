@@ -4,7 +4,9 @@ import com.ludot.protocol.RoomSummary;
 import com.ludot.protocol.ServerMessage;
 import com.ludot.protocol.ServerMessage.ChatMessage;
 import java.util.function.Consumer;
+import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -26,6 +28,7 @@ public final class ClientState {
     private static final int LOBBY_CHAT_LIMIT = 300;
 
     private final ObjectProperty<Connection> connection = new SimpleObjectProperty<>(Connection.DISCONNECTED);
+    private final LongProperty latency = new SimpleLongProperty(-1);
     private final StringProperty nickname = new SimpleStringProperty("");
     private final ObservableList<RoomSummary> rooms = FXCollections.observableArrayList();
     private final ObservableList<ChatMessage> lobbyChat = FXCollections.observableArrayList();
@@ -100,6 +103,11 @@ public final class ClientState {
 
     public String myId() {
         return myId;
+    }
+
+    /** Round trip to the server in milliseconds, or -1 until the first Pong has come back. */
+    public LongProperty latencyProperty() {
+        return latency;
     }
 
     public ObjectProperty<Connection> connectionProperty() {

@@ -19,6 +19,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.StrokeLineCap;
 
 /** The lobby: the live list of games as cards (no refreshing needed), a button to create one, and the lobby chat. */
 public final class LobbyScreen extends StackPane {
@@ -56,28 +59,45 @@ public final class LobbyScreen extends StackPane {
         create.setOnAction(event -> NewRoomDialog.show().ifPresent(this::createRoom));
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        Button signOut = new Button("Sign Out");
-        signOut.getStyleClass().add("ghost-button");
-        signOut.setOnAction(event -> onSignOut.run());
-        HBox top = new HBox(16, title, spacer, who(), signOut, create);
+        HBox top = new HBox(16, title, spacer, account(), create);
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(0, 0, 14, 0));
         return top;
     }
 
-    // a pawn in a colour picked from the nickname, and the nickname itself
-    private HBox who() {
+    // one card for "who am I": a pawn in a colour picked from the nickname, the name, the connection light, and Sign Out
+    private HBox account() {
         String name = state.nicknameProperty().get() == null ? "" : state.nicknameProperty().get();
         Colour colour = Colour.values()[Math.floorMod(name.hashCode(), Colour.values().length)];
         Label nickname = new Label();
         nickname.textProperty().bind(state.nicknameProperty());
         nickname.setStyle("-fx-font-size: 18;");
         nickname.setPadding(new Insets(0, 4, 0, 4));
-        HBox chip = new HBox(14, new PawnMascot(colour, 34), nickname);
-        chip.getStyleClass().add("panel");
-        chip.setAlignment(Pos.CENTER);
-        chip.setPadding(new Insets(6, 18, 4, 14));
-        return chip;
+        VBox who = new VBox(1, nickname, new ConnectionBadge(state));
+        who.setAlignment(Pos.CENTER_LEFT);
+        Region divider = new Region();
+        divider.getStyleClass().add("divider");
+        HBox card = new HBox(12, new PawnMascot(colour, 38), who, divider, signOutButton());
+        card.getStyleClass().add("panel");
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(8, 14, 6, 14));
+        return card;
+    }
+
+    // a power icon and a label, so it is clear what it does without a tooltip
+    private Button signOutButton() {
+        SVGPath power = new SVGPath();
+        power.setContent("M12 2 L12 12 M6.3 6.3 A8 8 0 1 0 17.7 6.3");
+        power.setFill(Color.TRANSPARENT);
+        power.setStroke(Color.web("#d94b4b"));
+        power.setStrokeWidth(2.6);
+        power.setStrokeLineCap(StrokeLineCap.ROUND);
+        power.setScaleX(0.8);
+        power.setScaleY(0.8);
+        Button signOut = new Button("Sign Out", power);
+        signOut.getStyleClass().add("signout-button");
+        signOut.setOnAction(event -> onSignOut.run());
+        return signOut;
     }
 
     private VBox chatColumn() {

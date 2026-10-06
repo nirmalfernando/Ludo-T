@@ -14,6 +14,7 @@ import java.util.UUID;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -33,6 +34,7 @@ public final class RoomScreen extends BorderPane {
     private final Session session;
     private final Toasts toasts;
     private final Runnable onLeft;
+    private final Node connection;
 
     private final BoardView board = new BoardView();
     private final DicePane dice = new DicePane(this::roll);
@@ -44,12 +46,14 @@ public final class RoomScreen extends BorderPane {
     private final RoomEventReactions reactions;
     private final TurnCountdown countdown;
 
+    /** @param connection the connection indicator, shown beside the Leave button */
     public RoomScreen(RoomModel model, Session session, Toasts toasts, Runnable onLeft, String myId,
-                      ClockSync clock) {
+                      ClockSync clock, Node connection) {
         this.model = model;
         this.session = session;
         this.toasts = toasts;
         this.onLeft = onLeft;
+        this.connection = connection;
         this.hostControls = new HostControls(model, this::send);
         this.reactions = new RoomEventReactions(dice, toasts);
         this.countdown = new TurnCountdown(model, clock, dice);
@@ -80,7 +84,7 @@ public final class RoomScreen extends BorderPane {
         title.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox bar = new HBox(12, title, spacer, hostControls, leave);
+        HBox bar = new HBox(14, title, spacer, hostControls, connection, leave);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(0, 0, 10, 0));
         return bar;

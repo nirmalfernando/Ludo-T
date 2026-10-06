@@ -125,6 +125,29 @@
     -fx-text-fill: #3d6fe0;
 }
 
+/* Sign Out sits inside the account card, with a divider before it */
+.playful .signout-button {
+    -fx-background-color: #fff1f1;
+    -fx-background-radius: 18;
+    -fx-border-color: #ffc2c2;
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
+    -fx-padding: 4 12 4 6;
+    -fx-graphic-text-gap: 2;
+    -fx-font-size: 14px;
+    -fx-text-fill: #c94545;
+    -fx-cursor: hand;
+}
+.playful .signout-button:hover {
+    -fx-background-color: #ffdede;
+}
+.playful .divider {
+    -fx-background-color: #e3e7fb;
+    -fx-min-width: 2;
+    -fx-max-width: 2;
+    -fx-pref-height: 30;
+}
+
 /* ---- text fields -------------------------------------------------------------------------------------------- */
 
 .playful .text-field {

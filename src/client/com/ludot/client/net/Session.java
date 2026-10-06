@@ -4,6 +4,7 @@ import com.ludot.client.state.ClientState;
 import com.ludot.protocol.ClientMessage;
 import com.ludot.protocol.ErrorCode;
 import com.ludot.protocol.ServerLink;
+import com.ludot.protocol.ServerMessage;
 import com.ludot.protocol.ServerMessage.Response;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -21,9 +22,11 @@ public final class Session implements AutoCloseable {
     private static final long HEARTBEAT_MS = 5_000;
 
     private final ServerLink link;
+    private final Pinger pinger;
 
-    private Session(ServerLink link) {
+    private Session(ServerLink link, Pinger pinger) {
         this.link = link;
+        this.pinger = pinger;
     }
 
     /**
@@ -33,10 +36,16 @@ public final class Session implements AutoCloseable {
      */
     public static Session connect(String host, int port, String nickname, ClientState state) throws Exception {
         ServerLink link = ServerLink.connect(host, port);
+        Pinger pinger = new Pinger(() -> link.send(new ClientMessage.Ping()),
+                ms -> Platform.runLater(() -> state.latencyProperty().set(ms)));
         try {
-            link.addListener(message -> Platform.runLater(() -> state.apply(message)));
-            link.startHeartbeat(HEARTBEAT_MS);
-            link.send(new ClientMessage.Ping()); // an early Pong calibrates the countdown clock
+            link.addListener(message -> {
+                if (message instanceof ServerMessage.Pong) {
+                    pinger.pongReceived();
+                }
+                Platform.runLater(() -> state.apply(message));
+            });
+            pinger.start(HEARTBEAT_MS, link::close); // the first Ping goes at once: its Pong calibrates the countdown clock
             Response hello = link.request(new ClientMessage.Hello(UUID.randomUUID(), nickname))
                     .get(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (!hello.isOk()) {
@@ -45,8 +54,9 @@ public final class Session implements AutoCloseable {
             link.whenClosed().thenRun(() -> Platform.runLater(
                     () -> state.connectionProperty().set(ClientState.Connection.DISCONNECTED)));
             Platform.runLater(() -> state.connectionProperty().set(ClientState.Connection.CONNECTED));
-            return new Session(link);
+            return new Session(link, pinger);
         } catch (Exception e) {
+            pinger.close();
             link.close();
             throw e;
         }
@@ -78,6 +88,7 @@ public final class Session implements AutoCloseable {
 
     @Override
     public void close() {
+        pinger.close();
         link.close();
     }
 }
