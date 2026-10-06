@@ -10,38 +10,46 @@ import java.util.Properties;
 
 /** Everything configurable about a server process; defaults match the design document. */
 public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, long queueLogIntervalMs,
-                           SessionConfig session, DatabaseConfig database, int maxInFlight) {
+                           SessionConfig session, DatabaseConfig database, int maxInFlight,
+                           long reconnectGraceMs) {
 
     /** Unanswered requests a single connection may have at once; further reading waits (TCP then slows the sender). */
     public static final int DEFAULT_MAX_IN_FLIGHT = 256;
 
+    /** How long a dropped client that can reconnect keeps its nickname, seat and identity. */
+    public static final long DEFAULT_RECONNECT_GRACE_MS = 30_000;
+
     public static ServerConfig defaults() {
         return new ServerConfig(5555, 1_000, 15_000, 1_000, SessionConfig.defaults(), DatabaseConfig.none(),
-                DEFAULT_MAX_IN_FLIGHT);
+                DEFAULT_MAX_IN_FLIGHT, DEFAULT_RECONNECT_GRACE_MS);
     }
 
     public ServerConfig withPort(int newPort) {
-        return new ServerConfig(newPort, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database, maxInFlight);
+        return new ServerConfig(newPort, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database, maxInFlight, reconnectGraceMs);
     }
 
     public ServerConfig withOutboundCapacity(int capacity) {
-        return new ServerConfig(port, capacity, readTimeoutMs, queueLogIntervalMs, session, database, maxInFlight);
+        return new ServerConfig(port, capacity, readTimeoutMs, queueLogIntervalMs, session, database, maxInFlight, reconnectGraceMs);
     }
 
     public ServerConfig withReadTimeoutMs(int millis) {
-        return new ServerConfig(port, outboundCapacity, millis, queueLogIntervalMs, session, database, maxInFlight);
+        return new ServerConfig(port, outboundCapacity, millis, queueLogIntervalMs, session, database, maxInFlight, reconnectGraceMs);
     }
 
     public ServerConfig withSession(SessionConfig newSession) {
-        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, newSession, database, maxInFlight);
+        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, newSession, database, maxInFlight, reconnectGraceMs);
     }
 
     public ServerConfig withDatabase(DatabaseConfig newDatabase) {
-        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, newDatabase, maxInFlight);
+        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, newDatabase, maxInFlight, reconnectGraceMs);
     }
 
     public ServerConfig withMaxInFlight(int limit) {
-        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database, limit);
+        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database, limit, reconnectGraceMs);
+    }
+
+    public ServerConfig withReconnectGraceMs(long millis) {
+        return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database, maxInFlight, millis);
     }
 
     /** Reads a properties file; a missing file or key falls back to the default. */
@@ -72,7 +80,8 @@ public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, lo
                 intOf(props, "connection.outboundCapacity", d.outboundCapacity()),
                 intOf(props, "connection.readTimeoutMs", d.readTimeoutMs()),
                 longOf(props, "log.queueIntervalMs", d.queueLogIntervalMs()), session, database(props),
-                intOf(props, "connection.maxInFlight", d.maxInFlight()));
+                intOf(props, "connection.maxInFlight", d.maxInFlight()),
+                longOf(props, "connection.reconnectGraceMs", d.reconnectGraceMs()));
     }
 
     // the database is used when db.url is given, unless db.mode says "none"

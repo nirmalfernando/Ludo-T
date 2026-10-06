@@ -64,6 +64,7 @@ final class Membership {
         }
         Member existing = state.members.get(from.id());
         boolean newcomer = existing == null;
+        boolean returning = newcomer && reclaimDroppedSeat(from);
         if (newcomer) {
             state.members.put(from.id(), new Member(from.identity(), from.sink()));
             if (state.hostId == null) {
@@ -76,13 +77,32 @@ final class Membership {
         return Reply.ok(request).then(() -> {
             // snapshot and membership change in the same step: later pushes carry seq > the snapshot's
             from.sink().offer(broadcaster.snapshot());
-            if (newcomer) {
+            if (returning) {
+                welcomeBack(from);
+            } else if (newcomer) {
                 broadcaster.members();
                 chat.postSystem(from.identity().nickname() + " joined as a spectator");
             }
             resumeIfAutoPaused();
             broadcaster.publishSummary();
         });
+    }
+
+    // someone whose connection dropped in the middle of a game gets their seat back as soon as they rejoin
+    private boolean reclaimDroppedSeat(Participant from) {
+        return state.seats.seatOf(from.id()).filter(seat -> seat.controller() == Controller.DISCONNECTED).map(seat -> {
+            state.seats.setController(seat.colour(), Controller.HUMAN);
+            turns.resetMisses(seat.colour());
+            return true;
+        }).orElse(false);
+    }
+
+    private void welcomeBack(Participant from) {
+        broadcaster.seats();
+        broadcaster.members();
+        chat.postSystem(from.identity().nickname() + " is back");
+        turns.scheduleNext();
+        broadcaster.turnRefresh();
     }
 
     private Reply requestSnapshot(Participant from, ClientMessage.Request request) {

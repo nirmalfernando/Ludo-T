@@ -15,7 +15,7 @@ public sealed interface ClientMessage extends Serializable permits ClientMessage
     }
 
     /** A message that expects a Response; the id lets the server detect duplicates. */
-    sealed interface Request extends ClientMessage permits Hello, Reconnect, ListRooms, CreateRoom, SendChat, ListFinishedGames, StartReplay, ControlReplay, RoomRequest {
+    sealed interface Request extends ClientMessage permits Hello, Reconnect, SignOut, ListRooms, CreateRoom, SendChat, ListFinishedGames, StartReplay, ControlReplay, RoomRequest {
         UUID requestId();
     }
 
@@ -24,10 +24,18 @@ public sealed interface ClientMessage extends Serializable permits ClientMessage
         String roomId();
     }
 
-    record Hello(UUID requestId, String nickname) implements Request {
+    /**
+     * Introduces a person. {@code reconnectable} says this client can come back with its token after a dropped
+     * connection (the server then keeps the identity for a grace period); automatic test clients leave it false.
+     */
+    record Hello(UUID requestId, String nickname, boolean reconnectable) implements Request {
         public Hello {
             Objects.requireNonNull(requestId, "requestId");
             Objects.requireNonNull(nickname, "nickname");
+        }
+
+        public Hello(UUID requestId, String nickname) {
+            this(requestId, nickname, false);
         }
     }
 
@@ -35,6 +43,13 @@ public sealed interface ClientMessage extends Serializable permits ClientMessage
         public Reconnect {
             Objects.requireNonNull(requestId, "requestId");
             Objects.requireNonNull(token, "token");
+        }
+    }
+
+    /** A polite goodbye: the nickname is freed at once instead of being held for a reconnect. */
+    record SignOut(UUID requestId) implements Request {
+        public SignOut {
+            Objects.requireNonNull(requestId, "requestId");
         }
     }
 

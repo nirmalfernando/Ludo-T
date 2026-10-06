@@ -42,6 +42,8 @@ final class Samples {
                 new ClientMessage.Ping(),
                 new ClientMessage.Hello(ID, "alice"),
                 new ClientMessage.Reconnect(ID, "token"),
+                new ClientMessage.SignOut(ID),
+                new ClientMessage.Hello(ID, "maya", true),
                 new ClientMessage.ListRooms(ID),
                 new ClientMessage.CreateRoom(ID, RoomMode.BOT_MATCH, Variant.LUDO_T, 2069L),
                 new ClientMessage.CreateRoom(ID, RoomMode.PLAY, Variant.CLASSIC, null),

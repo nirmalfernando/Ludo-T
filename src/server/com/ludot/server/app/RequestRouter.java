@@ -33,8 +33,8 @@ public final class RequestRouter {
         this.lobby = lobby;
         handlers.put(ClientMessage.Ping.class, (s, m) -> s.sink().offer(new ServerMessage.Pong(System.currentTimeMillis())));
         handlers.put(ClientMessage.Hello.class, (s, m) -> hello(s, (ClientMessage.Hello) m));
-        handlers.put(ClientMessage.Reconnect.class, (s, m) -> unsupported(s, (ClientMessage.Request) m,
-                ErrorCode.UNKNOWN_TOKEN, "Reconnecting is not available yet"));
+        handlers.put(ClientMessage.Reconnect.class, (s, m) -> reconnect(s, (ClientMessage.Reconnect) m));
+        handlers.put(ClientMessage.SignOut.class, (s, m) -> signOut(s, (ClientMessage.SignOut) m));
         handlers.put(ClientMessage.ListRooms.class, (s, m) -> listRooms(s, (ClientMessage.ListRooms) m));
         handlers.put(ClientMessage.CreateRoom.class, (s, m) -> createRoom(s, (ClientMessage.CreateRoom) m));
         handlers.put(ClientMessage.SendChat.class, (s, m) -> sendChat(s, (ClientMessage.SendChat) m));
@@ -91,7 +91,7 @@ public final class RequestRouter {
                 room.connectionLost(who.id(), session.sink());
             }
         }
-        directory.release(who.identity());
+        directory.detach(who.identity(), session); // frees the nickname now, or after the grace period if it may reconnect
     }
 
     private static boolean isAllowedBeforeHello(ClientMessage message) {
@@ -110,14 +110,39 @@ public final class RequestRouter {
             return;
         }
         try {
-            PlayerIdentity identity = directory.register(request.nickname());
+            PlayerIdentity identity = directory.register(request.nickname(), request.reconnectable());
             session.identify(identity);
+            directory.attach(identity, session);
             repository.record(new PlayerRecord(identity.id(), identity.nickname()));
             session.sink().offer(new ServerMessage.Welcome(identity.id(), identity.nickname(), identity.token()));
             respond(session, Response.ok(request.requestId()));
         } catch (RequestRejected rejected) {
             respond(session, Response.error(request.requestId(), rejected.code(), rejected.getMessage()));
         }
+    }
+
+    // a new connection claims the identity behind a token (see PlayerDirectory.reattach); the rooms are re-entered by the client
+    private void reconnect(ClientSession session, ClientMessage.Reconnect request) {
+        if (session.isIdentified()) {
+            respond(session, Response.error(request.requestId(), ErrorCode.PROTOCOL_ERROR, "Already identified"));
+            return;
+        }
+        java.util.Optional<PlayerIdentity> found = directory.reattach(request.token(), session);
+        if (found.isEmpty()) {
+            respond(session, Response.error(request.requestId(), ErrorCode.UNKNOWN_TOKEN,
+                    "That session has expired: please sign in again"));
+            return;
+        }
+        PlayerIdentity identity = found.get();
+        session.identify(identity);
+        session.sink().offer(new ServerMessage.Welcome(identity.id(), identity.nickname(), identity.token()));
+        respond(session, Response.ok(request.requestId()));
+    }
+
+    // a deliberate sign-out frees the nickname at once; rooms are cleaned up when the connection closes
+    private void signOut(ClientSession session, ClientMessage.SignOut request) {
+        directory.release(session.participant().identity());
+        respond(session, Response.ok(request.requestId()));
     }
 
     private void listRooms(ClientSession session, ClientMessage.ListRooms request) {

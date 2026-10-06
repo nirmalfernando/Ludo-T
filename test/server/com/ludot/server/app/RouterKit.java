@@ -51,7 +51,7 @@ final class RouterKit implements AutoCloseable {
     final LobbyService lobby;
     final RoomRegistry registry;
     final InMemoryGameRepository repository = new InMemoryGameRepository();
-    final PlayerDirectory directory = new PlayerDirectory();
+    final PlayerDirectory directory;
     final RequestRouter router;
 
     RouterKit() {
@@ -59,7 +59,13 @@ final class RouterKit implements AutoCloseable {
     }
 
     RouterKit(SessionConfig config) {
+        this(config, 0);
+    }
+
+    /** @param reconnectGraceMs how long a dropped reconnectable client keeps its identity (0 = no reconnecting) */
+    RouterKit(SessionConfig config, long reconnectGraceMs) {
         this.config = config;
+        this.directory = new PlayerDirectory(scheduler, reconnectGraceMs);
         this.lobby = new LobbyService(config, clock::get, repository);
         this.registry = new RoomRegistry(config, scheduler, lobby, repository, clock::get);
         this.router = new RequestRouter(directory, registry, lobby, repository);
@@ -77,6 +83,16 @@ final class RouterKit implements AutoCloseable {
     Client hello(String nickname) {
         Client client = connect();
         Response response = client.call(new ClientMessage.Hello(UUID.randomUUID(), nickname));
+        if (!response.isOk()) {
+            throw new AssertionError("Hello failed: " + response);
+        }
+        return client;
+    }
+
+    /** A client that said Hello as a reconnectable client (the GUI does). */
+    Client helloReconnectable(String nickname) {
+        Client client = connect();
+        Response response = client.call(new ClientMessage.Hello(UUID.randomUUID(), nickname, true));
         if (!response.isOk()) {
             throw new AssertionError("Hello failed: " + response);
         }

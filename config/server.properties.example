@@ -26,3 +26,7 @@ db.password=<your-password>
 # speed.fastMs=150
 # speed.normalMs=700
 # speed.slowMs=1500
+
+# How long (ms) a client that can reconnect keeps its nickname, seat and identity after its connection drops.
+# 0 turns reconnecting off. Automatic test clients never use it.
+connection.reconnectGraceMs=30000
