@@ -27,6 +27,9 @@ function Build-Module($name, $main, $deps) {
     & javac @args1 @sources
     if ($LASTEXITCODE -ne 0) { throw "[$name] compile failed" }
 
+    # non-code files (stylesheets, fonts) live in src\<module>\resources and travel inside the module's jar
+    if (Test-Path "src\$name\resources") { Copy-Item -Recurse -Force "src\$name\resources\*" "out\main\$name\" }
+
     if ($main -eq "-") { & jar --create --file "dist\$name.jar" -C "out\main\$name" . }
     else { & jar --create --file "dist\$name.jar" --main-class $main -C "out\main\$name" . }
 

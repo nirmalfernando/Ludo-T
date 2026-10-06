@@ -1,7 +1,11 @@
 package com.ludot.client.view;
 
 import com.ludot.protocol.Colour;
+import java.io.IOException;
+import java.io.InputStream;
+import javafx.scene.Parent;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 /** The few colours and styles the whole UI shares. */
 public final class Theme {
@@ -13,7 +17,33 @@ public final class Theme {
     public static final String CARD_STYLE = "-fx-background-color: white; -fx-border-color: #d5dbe1; "
             + "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;";
 
+    /** Style class carried by the screens that use the friendly look (see playful.css). */
+    public static final String PLAYFUL = "playful";
+
+    private static final String STYLESHEET = "/playful.css";
+    private static final String DISPLAY_FONT = "/fonts/LilitaOne-Regular.ttf";
+
     private Theme() {
+    }
+
+    /** Loads the rounded display font so CSS can use it; a missing font only means the fallback font is used. */
+    public static void loadFonts() {
+        try (InputStream in = Theme.class.getResourceAsStream(DISPLAY_FONT)) {
+            if (in != null) {
+                Font.loadFont(in, 12);
+            }
+        } catch (IOException e) {
+            // the stylesheet names fallback fonts, so there is nothing to do
+        }
+    }
+
+    /** Gives a screen (or dialog root) the friendly look; the rules are scoped, so nothing else changes. */
+    public static void applyPlayful(Parent root) {
+        root.getStyleClass().add(PLAYFUL);
+        var url = Theme.class.getResource(STYLESHEET);
+        if (url != null) {
+            root.getStylesheets().add(url.toExternalForm());
+        }
     }
 
     /** Strong colour for pieces and home straights. */

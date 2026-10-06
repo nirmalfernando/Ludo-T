@@ -82,7 +82,7 @@ There is no Maven or Gradle: shell scripts compile everything.
 ./run-client.sh         # terminal 2: a GUI client; run it again for a second player
 ```
 
-In the client: **Connect** (nickname 3-16 letters, digits or `_`) → **New room…** → take a seat → **Start game** →
+In the client: **Connect** (nickname 3-16 letters, digits or `_`; the server address is under *Server settings*) → **Create game** → take a seat → **Start game** →
 **Roll** → click a glowing piece. A second client can join the same room, as a spectator or by taking a seat.
 
 To watch the game with no one playing: create a **Bot match** and join it from a second window.
@@ -218,7 +218,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 | `core` (264) | The original Phase 1 unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the Assignment 1 output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
-| `client` (21) | Board geometry, state model and sequence-gap handling, countdown clock |
+| `client` (28) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card looks |
 | `bot` (14) | Bot strategies, request mix, statistics |
 | `integration` (3) | Four bots finish a game; two stress clients flood one room, all against a live server |
 
@@ -258,6 +258,7 @@ Ludo-T/
 │   │   ├── adapters/          # net (sockets), jdbc, persistence (async writer), memory
 │   │   └── GameServer, ServerMain, DbTool, DemoGameSeeder   # composition roots
 │   ├── client/com/ludot/client/   # ClientApp, state/ (RoomModel, ClientState), view/ (screens, BoardView), net/
+│   ├── client/resources/          # playful.css (connect screen, lobby, New game dialog) and the Lilita One font (SIL OFL, see fonts/OFL.txt)
 │   └── bot/com/ludot/bot/     # BotClient, StressClient, strategies, statistics
 ├── test/<module>/             # tests mirror the modules; test/integration spans all of them
 ├── test-resources/golden/     # the four Assignment 1 game logs

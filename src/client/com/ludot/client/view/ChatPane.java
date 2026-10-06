@@ -36,8 +36,10 @@ public final class ChatPane extends BorderPane {
         list.setFocusTraversable(false);
         list.setCellFactory(view -> new ChatCell(myId));
         input.setPromptText("Say something…");
+        input.getStyleClass().add("chat-input");
         input.setOnAction(event -> send(sender));
         Button send = new Button("Send");
+        send.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
         send.setOnAction(event -> send(sender));
         HBox.setHgrow(input, Priority.ALWAYS);
         HBox bar = new HBox(6, input, send);

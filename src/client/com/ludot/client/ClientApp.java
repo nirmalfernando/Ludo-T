@@ -6,6 +6,7 @@ import com.ludot.client.state.RoomModel;
 import com.ludot.client.view.ConnectScreen;
 import com.ludot.client.view.LobbyScreen;
 import com.ludot.client.view.RoomScreen;
+import com.ludot.client.view.Theme;
 import com.ludot.client.view.Toasts;
 import com.ludot.protocol.ClientMessage;
 import java.awt.image.BufferedImage;
@@ -47,6 +48,7 @@ public final class ClientApp extends Application {
     @Override
     public void start(Stage stage) {
         parseArguments(getParameters().getRaw());
+        Theme.loadFonts();
         root.getChildren().add(screenHolder);
         stage.setTitle("LUDO-T Online");
         stage.setScene(new Scene(root, 1240, 780));

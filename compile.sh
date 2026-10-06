@@ -34,6 +34,11 @@ build_module() {
     # shellcheck disable=SC2086
     javac --release $RELEASE -encoding UTF-8 -d "out/main/$name" ${fx[@]+"${fx[@]}"} ${cp:+-cp "$cp"} $sources
 
+    # non-code files (stylesheets, fonts) live in src/<module>/resources and travel inside the module's jar
+    if [ -d "src/$name/resources" ]; then
+        cp -R "src/$name/resources/." "out/main/$name/"
+    fi
+
     if [ "$main" = "-" ]; then
         jar --create --file "dist/$name.jar" -C "out/main/$name" .
     else
