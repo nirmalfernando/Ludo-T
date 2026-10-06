@@ -4,9 +4,9 @@ A multi-user, multi-tier, client-server version of **LUDO-T**, a modified Ludo w
 blockades. Several people play together from JavaFX clients, AI players fill the empty seats, anyone else can
 watch and chat, and every game is stored in a PostgreSQL database.
 
-It is the Assignment 2 refactoring of the Phase 1 console simulation (COMP63038, Clean Coding and Concurrent
-Programming). The Phase 1 game rules, strategies and Clean Architecture are unchanged: the golden-log tests
-replay four seeded games and require the output to be byte-identical to the original.
+It grew out of a single-machine console simulation. The game rules, strategies and Clean Architecture of that
+original are unchanged: the golden-log tests replay four seeded games and require the output to be byte-identical
+to the original recordings.
 
 | | |
 |---|---|
@@ -216,7 +216,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 
 | Suite | What it covers |
 |---|---|
-| `core` (264) | The original Phase 1 unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the Assignment 1 output byte for byte; phased-turn tests |
+| `core` (264) | The original unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the original recorded output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
 | `client` (92) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing, event-log categories, the synthesised sounds and their mapping, confetti physics, reconnect retry rules and stale-connection detection, replay state and wording |
@@ -262,7 +262,7 @@ Ludo-T/
 │   ├── client/resources/          # playful.css (connect screen, lobby, New game dialog) and the Lilita One font (SIL OFL, see fonts/OFL.txt)
 │   └── bot/com/ludot/bot/     # BotClient, StressClient, strategies, statistics
 ├── test/<module>/             # tests mirror the modules; test/integration spans all of them
-├── test-resources/golden/     # the four Assignment 1 game logs
+├── test-resources/golden/     # the four recorded game logs
 ├── db/                        # schema.sql, seed.sql, reset.sql
 ├── config/                    # server.properties.example (the real file is git-ignored)
 ├── lib/                       # JUnit and Mockito (committed); JavaFX SDK, JDBC drivers (downloaded, ignored)
@@ -293,7 +293,7 @@ Ludo-T/
 
 ---
 
-# Phase 1: the LUDO-T rules and scenario seeds
+# The LUDO-T rules and scenario seeds
 
 The core game is still runnable on its own, with no server: `./run.sh <seed>` (or `run.bat <seed>` on Windows).
 It plays four AI strategies against each other and prints a narrated log. With no seed it uses `42`. Save the
