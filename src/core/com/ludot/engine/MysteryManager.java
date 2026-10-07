@@ -10,7 +10,7 @@ import com.ludot.rules.mystery.MysteryRule;
 import java.util.Optional;
 
 /**
- * Manages the mystery-cell lifecycle including spawning, landing resolution, and expiry tracking.
+ * Manages the mystery-cell lifecycle: spawning after two rounds, four rounds on one cell, then reappearing elsewhere.
  * Delegates spawn-location selection and teleport resolution to MysteryRule; implements Rules T-10, T-11, and T-15.
  */
 public class MysteryManager {
@@ -40,16 +40,12 @@ public class MysteryManager {
         roundsActive = 0;
     }
 
-    /** Resolves a mystery-cell landing into a TeleportDestination and clears the active cell (Rule T-11). */
+    /** Resolves a landing on the mystery cell into a TeleportDestination (Rule T-11); the cell stays where it is. */
     public Optional<TeleportDestination> handleLanding(Piece piece) {
         if (currentCell == null) {
             return Optional.empty();
         }
-        TeleportDestination dest = mysteryRule.resolveTeleport(piece, board);
-        currentCell.setMysteryCell(false);
-        currentCell = null;
-        roundsActive = 0;
-        return Optional.of(dest);
+        return Optional.of(mysteryRule.resolveTeleport(piece, board));
     }
 
     /** Returns true if a mystery cell is currently active on the board. */
@@ -57,17 +53,26 @@ public class MysteryManager {
         return currentCell != null;
     }
 
-    /** Advances the mystery-cell lifespan counter and clears the cell once it expires (Rule T-15). */
-    public void tick() {
+    /**
+     * Advances the cell's age by one round. After {@link GameConstants#MYSTERY_LIFESPAN} rounds the cell is taken off
+     * the board; the caller then spawns it again at another place (T-10: it reappears elsewhere, never twice in a row
+     * on the same cell).
+     *
+     * @return the cell that has just expired, or empty if it is still active (or there is none)
+     */
+    public Optional<Cell> tick() {
         if (currentCell == null) {
-            return;
+            return Optional.empty();
         }
         roundsActive++;
-        if (roundsActive >= LIFESPAN) {
-            currentCell.setMysteryCell(false);
-            currentCell = null;
-            roundsActive = 0;
+        if (roundsActive < LIFESPAN) {
+            return Optional.empty();
         }
+        Cell expired = currentCell;
+        expired.setMysteryCell(false);
+        currentCell = null;
+        roundsActive = 0;
+        return Optional.of(expired);
     }
 
     /** Returns the currently active mystery cell, or null if none is present. */

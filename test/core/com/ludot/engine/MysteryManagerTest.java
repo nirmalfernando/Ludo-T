@@ -19,14 +19,14 @@ class MysteryManagerTest {
         @Test @DisplayName("isActive false initially") void notActiveInitially() {
         assertFalse(new MysteryManager(new FixedRandomProvider(), board).isActive());
     }
-    @Test @DisplayName("spawnMystery does nothing before round 3") void noSpawnBeforeRound3() {
+    @Test @DisplayName("T-10: spawnMystery does nothing before two rounds have passed") void noSpawnBeforeRound2() {
         MysteryManager m = new MysteryManager(new FixedRandomProvider().addCells(5), board);
+        m.spawnMystery(0); assertFalse(m.isActive());
         m.spawnMystery(1); assertFalse(m.isActive());
-        m.spawnMystery(2); assertFalse(m.isActive());
     }
-    @Test @DisplayName("spawnMystery marks cell after round 2") void spawnsAfterRound2() {
+    @Test @DisplayName("T-10: spawnMystery marks a cell once two rounds have passed") void spawnsAfterRound2() {
         MysteryManager m = new MysteryManager(new FixedRandomProvider().addCells(5), board);
-        m.spawnMystery(3);
+        m.spawnMystery(2);
         assertTrue(m.isActive());
         assertTrue(m.getCurrentCell().isMysteryCell());
     }
@@ -47,12 +47,29 @@ class MysteryManagerTest {
         assertFalse(m.isActive(), "Manager must remain inactive after landing on nothing");
     }
 
-    @Test @DisplayName("handleLanding clears cell and returns destination") void handlesLanding() {
+    @Test @DisplayName("T-11: a landing returns the destination and the cell stays where it is for its four rounds")
+    void handlesLanding() {
         FixedRandomProvider fp = new FixedRandomProvider().addCells(5).addMysteryEffects(1);
         MysteryManager m = new MysteryManager(fp, board);
-        m.spawnMystery(3);
+        m.spawnMystery(2);
         TeleportDestination dest = m.handleLanding(new Piece("R1", Colour.RED, board)).orElse(null);
         assertEquals(TeleportDestination.ALPHA, dest);
+        assertTrue(m.isActive(), "the mystery cell is not used up by a landing");
+        assertTrue(m.getCurrentCell().isMysteryCell());
+    }
+
+    @Test @DisplayName("T-10: after four rounds the cell expires, and a new spawn never reuses the same place")
+    void reappearsElsewhere() {
+        FixedRandomProvider fp = new FixedRandomProvider().addCells(5, 5, 9);
+        MysteryManager m = new MysteryManager(fp, board);
+        m.spawnMystery(2);
+        int first = m.getCurrentCell().getId();
+        for (int round = 0; round < 3; round++) {
+            assertTrue(m.tick().isEmpty(), "still active in round " + (round + 1));
+        }
+        assertEquals(first, m.tick().orElseThrow().getId(), "the fourth round ends its life");
         assertFalse(m.isActive());
+        m.spawnMystery(6);
+        assertNotEquals(first, m.getCurrentCell().getId(), "never the same place twice in a row");
     }
 }

@@ -19,6 +19,11 @@ public class BaseDiceRule implements GameRule {
     }
 
     
+    /** Consecutive sixes count within one turn (Rule 4): a new turn starts from zero. */
+    public final void startTurn(Player player) {
+        consecutiveSixes.put(player.getColour(), 0);
+    }
+
     public final boolean handleRoll(Player player, int roll) {
         if (roll == GameConstants.LEAVE_BASE_ROLL) {
             int count = consecutiveSixes.getOrDefault(player.getColour(), 0) + 1;

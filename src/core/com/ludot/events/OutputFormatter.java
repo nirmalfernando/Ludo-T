@@ -238,37 +238,10 @@ public class OutputFormatter {
 
     // O3/O4: first-player announcement and play order
     public String format(TurnOrderEvent e) {
-        Map<Colour, Integer> rolls = e.rollResults();
         List<Player> order = e.order();
-        long distinctValues = rolls.values().stream().distinct().count();
-        StringBuilder sb = new StringBuilder();
-
-        if (distinctValues == 1) {
-            int rolled = rolls.values().iterator().next();
-            sb.append("All players rolled ").append(rolled)
-              .append(". Play order determined alphabetically.");
-        } else {
-            // O3
-            sb.append(cap(e.first().getColour()))
-              .append(" player has the highest roll and will begin the game.");
-            rolls.values().stream().distinct().forEach(rollVal -> {
-                List<String> tied = order.stream()
-                        .filter(p -> rolls.get(p.getColour()) == rollVal)
-                        .map(p -> cap(p.getColour()))
-                        .collect(Collectors.toList());
-                if (tied.size() >= 2) {
-                    sb.append("\n").append(joinNames(tied))
-                      .append(" all rolled ").append(rollVal)
-                      .append(" and are ordered alphabetically.");
-                }
-            });
-        }
-
-        // O4
-        sb.append("\nThe order of a single round is ").append(joinNames(
-                order.stream().map(p -> cap(p.getColour())).collect(Collectors.toList())
-        )).append(".");
-        return sb.toString();
+        return cap(e.first().getColour()) + " player has the highest roll and will begin the game."
+                + "\nThe order of a single round is "
+                + joinNames(order.stream().map(p -> cap(p.getColour())).collect(Collectors.toList())) + ".";
     }
 
     // O12/O17: round-end status table with optional mystery cell line
@@ -326,6 +299,7 @@ public class OutputFormatter {
             case "ALPHA"        -> "Alpha Cell";
             case "BETA"         -> "Beta Cell";
             case "GAMMA"        -> "Gamma Cell";
+            case "BLOCKED"      -> "nowhere (blocked)";
             case "BASE"         -> "Base";
             case "START_CELL"   -> "Start Cell";
             case "APPROACH_CELL"-> "Approach Cell";
@@ -362,8 +336,11 @@ public class OutputFormatter {
         String name = pieceLabel(piece);
         return switch (dest) {
             case ALPHA         -> describeAlpha(piece, name);
-            case GAMMA         -> name + ", which was moving " + directionWord(dirBefore)
-                    + ", has changed to moving " + directionWord(piece.getDirection()) + ".";
+            case GAMMA         -> dirBefore == Direction.COUNTER_CLOCKWISE
+                    ? name + " is moving in a counter-clockwise direction. Teleporting to Beta from Gamma.\n"
+                            + name + " attends briefing and cannot move for four rounds."
+                    : name + ", which was moving " + directionWord(dirBefore)
+                            + ", has changed to moving " + directionWord(piece.getDirection()) + ".";
             case BETA          -> name + " attends briefing and cannot move for four rounds.";
             case BASE          -> name + " has been sent back to base.";
             case START_CELL    -> name + " teleported to their start cell.";

@@ -56,30 +56,30 @@ pieces each, and a 52-cell loop with a five-cell home straight per colour.
 | Leaving base | Roll a **6** to bring a piece out onto your start cell. |
 | Bonus rolls | A 6 gives you another roll. **Three 6s in a row** are penalised (no further bonus). Capturing also gives another roll. |
 | Capturing | Landing exactly on a **single** opponent piece sends it back to its base. |
-| Own pieces | You cannot land on your own piece, so there are no blockades. |
-| Home | A piece enters the home straight after passing its approach cell and must reach the final cell by an **exact** roll (no overshooting). First to bring all four pieces home wins. |
+| Own pieces | You cannot land on your own piece, so there are no blockades; if no other piece can move, the roll is ignored. |
+| Home | A piece enters the home straight after landing on or passing its approach cell and must reach the final cell by an **exact** roll (no overshooting). First to bring all four pieces home wins. |
 
 ### LUDO-T (the twist)
 
-Everything in Classic, plus these rules (the **T-n** tags are the identifiers used in the game log and the tests):
+Everything in Classic (except that you *may* land on your own piece: that is how blockades form), plus these rules (the **T-n** tags are the identifiers used in the game log and the tests):
 
 | Rule | What it does |
 |---|---|
 | **T-1** Direction | When a piece leaves base a **coin toss** decides if it travels clockwise or counter-clockwise. A counter-clockwise piece must pass its approach cell **twice** before it may turn into the home straight. |
 | **T-2** Bonus on capture | A capture earns another roll. |
-| **T-3** Blockades | Two or more pieces of one colour on the same cell form a **blockade**; opponents cannot land on it or pass through it. |
+| **T-3** Blockades | Two or more pieces of one colour on the same cell form a **blockade**; opponents cannot land on it **or jump over it**: a piece stops on the cell before it. |
 | **T-4** Moving a blockade | A blockade moves as one: it advances **roll ÷ size** cells (rounded down), so a block of 3 needs a roll of at least 3 to move. |
 | **T-5** Breaking a blockade | When a blockade splits, each piece goes back to the direction it had before. |
-| **T-6** Triple six | Rolling **three 6s in a row** forces one of your blockades to break up. |
+| **T-6** Triple six | Rolling **three 6s in a row** forces your blockade to break up: one piece stays, the others move away (6 cells, then 12, ...). |
 | **T-7** Earning home | A piece may only enter the home straight after it has **captured at least once**. |
 | **T-8** Block against block | A blockade can only be captured by an opposing blockade of **exactly the same size**. |
 | **T-9** Capture | A captured piece (or blockade) goes back to its base. |
-| **T-10** Mystery cell | A **mystery cell** appears on a random cell and stays for **4 rounds**. |
-| **T-11** Teleport | A piece that lands on it is teleported to a special cell: the start cell, **Alpha**, **Beta** or **Gamma**. |
+| **T-10** Mystery cell | After two rounds a **mystery cell** appears on a random empty cell, stays for **4 rounds**, then reappears somewhere else. |
+| **T-11** Teleport | A piece that lands on it is teleported to its start cell, its approach cell, its base, or to **Alpha** (cell 7), **Beta** (cell 25) or **Gamma** (cell 44). |
 | **T-12** Alpha | The piece becomes **Energised** (moves twice as far) or **Sick** (moves half as far) for 4 rounds. |
 | **T-13** Beta | The piece must attend a **briefing**: it cannot move for 4 rounds, unless it rolls **three 3s in a row**, which sends it to base early. |
-| **T-14** Gamma | The piece **reverses direction**. |
-| **T-15** Expiry | After 4 rounds the mystery cell disappears. |
+| **T-14** Gamma | A clockwise piece turns **counter-clockwise**; a counter-clockwise piece is teleported on to **Beta**. |
+| **T-15** Effects | Alpha, Beta and Gamma only do something when a piece is *teleported* there; walking over them does nothing. |
 
 ## Try the rules: scenario seeds
 
@@ -94,10 +94,14 @@ These four seeds each show particular rules clearly. Run one in the console with
 
 | Seed | What it demonstrates | A line to look for in the log |
 |---|---|---|
-| `1` | The core rules: T-1 direction, T-2 bonus, T-3/T-4 blockades, T-5 break, T-6 triple six, T-7 home entry refused, T-8 block capture, T-9 capture, T-10/T-11 mystery cells, T-14 Gamma, T-15 expiry | `G1 forms a blockade with G2 at cell 39 (T-3)` |
-| `2` | T-12 Alpha makes a piece **Sick**; T-13 Beta sends a piece to **briefing** | `Red piece R1 feels sick, and movement speed halves.` |
-| `3` | T-12 Alpha makes a piece **Energised** | `Yellow piece Y4 feels energized, and movement speed doubles.` |
-| `2069` | The rare T-13 **early escape** from briefing with three 3s (also the demo game stored by `./run-dbtool.sh reset`) | `Teleporting piece R3 to base.` |
+| `1` | The core rules: T-1 direction, T-2 bonus, T-3/T-4 blockades, T-5 break, T-6 triple six, T-7 home entry refused, T-8 block capture, T-9 capture, T-10/T-11 mystery cells, T-14 Gamma, T-15 expiry | `G2 forms a blockade with G3 at cell 39 (T-3)` |
+| `2` | T-12 Alpha makes a piece **Sick**; T-13 Beta sends a piece to **briefing** | `Green piece G1 feels sick, and movement speed halves.` |
+| `3` | T-12 Alpha makes a piece **Energised** | `Green piece G4 feels energized, and movement speed doubles.` |
+| `20` | The rare T-13 **early escape** from briefing with three 3s | `Teleporting piece B3 to base.` |
+| `2069` | The demo game stored by `./run-dbtool.sh reset`: a complete game with blockades and mystery cells | `Mystery cell expires.` |
+
+A game in which blockades jam each other so that nobody can move again is ended after 100 rounds without movement
+and awarded to the player furthest ahead (see [RULES_INTERPRETATION](docs/RULES_INTERPRETATION.md)).
 
 The recorded logs of these seeds are kept in `test-resources/golden/` and checked by the tests, so the rules cannot
 change by accident. The [developer guide](docs/DEVELOPER_GUIDE.md#the-ludo-t-rules-and-scenario-seeds) lists

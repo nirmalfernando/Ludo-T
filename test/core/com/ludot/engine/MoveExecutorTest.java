@@ -35,13 +35,14 @@ class MoveExecutorTest {
 
     private Board board;
     private MoveExecutor executor;
+    private FixedRandomProvider random;
     private List<GameEvent> published;
     @BeforeEach void setUp() {
         board = TestBoard.create();
         published = new ArrayList<>();
         EventBus bus = new EventBus();
         bus.subscribe(published::add);
-        FixedRandomProvider random = new FixedRandomProvider();
+        random = new FixedRandomProvider();
         RuleEngine rules = RuleEngineFactory.createLudoTRuleEngine(random);
         MysteryManager mm = new MysteryManager(random, board);
         executor = new MoveExecutor(board, rules, mm, bus);
@@ -89,25 +90,17 @@ class MoveExecutorTest {
 
     // ── T-5: block formation must save originalDirection ─────────────────────
 
-    @Test @DisplayName("T-5: block formation saves originalDirection for all pieces in the block")
-    void blockFormationSavesOriginalDirection() {
-        Piece resident = new Piece("R1", Colour.RED, board);
-        Piece mover    = new Piece("R2", Colour.RED, board);
-        Cell cell5 = board.getCell(5);
-        Cell cell3 = board.getCell(3);
+    @Test @DisplayName("T-5: the direction a piece is given when it is placed on X is remembered as its original direction")
+    void originalDirectionIsRememberedWhenLeavingBase() {
+        Piece piece = new Piece("R1", Colour.RED, board);
+        random.addCoins(false); // tails: counter-clockwise (T-1)
 
-        cell5.addPiece(resident); resident.setPosition(cell5);
-        resident.setState(new OnBoardState()); resident.setDirection(Direction.CLOCKWISE);
+        executor.execute(new com.ludot.command.MoveFromBase(piece));
 
-        cell3.addPiece(mover); mover.setPosition(cell3);
-        mover.setState(new OnBoardState()); mover.setDirection(Direction.CLOCKWISE);
-
-        executor.execute(new MoveOnBoard(mover, 2)); // lands on cell5 → forms block
-
-        assertEquals(Direction.CLOCKWISE, mover.getOriginalDirection(),
-                "T-5: mover's originalDirection must be saved when block forms");
-        assertEquals(Direction.CLOCKWISE, resident.getOriginalDirection(),
-                "T-5: resident's originalDirection must be saved when block forms");
+        assertEquals(Direction.COUNTER_CLOCKWISE, piece.getOriginalDirection(),
+                "T-5: the original direction is the one it had when placed on X");
+        piece.setDirection(Direction.CLOCKWISE); // later changes (Gamma, a block) do not alter what it reverts to
+        assertEquals(Direction.COUNTER_CLOCKWISE, piece.getOriginalDirection());
     }
 
     @Test @DisplayName("T-5: full cycle — block forms, directions saved, break restores them")

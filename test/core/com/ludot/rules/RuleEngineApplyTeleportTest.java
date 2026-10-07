@@ -82,26 +82,70 @@ class RuleEngineApplyTeleportTest {
 
     // ── GAMMA ─────────────────────────────────────────────────────────────────
 
-    @Test @DisplayName("GAMMA on CW piece flips direction to CCW and triggers Beta (T-14)")
-    void gammaCwFlipsToCcwAndBeta() {
+    @Test @DisplayName("T-14: GAMMA on a clockwise piece puts it on cell 44 and turns it counter-clockwise, with no briefing")
+    void gammaCwFlipsToCcw() {
         RuleEngine engine = engineWith(true);
         Piece p = onBoardPiece(Colour.RED, 10, Direction.CLOCKWISE);
         engine.applyMysteryEffect(p, TeleportDestination.GAMMA);
-        assertEquals(Direction.COUNTER_CLOCKWISE, p.getDirection(),
-                "GAMMA on CW piece must flip to CCW");
-        assertInstanceOf(AtBriefingState.class, p.getState(),
-                "GAMMA CW→CCW must also apply Beta (briefing)");
+        assertEquals(44, p.getPosition().getId(), "Gamma is the 46th cell from yellow's approach cell");
+        assertEquals(Direction.COUNTER_CLOCKWISE, p.getDirection());
+        assertInstanceOf(OnBoardState.class, p.getState(), "no briefing for a clockwise piece");
     }
 
-    @Test @DisplayName("GAMMA on CCW piece flips direction to CW only — no Beta (T-14)")
-    void gammaCcwFlipsToCwNoBeta() {
+    @Test @DisplayName("T-14: GAMMA on a counter-clockwise piece teleports it on to Beta (cell 25), where it attends a briefing")
+    void gammaCcwGoesOnToBeta() {
         RuleEngine engine = engineWith(true);
         Piece p = onBoardPiece(Colour.RED, 10, Direction.COUNTER_CLOCKWISE);
         engine.applyMysteryEffect(p, TeleportDestination.GAMMA);
-        assertEquals(Direction.CLOCKWISE, p.getDirection(),
-                "GAMMA on CCW piece must flip to CW");
-        assertInstanceOf(OnBoardState.class, p.getState(),
-                "GAMMA CCW→CW must NOT apply Beta");
+        assertEquals(25, p.getPosition().getId(), "teleported to Beta from Gamma");
+        assertEquals(Direction.COUNTER_CLOCKWISE, p.getDirection(), "its direction is not changed");
+        assertInstanceOf(AtBriefingState.class, p.getState());
+    }
+
+    // ── where Alpha, Beta and Gamma are (T-11) ───────────────────────────────
+
+    @Test @DisplayName("T-11: Alpha is cell 7 and Beta is cell 25: the 9th and 27th cells from yellow's approach cell (50)")
+    void alphaAndBetaAreRealCells() {
+        RuleEngine engine = engineWith(true);
+        Piece alpha = onBoardPiece(Colour.RED, 10, Direction.CLOCKWISE);
+        engine.applyMysteryEffect(alpha, TeleportDestination.ALPHA);
+        assertEquals(7, alpha.getPosition().getId());
+        Piece beta = onBoardPiece(Colour.BLUE, 10, Direction.CLOCKWISE);
+        engine.applyMysteryEffect(beta, TeleportDestination.BETA);
+        assertEquals(25, beta.getPosition().getId());
+    }
+
+    // ── what is on the destination cell ──────────────────────────────────────
+
+    @Test @DisplayName("a lone opponent on the destination is captured by the arrival (Rule 6)")
+    void teleportCapturesALoneOpponent() {
+        RuleEngine engine = engineWith(true);
+        Piece victim = onBoardPiece(Colour.BLUE, 7, Direction.CLOCKWISE);
+        Piece p = onBoardPiece(Colour.RED, 10, Direction.CLOCKWISE);
+        var captured = engine.applyMysteryEffect(p, TeleportDestination.ALPHA);
+        assertEquals(java.util.Optional.of(victim), captured);
+        assertNull(victim.getPosition());
+        assertEquals(1, p.getCaptureCount());
+    }
+
+    @Test @DisplayName("an opposing block on the destination refuses the teleport: the piece stays where it is")
+    void teleportRefusedByAnOpposingBlock() {
+        RuleEngine engine = engineWith(true);
+        onBoardPiece(Colour.BLUE, 25, Direction.CLOCKWISE);
+        onBoardPiece(Colour.BLUE, 25, Direction.CLOCKWISE);
+        Piece p = onBoardPiece(Colour.RED, 10, Direction.CLOCKWISE);
+        engine.applyMysteryEffect(p, TeleportDestination.BETA);
+        assertEquals(10, p.getPosition().getId());
+        assertInstanceOf(OnBoardState.class, p.getState(), "no briefing either: the teleport did not happen");
+    }
+
+    @Test @DisplayName("T-15: landing on Alpha, Beta or Gamma without a teleport has no effect")
+    void landingOnTheCellsHasNoEffect() {
+        RuleScenario game = RuleScenario.ludoT();
+        Piece piece = game.piece("R1", Colour.RED, 4, Direction.CLOCKWISE);
+        game.executor().execute(game.movesFor(Colour.RED, 3).get(0), game.playerOf(Colour.RED)); // 4 -> 7 (Alpha)
+        assertEquals(7, piece.getPosition().getId());
+        assertInstanceOf(com.ludot.effects.NoEffect.class, piece.getActiveEffect());
     }
 
     // ── BASE ─────────────────────────────────────────────────────────────────

@@ -53,10 +53,11 @@ class BlockCaptureMoveTest {
         assertFalse(source.isOccupied());
     }
 
-    @Test @DisplayName("captureCount incremented for each attacker") void captureCountIncremented() {
+    @Test @DisplayName("T-8: execute() leaves the capture counts alone; MoveExecutor credits each attacker once via the capture rule")
+    void captureCountsAreCreditedByTheExecutor() {
         move().execute();
-        assertEquals(1, a1.getCaptureCount(), "a1 must get captureCount +1");
-        assertEquals(1, a2.getCaptureCount(), "a2 must get captureCount +1");
+        assertEquals(0, a1.getCaptureCount(), "crediting happens once per victim in MoveExecutor, not here");
+        assertEquals(0, a2.getCaptureCount(), "crediting happens once per victim in MoveExecutor, not here");
     }
 
     @Test @DisplayName("T-8: victim reset is NOT done inside execute() — that belongs to CaptureRule in MoveExecutor")

@@ -18,13 +18,15 @@ class MysteryRuleTest {
 
     private Board board;
     @BeforeEach  void setUp()    { board = TestBoard.create(); }
-        @Test @DisplayName("shouldSpawn false for rounds 1 and 2") void noSpawnEarly() {
+        @Test @DisplayName("T-10: shouldSpawn is false before two rounds have passed") void noSpawnEarly() {
         MysteryRule rule = new MysteryRule(new FixedRandomProvider());
+        assertFalse(rule.shouldSpawn(0));
         assertFalse(rule.shouldSpawn(1));
-        assertFalse(rule.shouldSpawn(2));
     }
-    @Test @DisplayName("shouldSpawn true after round 2") void spawnAfterRoundTwo() {
-        assertTrue(new MysteryRule(new FixedRandomProvider()).shouldSpawn(3));
+    @Test @DisplayName("T-10: shouldSpawn is true once two rounds have passed") void spawnAfterRoundTwo() {
+        MysteryRule rule = new MysteryRule(new FixedRandomProvider());
+        assertTrue(rule.shouldSpawn(2));
+        assertTrue(rule.shouldSpawn(3));
     }
     @Test @DisplayName("getRandomSpawnCell never repeats last location") void noConsecutiveRepeat() {
         FixedRandomProvider fp = new FixedRandomProvider().addCells(5, 5, 10);

@@ -22,9 +22,10 @@ class PlayerTest {
         }
         return new Player(Colour.RED, pieces, (gs,r,ps,m)->m.get(0));
     }
-    @Test @DisplayName("getPiecesAtBase includes AtBaseState and AtBriefingState") void piecesAtBase() {
+    @Test @DisplayName("getPiecesAtBase is AtBaseState only: a piece in briefing is sitting on the board (cell 25)") void piecesAtBase() {
         Player p = makePlayer(new AtBaseState(), new AtBriefingState(4), new OnBoardState());
-        assertEquals(2, p.getPiecesAtBase().size());
+        assertEquals(1, p.getPiecesAtBase().size());
+        assertEquals(2, p.getPiecesOnBoard().size(), "the OnBoard piece and the briefed piece");
     }
     @Test @DisplayName("getPiecesOnBoard includes OnBoardState and InHomeStraightState") void piecesOnBoard() {
         Player p = makePlayer(new OnBoardState(), new InHomeStraightState(), new AtBaseState());

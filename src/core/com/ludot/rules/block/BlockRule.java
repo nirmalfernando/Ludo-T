@@ -64,7 +64,6 @@ public class BlockRule implements GameRule {
         for (Piece piece : block) {
             if (piece.getOriginalDirection() != null) {
                 piece.setDirection(piece.getOriginalDirection());
-                piece.setOriginalDirection(null);
             }
         }
     }

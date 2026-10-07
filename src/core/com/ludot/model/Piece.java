@@ -3,6 +3,7 @@ package com.ludot.model;
 import com.ludot.GameConstants;
 import com.ludot.effects.Effect;
 import com.ludot.effects.NoEffect;
+import com.ludot.model.state.AtBriefingState;
 import com.ludot.model.state.PieceState;
 import com.ludot.model.state.AtBaseState;
 
@@ -111,6 +112,13 @@ public class Piece {
     }
 
     
+    /** Counts one round of briefing (T-13) if the piece is in one. */
+    public void tickBriefing() {
+        if (state instanceof AtBriefingState briefing) {
+            briefing.tickRound(this);
+        }
+    }
+
     public void tickEffect() {
         activeEffect.tick();
         if (activeEffect.isExpired()) {

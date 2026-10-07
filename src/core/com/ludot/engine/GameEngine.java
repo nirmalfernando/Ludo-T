@@ -15,6 +15,7 @@ import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Colour;
 import com.ludot.model.GameState;
+import com.ludot.GameConstants;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
@@ -38,6 +39,8 @@ public class GameEngine {
     private final RuleEngine ruleEngine;
     private final EventBus eventBus;
     private final RandomProvider random;
+    private static final int MAX_ROLL_OFFS = 50; // a guard against dice that tie for ever (a rigged test source)
+
     private GamePhase phase = GamePhase.NOT_STARTED;
     private int currentIndex;   // seat in play order whose turn it is
     private int stepNumber;     // rolls + moves applied so far
@@ -168,6 +171,9 @@ public class GameEngine {
         }
     }
 
+    private int idleRounds;
+    private String lastSignature = "";
+
     private void beginTurn() {
         turnManager.beginTurn(getCurrentPlayer());
         phase = GamePhase.AWAITING_ROLL;
@@ -175,13 +181,15 @@ public class GameEngine {
 
     // called when a player's turn (bonus rolls included) is fully over
     private void completeTurn() {
-        boolean won = checkWinCondition();
         boolean roundOver = currentIndex == players.size() - 1;
+        boolean won = checkWinCondition();
+        boolean stalemate = !won && roundOver && isStalemate();
         if (won || roundOver) {
             endRound();
         }
-        if (won) {
-            Player winner = players.stream().filter(Player::hasWon).findFirst().orElse(players.get(0));
+        if (won || stalemate) {
+            Player winner = won ? players.stream().filter(Player::hasWon).findFirst().orElse(players.get(0))
+                    : leader();
             eventBus.publish(new WinEvent(winner, turnManager.getRoundCount()));
             phase = GamePhase.FINISHED;
             return;
@@ -190,27 +198,53 @@ public class GameEngine {
         beginTurn();
     }
 
-    /** Conducts the roll-off to determine play order; highest roll goes first, ties broken alphabetically. */
+    // Opposing blockades can end up jammed against each other so that no piece of any colour can ever move again (T-3
+    // forbids jumping a blockade). After STALEMATE_ROUNDS rounds without a single piece moving the game is adjudicated
+    // in favour of the player furthest ahead; this is documented in docs/RULES_INTERPRETATION.md.
+    private boolean isStalemate() {
+        String signature = players.stream().flatMap(player -> player.getPieces().stream())
+                .map(piece -> (piece.getPosition() == null ? "-" : piece.getPosition().getId())
+                        + piece.getState().getStateName())
+                .collect(java.util.stream.Collectors.joining(","));
+        idleRounds = signature.equals(lastSignature) ? idleRounds + 1 : 0;
+        lastSignature = signature;
+        return idleRounds >= GameConstants.STALEMATE_ROUNDS;
+    }
+
+    // the player with most pieces home, then most captures
+    private Player leader() {
+        return players.stream().max(java.util.Comparator
+                .comparingInt((Player player) -> player.getPiecesAtHome().size())
+                .thenComparingInt(player -> player.getPieces().stream().mapToInt(Piece::getCaptureCount).sum()))
+                .orElse(players.get(0));
+    }
+
+    /**
+     * Conducts the roll-off (PDF, section 1.1): everyone rolls and the highest roller plays first; players who tie for
+     * the highest roll roll again. Play then passes clockwise, which is the order of the colours R, G, Y, B.
+     */
     public Player determineFirstPlayer() {
-        List<int[]> rolls = new ArrayList<>(); // [originalIndex, roll]
         Map<Colour, Integer> rollResults = new HashMap<>();
-        for (int i = 0; i < players.size(); i++) {
-            int roll = random.rollDice();
-            eventBus.publish(new RollOffEvent(players.get(i), roll));
-            rolls.add(new int[]{i, roll});
-            rollResults.put(players.get(i).getColour(), roll);
+        List<Player> contenders = new ArrayList<>(players);
+        for (int attempt = 0; contenders.size() > 1 && attempt < MAX_ROLL_OFFS; attempt++) {
+            int highest = 0;
+            for (Player player : contenders) {
+                int roll = random.rollDice();
+                eventBus.publish(new RollOffEvent(player, roll));
+                rollResults.put(player.getColour(), roll);
+                highest = Math.max(highest, roll);
+            }
+            final int best = highest;
+            contenders.removeIf(player -> rollResults.get(player.getColour()) != best);
         }
-        // descending by roll; ties broken alphabetically by colour name (e.g. BLUE < GREEN < RED < YELLOW)
-        rolls.sort(Comparator.comparingInt((int[] r) -> r[1]).reversed()
-                .thenComparing(r -> players.get(r[0]).getColour().name()));
-        List<Player> reordered = new ArrayList<>();
-        for (int[] r : rolls) {
-            reordered.add(players.get(r[0]));
-        }
+        Player first = contenders.get(0);
+        int at = players.indexOf(first);
+        List<Player> clockwise = new ArrayList<>(players.subList(at, players.size()));
+        clockwise.addAll(players.subList(0, at));
         players.clear();
-        players.addAll(reordered);
-        eventBus.publish(new TurnOrderEvent(players.get(0), List.copyOf(players), Map.copyOf(rollResults)));
-        return players.get(0);
+        players.addAll(clockwise);
+        eventBus.publish(new TurnOrderEvent(first, List.copyOf(players), Map.copyOf(rollResults)));
+        return first;
     }
 
     private void endRound() {
@@ -227,26 +261,25 @@ public class GameEngine {
                 mysteryManager.getCurrentCell(), mysteryManager.getRoundsLeft()));
     }
 
-    // T-10: spawn on the first eligible round; do not tick on the same round the cell spawns.
+    // T-10: the cell appears after two rounds, stays four rounds, then reappears at another place
     private void tickMysteryLifecycle(int round) {
         if (!ruleEngine.supportsMysteryCells()) {
             return; // Classic has no mystery cells
         }
-        Cell cellBeforeSpawn = mysteryManager.getCurrentCell();
-        mysteryManager.spawnMystery(round);
-        boolean justSpawned = cellBeforeSpawn == null && mysteryManager.isActive();
-        if (justSpawned) {
-            eventBus.publish(new MysterySpawnEvent(mysteryManager.getCurrentCell(),
-                    mysteryManager.getLifespan()));
+        if (!mysteryManager.isActive()) {
+            spawnMysteryCell(round);
             return;
         }
-        Cell cellBeforeTick = mysteryManager.getCurrentCell();
-        mysteryManager.tick();
-        if (cellBeforeTick != null && !mysteryManager.isActive()) {
-            eventBus.publish(new MysteryExpireEvent(cellBeforeTick));
-        } else if (mysteryManager.isActive()) {
-            eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(),
-                    mysteryManager.getRoundsLeft()));
+        mysteryManager.tick().ifPresentOrElse(expired -> {
+            eventBus.publish(new MysteryExpireEvent(expired));
+            spawnMysteryCell(round);
+        }, () -> eventBus.publish(new MysteryTickEvent(mysteryManager.getCurrentCell(), mysteryManager.getRoundsLeft())));
+    }
+
+    private void spawnMysteryCell(int round) {
+        mysteryManager.spawnMystery(round);
+        if (mysteryManager.isActive()) {
+            eventBus.publish(new MysterySpawnEvent(mysteryManager.getCurrentCell(), mysteryManager.getLifespan()));
         }
     }
 

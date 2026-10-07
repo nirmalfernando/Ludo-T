@@ -28,7 +28,7 @@ public class Player {
         List<Piece> result = new ArrayList<>();
         for (Piece p : pieces) {
             PieceState s = p.getState();
-            if (s instanceof OnBoardState || s instanceof InHomeStraightState) {
+            if (s instanceof OnBoardState || s instanceof InHomeStraightState || s instanceof AtBriefingState) {
                 result.add(p);
             }
         }
@@ -40,7 +40,7 @@ public class Player {
         List<Piece> result = new ArrayList<>();
         for (Piece p : pieces) {
             PieceState s = p.getState();
-            if (s instanceof AtBaseState || s instanceof AtBriefingState) {
+            if (s instanceof AtBaseState) {
                 result.add(p);
             }
         }

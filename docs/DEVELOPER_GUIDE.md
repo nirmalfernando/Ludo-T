@@ -4,9 +4,10 @@ A multi-user, multi-tier, client-server version of **LUDO-T**, a modified Ludo w
 blockades. Several people play together from JavaFX clients, AI players fill the empty seats, anyone else can
 watch and chat, and every game is stored in a PostgreSQL database.
 
-It grew out of a single-machine console simulation. The game rules, strategies and Clean Architecture of that
-original are unchanged: the golden-log tests replay four seeded games and require the output to be byte-identical
-to the original recordings.
+It grew out of a single-machine console simulation. Its Clean Architecture is kept, and the rules were checked against the
+specification and corrected where the original deviated (listed in [RULES_INTERPRETATION](RULES_INTERPRETATION.md)); the
+golden-log tests replay five seeded games and require the output to be byte-identical to the recordings made after
+those corrections.
 
 | | |
 |---|---|
@@ -216,7 +217,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 
 | Suite | What it covers |
 |---|---|
-| `core` (264) | The original unit tests, plus the **golden logs**: seeds 1, 2, 3 and 2069 must reproduce the original recorded output byte for byte; phased-turn tests |
+| `core` (296) | The original unit tests, plus the **golden logs**: seeds 1, 2, 3, 20 and 2069 must reproduce the recorded output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
 | `client` (92) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing, event-log categories, the synthesised sounds and their mapping, confetti physics, reconnect retry rules and stale-connection detection, replay state and wording |
@@ -262,7 +263,7 @@ Ludo-T/
 │   ├── client/resources/          # playful.css (connect screen, lobby, New game dialog) and the Lilita One font (SIL OFL, see fonts/OFL.txt)
 │   └── bot/com/ludot/bot/     # BotClient, StressClient, strategies, statistics
 ├── test/<module>/             # tests mirror the modules; test/integration spans all of them
-├── test-resources/golden/     # the four recorded game logs
+├── test-resources/golden/     # the five recorded game logs
 ├── db/                        # schema.sql, seed.sql, reset.sql
 ├── config/                    # server.properties.example (the real file is git-ignored)
 ├── lib/                       # JUnit and Mockito (committed); JavaFX SDK, JDBC drivers (downloaded, ignored)
@@ -301,7 +302,7 @@ output with `./run.sh 1 > game_log.txt`.
 
 The seeds below each produce a fully reproducible game that clearly demonstrates a rule. Run one and search
 the output for the quoted line. The same seeds work in a **Bot match** (set the seed in *New room…*), and
-the golden-log tests prove they are unchanged.
+the golden-log tests pin their output.
 
 ### Seed 1: core rules (T-1 to T-11, T-14, T-15, and counter-clockwise movement)
 
@@ -311,48 +312,50 @@ the golden-log tests prove they are unchanged.
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-1** CCW movement | `R1 exits base. Coin toss: Tails -> Counter-Clockwise` |
+| **T-1** CCW movement | `B1 exits base. Coin toss: Tails -> Counter-Clockwise` |
 | **T-1** Approach cell pass | `R1 passes approach cell (pass count: 1)` |
-| **T-2** Bonus roll on capture | `Yellow receives a bonus roll! (T-2)` |
-| **T-3** Block formation | `G1 forms a blockade with G2 at cell 39 (T-3)` |
-| **T-4** Block movement | `Blockade of 2 moves 2 steps (roll 5 / 2) (T-4)` |
-| **T-5** Direction restored on break | `Blockade broken! G1 reverts to counter-clockwise (T-5)` |
-| **T-6** Triple-six penalty | `Green rolled three consecutive 6s! Forced block break! (T-6)` |
-| **T-7** Home entry rejected | `G4 cannot enter home straight (needs 1 more capture(s)) (T-7)` |
-| **T-8** Block-vs-block capture | `Blockade of 3 moves 1 steps (roll 0 / 3) (T-4)` *(roll=0 marks a block-capture move)* |
-| **T-9** Capture + return to base | `Yellow piece Y4 lands on square 2, captures Red piece R1, and returns it to the base.` |
-| **T-10** Mystery cell spawns | `A mystery cell has spawned in location 32 and will be at this location for the next 4 rounds.` |
-| **T-11** Mystery teleport | `Y1 lands on mystery cell! Teleporting...` → `Y1 teleported to Start Cell (cell 0)` |
-| **T-14** Gamma: direction reversal | `Y1 teleported to Gamma Cell (cell 33)` → `Yellow piece Y1, which was moving clockwise, has changed to moving counter-clockwise.` |
-| **T-15** Mystery cell expiry | `Mystery cell expires.` |
-| Home straight entry | `Y4 enters the home straight!` |
-| Piece reaches home | `Y4 reaches Home!` |
+| **T-2** Bonus roll on capture | `Green receives a bonus roll! (T-2)` |
+| **T-3** Block formation | `G2 forms a blockade with G3 at cell 39 (T-3)` |
+| **T-4** Block movement | `Blockade of 2 moves 1 steps (roll 2 / 2) (T-4)` |
+| **T-5** Direction restored on break | `Blockade broken! B2 reverts to counter-clockwise (T-5)` |
+| **T-6** Triple-six penalty | `Yellow rolled three consecutive 6s! Forced block break! (T-6)` |
+| **T-7** Home entry rejected | `R1 cannot enter home straight (needs 1 more capture(s)) (T-7)` |
+| **T-8** Block-vs-block capture | `Blockade of 2 moves 1 steps (roll 0 / 2) (T-4)` *(roll 0 marks a block-capture move)* |
+| **T-9** Capture + return to base | `Green piece G1 lands on square 25, captures Blue piece B1, and returns it to the base.` |
+| **T-10** Mystery cell spawns | `A mystery cell has spawned in location 13 and will be at this location for the next 4 rounds.` |
+| **T-11** Mystery teleport | `B1 lands on mystery cell! Teleporting...` → `B1 teleported to Beta Cell (cell 25)` |
+| **T-14** Gamma from counter-clockwise | `Blue piece B1 is moving in a counter-clockwise direction. Teleporting to Beta from Gamma.` |
+| **T-10** Mystery cell moves on | `Mystery cell expires.` |
+| Home straight entry | `R2 enters the home straight!` |
+| Piece reaches home | `G1 reaches Home!` |
 
 ### Seed 2: Alpha (Sick) and Beta Briefing (T-12, T-13)
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-12** Alpha → Sick | `R1 teleported to Alpha Cell (cell 20)` → `Red piece R1 feels sick, and movement speed halves.` |
-| **T-13** Beta → Briefing lock | `G1 teleported to Beta Cell (cell 45)` → `Green piece G1 attends briefing and cannot move for four rounds.` |
+| **T-12** Alpha → Sick | `Green piece G1 feels sick, and movement speed halves.` |
+| **T-13** Beta → Briefing lock | `Yellow piece Y1 attends briefing and cannot move for four rounds.` |
 
 ### Seed 3: Alpha (Energised) (T-12)
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-12** Alpha → Energised | `Y4 teleported to Alpha Cell (cell 10)` → `Yellow piece Y4 feels energized, and movement speed doubles.` |
+| **T-12** Alpha → Energised | `Green piece G4 feels energized, and movement speed doubles.` |
 
-### Seed 2069: Beta Briefing escape via triple-3 (T-13 escape)
+### Seed 20: Beta Briefing escape via triple-3 (T-13 escape)
 
-The rarest scenario: a piece in Briefing rolls three consecutive 3s and escapes early. This is also the seed of the
-demo game that `DbTool reset` stores.
+The rarest scenario: a piece in briefing is present for three rolls of 3 in a row and escapes early.
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-13** Briefing early escape | `Red piece R3 is movement-restricted and has rolled three consecutively. Teleporting piece R3 to base.` |
+| **T-13** Briefing early escape | `Blue piece B3 is movement-restricted and has rolled three consecutively. Teleporting piece B3 to base.` |
+
+Seed `2069` is the demo game that `DbTool reset` stores: a complete game with blockades and mystery cells.
 
 | Seed | Primary scenario |
 |------|-----------------|
-| `1` | T-1 CCW · T-2 Bonus · T-3/T-4 Block · T-5 Break · T-6 Triple-Six · T-7 Home reject · T-8 Block capture · T-9 Capture · T-10/T-11 Mystery · T-14 Gamma · T-15 Expiry |
+| `1` | T-1 CCW · T-2 Bonus · T-3/T-4 Block · T-5 Break · T-6 Triple-Six · T-7 Home reject · T-8 Block capture · T-9 Capture · T-10/T-11 Mystery · T-14 Gamma · T-15 Effects |
 | `2` | T-12 Alpha Sick · T-13 Beta Briefing |
 | `3` | T-12 Alpha Energised |
-| `2069` | T-13 Beta Briefing escape (triple-3) |
+| `20` | T-13 Beta Briefing escape (triple-3) |
+| `2069` | The stored demo game |

@@ -72,12 +72,12 @@ class BlockRuleTest {
         cell10.addPiece(p2); p2.setPosition(cell10); p2.setDirection(Direction.CLOCKWISE);
         assertEquals(Direction.CLOCKWISE, rule.calcBlockMoveDir(List.of(p1, p2)));
     }
-    @Test @DisplayName("forceBreakBlock restores original directions") void restoresOriginalDir() {
+    @Test @DisplayName("forceBreakBlock restores each piece's original direction (and keeps remembering it)") void restoresOriginalDir() {
         Piece p1 = new Piece("R1", Colour.RED, board);
         p1.setOriginalDirection(Direction.CLOCKWISE);
         p1.setDirection(Direction.COUNTER_CLOCKWISE);
         rule.forceBreakBlock(List.of(p1));
         assertEquals(Direction.CLOCKWISE, p1.getDirection());
-        assertNull(p1.getOriginalDirection());
+        assertEquals(Direction.CLOCKWISE, p1.getOriginalDirection());
     }
 }

@@ -26,16 +26,15 @@ public class BlockCaptureMove implements Move {
             sourceCell.removePiece(attacker);
             targetCell.addPiece(attacker);
             attacker.setPosition(targetCell);
-            attacker.incrementCaptureCount();
         }
-        // Victim reset is intentionally NOT done here — MoveExecutor delegates to CaptureRule
-        // so that rule-variant-specific reset logic (e.g., T-9 full reset) applies correctly.
+        // Victim reset and the attackers' capture counts are intentionally NOT done here: MoveExecutor delegates to
+        // the CaptureRule once per victim, pairing each victim with an attacker, so every attacker is credited once (T-8).
         return new MoveResult(true, null, false, true, describe());
     }
 
     @Override
     public String describe() {
-        return "Block of " + attackers.size() + " captures opposing block";
+        return "Block of " + attackers.size() + (victims.size() == 1 ? " captures an opposing piece" : " captures opposing block");
     }
 
     

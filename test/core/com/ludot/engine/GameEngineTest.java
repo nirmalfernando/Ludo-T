@@ -117,25 +117,26 @@ class GameEngineTest {
         assertEquals(Colour.GREEN, first.getColour());
     }
 
-    @Test @DisplayName("lowest roller becomes the last player")
-    void lowestRollerGoesLast() {
-        // RED=3, GREEN=5, YELLOW=1, BLUE=4 → YELLOW last with 1
+    @Test @DisplayName("the order of a round is clockwise (R, G, Y, B) starting from the highest roller")
+    void orderIsClockwiseFromTheHighestRoller() {
+        // RED=3, GREEN=5, YELLOW=1, BLUE=4 -> GREEN rolled highest, so GREEN, YELLOW, BLUE, RED
         GameEngine engine = buildWith(3, 5, 1, 4);
         engine.determineFirstPlayer();
-        List<Player> order = engine.getPlayers();
-        assertEquals(Colour.YELLOW, order.get(3).getColour());
+        assertEquals(List.of(Colour.GREEN, Colour.YELLOW, Colour.BLUE, Colour.RED),
+                engine.getPlayers().stream().map(Player::getColour).toList());
     }
 
-    @Test @DisplayName("full play order is sorted highest roll to lowest")
-    void fullOrderDescendingByRoll() {
-        // RED=3, GREEN=5, YELLOW=1, BLUE=4 → GREEN(5), BLUE(4), RED(3), YELLOW(1)
-        GameEngine engine = buildWith(3, 5, 1, 4);
+    @Test @DisplayName("clockwise order wraps round the table whoever starts")
+    void clockwiseOrderForEveryStarter() {
+        assertEquals(List.of(Colour.RED, Colour.GREEN, Colour.YELLOW, Colour.BLUE), orderAfter(6, 1, 2, 3));
+        assertEquals(List.of(Colour.YELLOW, Colour.BLUE, Colour.RED, Colour.GREEN), orderAfter(1, 2, 6, 3));
+        assertEquals(List.of(Colour.BLUE, Colour.RED, Colour.GREEN, Colour.YELLOW), orderAfter(1, 2, 3, 6));
+    }
+
+    private List<Colour> orderAfter(int... rolls) {
+        GameEngine engine = buildWith(rolls);
         engine.determineFirstPlayer();
-        List<Player> order = engine.getPlayers();
-        assertEquals(Colour.GREEN,  order.get(0).getColour());
-        assertEquals(Colour.BLUE,   order.get(1).getColour());
-        assertEquals(Colour.RED,    order.get(2).getColour());
-        assertEquals(Colour.YELLOW, order.get(3).getColour());
+        return engine.getPlayers().stream().map(Player::getColour).toList();
     }
 
     @Test @DisplayName("TurnOrderEvent first field matches the returned first player")
@@ -160,71 +161,49 @@ class GameEngineTest {
         }
     }
 
-    // ── roll-off: tie-breaking ───────────────────────────────────────────────
+    // ── roll-off: ties ───────────────────────────────────────────────────────
 
-    @Test @DisplayName("tied rolls within a group are sorted alphabetically")
-    void tiedRollsSortedAlphabetically() {
-        // RED=4, GREEN=4, YELLOW=2, BLUE=2
-        // Tied at 4: BLUE not in this group; GREEN before RED alphabetically
-        // Wait — BLUE=2 here so tied at 4 group is RED+GREEN → GREEN < RED alphabetically
-        // Tied at 2: BLUE+YELLOW → BLUE < YELLOW alphabetically
-        // Expected: GREEN, RED, BLUE, YELLOW
-        GameEngine engine = buildWith(4, 4, 2, 2);
-        engine.determineFirstPlayer();
-        List<Player> order = engine.getPlayers();
-        assertEquals(Colour.GREEN,  order.get(0).getColour());
-        assertEquals(Colour.RED,    order.get(1).getColour());
-        assertEquals(Colour.BLUE,   order.get(2).getColour());
-        assertEquals(Colour.YELLOW, order.get(3).getColour());
+    @Test @DisplayName("players tied for the highest roll roll again; the others do not")
+    void tiedHighestRollersRollAgain() {
+        // RED=4, GREEN=4, YELLOW=2, BLUE=4 -> RED, GREEN, BLUE roll again: RED=3, GREEN=6, BLUE=5 -> GREEN starts
+        GameEngine engine = buildWith(4, 4, 2, 4, 3, 6, 5);
+        Player first = engine.determineFirstPlayer();
+        assertEquals(Colour.GREEN, first.getColour());
+        List<RollOffEvent> ro = rollOffEvents();
+        assertEquals(7, ro.size(), "four first rolls plus three re-rolls");
+        assertEquals(List.of(Colour.RED, Colour.GREEN, Colour.BLUE),
+                ro.subList(4, 7).stream().map(e -> e.player().getColour()).toList());
+        assertEquals(List.of(Colour.GREEN, Colour.YELLOW, Colour.BLUE, Colour.RED),
+                engine.getPlayers().stream().map(Player::getColour).toList());
     }
 
-    @Test @DisplayName("all equal rolls orders players alphabetically by colour name")
-    void allEqualRollsOrderedAlphabetically() {
-        // All roll 3 → alphabetical: BLUE, GREEN, RED, YELLOW
-        GameEngine engine = buildWith(3, 3, 3, 3);
-        engine.determineFirstPlayer();
-        List<Player> order = engine.getPlayers();
-        assertEquals(Colour.BLUE,   order.get(0).getColour());
-        assertEquals(Colour.GREEN,  order.get(1).getColour());
-        assertEquals(Colour.RED,    order.get(2).getColour());
-        assertEquals(Colour.YELLOW, order.get(3).getColour());
+    @Test @DisplayName("if everyone ties, everyone rolls again")
+    void everyoneTiesEveryoneRollsAgain() {
+        GameEngine engine = buildWith(3, 3, 3, 3, 1, 2, 3, 6);
+        Player first = engine.determineFirstPlayer();
+        assertEquals(Colour.BLUE, first.getColour());
+        assertEquals(8, rollOffEvents().size());
     }
 
-    @Test @DisplayName("seed 55 produces all-equal rolls and alphabetical order")
-    void seed55AllEqualAlphabetical() {
-        // Seed 55 → all four players roll 2; expected order: BLUE, GREEN, RED, YELLOW
+    @Test @DisplayName("seed 55 (all four roll the same first time) still ends with one starter and a clockwise order")
+    void seed55AllEqualRollsAgain() {
         GameEngine engine = new GameBuilder()
                 .withRandom(new SeededRandomProvider(55))
                 .withEventBus(bus)
                 .withPlayers(4)
                 .build();
-        engine.determineFirstPlayer();
+        Player first = engine.determineFirstPlayer();
 
-        // verify all four RollOff values are identical
         List<RollOffEvent> ro = rollOffEvents();
-        assertEquals(4, ro.size());
-        int firstRoll = ro.get(0).roll();
-        assertTrue(ro.stream().allMatch(e -> e.roll() == firstRoll),
-                "All roll-off rolls should be equal for seed 55");
-
-        // verify alphabetical order
-        List<Player> order = engine.getPlayers();
-        assertEquals(Colour.BLUE,   order.get(0).getColour());
-        assertEquals(Colour.GREEN,  order.get(1).getColour());
-        assertEquals(Colour.RED,    order.get(2).getColour());
-        assertEquals(Colour.YELLOW, order.get(3).getColour());
-    }
-
-    @Test @DisplayName("partial tie: tied players sorted alphabetically, non-tied by roll")
-    void partialTieAlphabeticalWithinGroup() {
-        // RED=4, GREEN=4, YELLOW=2, BLUE=4 → tied at 4: BLUE, GREEN, RED alphabetically; YELLOW last
-        GameEngine engine = buildWith(4, 4, 2, 4);
-        engine.determineFirstPlayer();
-        List<Player> order = engine.getPlayers();
-        assertEquals(Colour.BLUE,   order.get(0).getColour());
-        assertEquals(Colour.GREEN,  order.get(1).getColour());
-        assertEquals(Colour.RED,    order.get(2).getColour());
-        assertEquals(Colour.YELLOW, order.get(3).getColour());
+        assertTrue(ro.size() > 4, "a tie forces another round of rolls");
+        assertTrue(ro.subList(0, 4).stream().allMatch(e -> e.roll() == ro.get(0).roll()),
+                "the first four rolls of seed 55 are all equal");
+        List<Colour> order = engine.getPlayers().stream().map(Player::getColour).toList();
+        assertEquals(first.getColour(), order.get(0));
+        for (int i = 0; i < order.size(); i++) {
+            Colour next = Colour.values()[(order.get(i).ordinal() + 1) % Colour.values().length];
+            assertEquals(next, order.get((i + 1) % order.size()), "play passes clockwise");
+        }
     }
 
     // ── roll-off: TurnOrderEvent roll results map ────────────────────────────
@@ -251,8 +230,8 @@ class GameEngineTest {
         assertEquals(4, toe.rollResults().get(Colour.BLUE));
     }
 
-    @Test @DisplayName("seed 55: TurnOrderEvent rollResults shows all equal values")
-    void seed55RollResultsAllEqual() {
+    @Test @DisplayName("seed 55: after the tie is re-rolled, TurnOrderEvent still reports a roll for every player")
+    void seed55RollResultsCoverEveryPlayer() {
         GameEngine engine = new GameBuilder()
                 .withRandom(new SeededRandomProvider(55))
                 .withEventBus(bus)
@@ -261,8 +240,8 @@ class GameEngineTest {
         engine.determineFirstPlayer();
         TurnOrderEvent toe = turnOrderEvent();
         assertNotNull(toe);
-        long distinct = toe.rollResults().values().stream().distinct().count();
-        assertEquals(1, distinct, "All four rolls should be the same for seed 55");
+        assertEquals(4, toe.rollResults().size());
+        assertTrue(toe.rollResults().containsKey(toe.first().getColour()));
     }
 
     // ── game completion ──────────────────────────────────────────────────────

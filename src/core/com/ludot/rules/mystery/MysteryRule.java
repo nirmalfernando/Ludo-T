@@ -24,7 +24,7 @@ public class MysteryRule implements GameRule {
 
     
     public boolean shouldSpawn(int roundCount) {
-        return roundCount > 2;
+        return roundCount >= 2; // T-10: the cell appears once two rounds have passed
     }
 
     

@@ -16,6 +16,9 @@ import java.util.Optional;
 // When pieces list is empty (e.g. tests), falls back to cycling by move index.
 public class BlueStrategy implements PlayerStrategy {
 
+    // the piece after the one Blue moved last: the cycle belongs to this player, not to the global turn counter
+    private int next;
+
     @Override
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
         // Fallback when no piece context available (stateless cycling by move index)
@@ -25,7 +28,7 @@ public class BlueStrategy implements PlayerStrategy {
         }
 
         int pieceCount = pieces.size();
-        int startIdx   = gameState.getTurnNumber() % pieceCount;
+        int startIdx   = next % pieceCount;
 
         // Cycle through pieces starting at the designated one for this turn (B1→B2→B3→B4)
         for (int i = 0; i < pieceCount; i++) {
@@ -33,16 +36,24 @@ public class BlueStrategy implements PlayerStrategy {
             Optional<Move> move = findMoveForPiece(validMoves, target);
             if (move.isPresent()) {
                 // Apply mystery cell preference if the piece has a direction assigned
+                Move chosen = move.get();
                 if (target.getDirection() != null) {
-                    Optional<Move> preferred = applyMysteryPreference(validMoves, target, move.get(), gameState);
-                    return preferred.orElse(move.get());
+                    chosen = applyMysteryPreference(validMoves, target, chosen, gameState).orElse(chosen);
                 }
-                return move.get();
+                advancePast(chosen, pieces);
+                return chosen;
             }
         }
 
         // No piece-specific move found — fall back to cycling by move index
         return validMoves.get(gameState.getTurnNumber() % validMoves.size());
+    }
+
+    private void advancePast(Move chosen, List<Piece> pieces) {
+        int index = pieces.indexOf(StrategyHelper.getPieceFromMove(chosen));
+        if (index >= 0) {
+            next = index + 1;
+        }
     }
 
     // Finds the first valid move in the list that belongs to the target piece.

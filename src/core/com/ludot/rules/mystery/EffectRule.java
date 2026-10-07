@@ -51,6 +51,7 @@ public class EffectRule implements GameRule {
     public void tickAllEffects(List<Piece> pieces) {
         for (Piece piece : pieces) {
             piece.tickEffect();
+            piece.tickBriefing();
         }
     }
 

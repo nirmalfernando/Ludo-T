@@ -24,10 +24,16 @@ public final class GameConstants {
     public static final int GREEN_APPROACH_CELL_ID  = 37;
 
     // Dice mechanics
+    // T-11: Alpha, Beta and Gamma are the 9th, 27th and 46th cells counted from yellow's approach cell (counted as 0)
+    public static final int ALPHA_CELL_ID = (YELLOW_APPROACH_CELL_ID + 9) % BOARD_SIZE;
+    public static final int BETA_CELL_ID  = (YELLOW_APPROACH_CELL_ID + 27) % BOARD_SIZE;
+    public static final int GAMMA_CELL_ID = (YELLOW_APPROACH_CELL_ID + 46) % BOARD_SIZE;
+
     public static final int LEAVE_BASE_ROLL          = 6; // roll needed to leave base / trigger bonus
     public static final int CONSECUTIVE_SIXES_LIMIT  = 3; // three consecutive 6s = triple-six penalty
 
     // Mystery cell
+    public static final int STALEMATE_ROUNDS = 100; // rounds in which no piece moves before a game is adjudicated
     public static final int MYSTERY_LIFESPAN = 4; // rounds a mystery cell remains active (T-10)
 
     // Briefing (Beta) state

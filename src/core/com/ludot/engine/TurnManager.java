@@ -78,6 +78,7 @@ public class TurnManager {
         activePlayer = player;
         bonusDepth = 0;
         awaitingMove = false;
+        ruleEngine.getDiceRule().startTurn(player);
         eventBus.publish(new TurnStartEvent(player));
         turnCount++;
     }
@@ -103,19 +104,13 @@ public class TurnManager {
             return new RollResult(roll, List.of(), true);
         }
 
-        // O15: snapshot pieces in briefing before validation so we can detect beta escapes after
-        List<Piece> inBriefingBefore = player.getPieces().stream()
-                .filter(p -> p.getState() instanceof AtBriefingState)
-                .collect(java.util.stream.Collectors.toList());
-
-        List<Move> validMoves = ruleEngine.getValidMoves(player, roll);
-
-        // publish BriefingEscapeEvent for any piece that escaped via 3 consecutive 3s
-        for (Piece p : inBriefingBefore) {
-            if (p.getState() instanceof AtBaseState) {
+        // T-13: every roll counts towards the three 3s that free a piece from briefing; a freed piece is back in base
+        for (Piece p : player.getPieces()) {
+            if (p.getState() instanceof AtBriefingState briefing && briefing.registerRoll(p, roll)) {
                 eventBus.publish(new BriefingEscapeEvent(player, p));
             }
         }
+        List<Move> validMoves = ruleEngine.getValidMoves(player, roll);
         pendingMoves = List.copyOf(validMoves);
         pendingBonusRoll = bonusRoll;
         awaitingMove = true;
@@ -141,8 +136,9 @@ public class TurnManager {
 
         // T-2: capture grants a bonus roll; rolling 6 (non-triple) also grants one
         // depth guard prevents runaway bonus chains on a very lucky streak
+        // an ignored roll (nothing could move) passes the dice on, even if it was a six (Rules 4 and 7)
         boolean rollAgain = (result.grantsBonusRoll() || pendingBonusRoll)
-                && bonusDepth < GameConstants.MAX_BONUS_DEPTH;
+                && !(chosen instanceof SkipMove) && bonusDepth < GameConstants.MAX_BONUS_DEPTH;
         awaitingMove = false;
         pendingMoves = List.of();
         if (rollAgain) {
@@ -178,27 +174,35 @@ public class TurnManager {
         return random.rollDice();
     }
 
-    /** Handles a triple-six penalty by forcing a block break and moving each freed piece six cells (Rule T-6). */
+    /**
+     * Handles a triple six (Rules 4 and T-6). The roll is ignored; if the player has a blockade it must be broken: every
+     * piece but one moves six cells in its original direction.
+     */
     public void handleTripleSix(Player player) {
-        boolean hasBlock = ruleEngine.supportsBlocks() && board.getStandardPath().stream()
-                .anyMatch(cell -> cell.hasBlock()
-                              && !cell.getPieces().isEmpty()
-                              && cell.getPieces().get(0).getColour() == player.getColour());
-        eventBus.publish(new TripleSixEvent(player, hasBlock));
-        for (Cell cell : hasBlock ? board.getStandardPath() : List.<Cell>of()) {
+        List<Piece> block = ruleEngine.supportsBlocks() ? findBlockOf(player) : List.of();
+        eventBus.publish(new TripleSixEvent(player, !block.isEmpty()));
+        if (block.isEmpty()) {
+            return;
+        }
+        Cell cell = block.get(0).getPosition();
+        ruleEngine.getBlockRule().forceBreakBlock(block); // every piece gets its original direction back (T-5)
+        eventBus.publish(new BlockBreakEvent(block, cell));
+        // the first piece stays (one piece is "bared"); the others leave, "six units cumulatively": the first by six cells,
+        // the next by twelve, and so on, so that they cannot land together and form the block again
+        for (int freed = 1; freed < block.size(); freed++) {
+            ruleEngine.planMove(block.get(freed), GameConstants.LEAVE_BASE_ROLL * freed)
+                    .ifPresent(move -> moveExecutor.execute(move, player));
+        }
+    }
+
+    // a player can only have one block at a time
+    private List<Piece> findBlockOf(Player player) {
+        for (Cell cell : board.getStandardPath()) {
             if (cell.hasBlock() && cell.getPieces().get(0).getColour() == player.getColour()) {
-                List<Piece> block = new ArrayList<>(cell.getPieces());
-                ruleEngine.getBlockRule().forceBreakBlock(block);
-                eventBus.publish(new BlockBreakEvent(block, cell));
-                // T-6: each piece moves 6 units in its restored direction after the break
-                for (Piece piece : block) {
-                    if (piece.getDirection() != null) {
-                        moveExecutor.execute(new MoveOnBoard(piece, GameConstants.LEAVE_BASE_ROLL), player);
-                    }
-                }
-                break; // a player can only have one block at a time
+                return new ArrayList<>(cell.getPieces());
             }
         }
+        return List.of();
     }
 
     /** Grants the given player an additional full turn as a bonus roll reward (Rule T-2). */

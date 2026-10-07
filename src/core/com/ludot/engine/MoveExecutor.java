@@ -1,5 +1,6 @@
 package com.ludot.engine;
 
+import com.ludot.GameConstants;
 import com.ludot.command.BlockCaptureMove;
 import com.ludot.command.BlockMove;
 import com.ludot.command.CaptureMove;
@@ -31,6 +32,8 @@ import com.ludot.model.Piece;
 import com.ludot.model.state.PieceState;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
+import com.ludot.events.block.BlockBreakEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,23 +95,38 @@ public class MoveExecutor {
 
     private MoveResult executeFromBase(MoveFromBase mfb, Player player) {
         Piece piece = mfb.getPiece();
+        piece.setDirection(ruleEngine.getMoveValidator().assignDirection(piece)); // T-1: the coin toss, on X
         if (ruleEngine.getMoveValidator().usesCoinToss()) {
             eventBus.publish(new CoinTossEvent(piece, piece.getDirection()));
         }
+        piece.setOriginalDirection(piece.getDirection()); // T-5: the direction it is given when placed on X
         MoveResult result = mfb.execute();
         Cell dest = piece.getPosition();
+        Piece victim = mfb.getVictim();
+        if (victim != null) {
+            ruleEngine.getCaptureRule().capture(piece, victim); // Rule 6 and T-9
+            Player victimPlayer = findPlayer(victim.getColour()).orElse(null);
+            eventBus.publish(new CaptureEvent(piece, victim, dest, victimPlayer));
+        }
         eventBus.publish(new MoveEvent(player, piece, null, dest, 0));
         checkBlockForm(piece, dest);
-        applyLanding(piece, dest, player);
+        applyLanding(piece, dest, player, null);
         return result;
     }
 
     private MoveResult executeOnBoard(MoveOnBoard mob, Player player) {
         Piece piece = mob.getPiece();
         Cell from = piece.getPosition();
+        boolean leavesBlock = isInBlock(from);
+        if (leavesBlock) {
+            piece.setDirection(RuleEngine.directionAfterLeavingBlock(piece)); // T-5
+        }
         int passCountBefore = piece.getApproachPassCount();
         PieceState stateBefore = piece.getState();
         MoveResult result = mob.execute();
+        if (leavesBlock) {
+            announceBlockBroken(from, piece);
+        }
         Cell dest = piece.getPosition();
         if (piece.getApproachPassCount() > passCountBefore) {
             eventBus.publish(new ApproachPassEvent(piece, piece.getApproachPassCount()));
@@ -119,7 +137,7 @@ public class MoveExecutor {
             return result;
         }
         checkBlockForm(piece, dest);
-        applyLanding(piece, dest, player);
+        applyLanding(piece, dest, player, mob.getRoute());
         if (!(stateBefore instanceof InHomeStraightState)
                 && piece.getState() instanceof InHomeStraightState) {
             eventBus.publish(new HomeEntryEvent(piece));
@@ -131,7 +149,14 @@ public class MoveExecutor {
         Piece attacker = cm.getAttacker();
         Cell from = attacker.getPosition();
         Cell targetCell = cm.getTargetCell();
+        boolean leavesBlock = isInBlock(from);
+        if (leavesBlock) {
+            attacker.setDirection(RuleEngine.directionAfterLeavingBlock(attacker)); // T-5
+        }
         MoveResult cmdResult = cm.execute(); // moves attacker to target cell
+        if (leavesBlock) {
+            announceBlockBroken(from, attacker);
+        }
         Piece victim = cmdResult.getCaptured();
         ruleEngine.getCaptureRule().capture(attacker, victim); // victim reset + T-9 + capture count
         Player victimPlayer = findPlayer(victim.getColour()).orElse(null);
@@ -139,14 +164,16 @@ public class MoveExecutor {
         eventBus.publish(new MoveEvent(player, attacker, from, attacker.getPosition(), cm.getSteps()));
         MoveResult result = new MoveResult(true, victim, false, true,
                 attacker.getName() + " captures " + victim.getName());
-        applyLanding(attacker, attacker.getPosition(), player);
+        applyLanding(attacker, attacker.getPosition(), player, cm.getRoute());
         return result;
     }
 
     private MoveResult executeBlock(BlockMove bm) {
         List<Piece> block = bm.getBlock();
         Cell from = block.get(0).getPosition();
+        Direction direction = ruleEngine.getBlockRule().calcBlockMoveDir(block);
         MoveResult result = bm.execute();
+        block.forEach(piece -> piece.setDirection(direction)); // T-4: the whole block travels the way its furthest member does
         Cell dest = block.get(0).getPosition();
         eventBus.publish(new BlockMoveEvent(block, from, dest, bm.getSteps(), bm.getOriginalRoll()));
         return result;
@@ -156,7 +183,9 @@ public class MoveExecutor {
     // to CaptureRule so rule-variant logic (T-9 full reset vs classic send-to-base) is respected.
     private MoveResult executeBlockCapture(BlockCaptureMove bcm, Player player) {
         Cell from = bcm.getAttackers().get(0).getPosition();
-        bcm.execute(); // moves all attackers, increments their captureCount
+        Direction direction = ruleEngine.getBlockRule().calcBlockMoveDir(bcm.getAttackers());
+        bcm.execute(); // moves all attackers
+        bcm.getAttackers().forEach(piece -> piece.setDirection(direction)); // T-4
         Cell dest = bcm.getTargetCell();
         // apply capture rule to each victim, paired with the corresponding attacker
         List<Piece> attackers = bcm.getAttackers();
@@ -177,43 +206,66 @@ public class MoveExecutor {
         return skip.execute();
     }
 
+    // a counter-clockwise piece sent to Gamma ends up on Beta instead (T-14)
+    private static String actualDestination(TeleportDestination dest, Direction dirBefore) {
+        boolean sentOnToBeta = dest == TeleportDestination.GAMMA && dirBefore == Direction.COUNTER_CLOCKWISE;
+        return sentOnToBeta ? TeleportDestination.BETA.name() : dest.name();
+    }
+
+    private boolean isInBlock(Cell cell) {
+        return ruleEngine.supportsBlocks() && cell != null && cell.getId() < GameConstants.BOARD_SIZE && cell.hasBlock();
+    }
+
+    // T-5: the piece that left has its original direction back; a lone piece left behind is no longer in a block either
+    private void announceBlockBroken(Cell from, Piece leaver) {
+        List<Piece> affected = new ArrayList<>(List.of(leaver));
+        if (from.getPieces().size() == 1) {
+            Piece left = from.getPieces().get(0);
+            left.setDirection(RuleEngine.directionAfterLeavingBlock(left));
+            affected.add(left);
+        }
+        eventBus.publish(new BlockBreakEvent(affected, from));
+    }
+
     private void checkBlockForm(Piece piece, Cell dest) {
-        if (dest != null && dest.hasBlock() && dest.getPieces().contains(piece)
+        if (dest != null && dest.getId() < GameConstants.BOARD_SIZE && dest.hasBlock() && dest.getPieces().contains(piece)
                 && dest.getBlockSize() >= 2) {
-            // T-5: save each piece's direction at the moment of block formation so it can be
-            // restored when the block breaks. Only set if not already stored (handles 3rd piece joining).
-            for (Piece p : dest.getPieces()) {
-                if (p.getOriginalDirection() == null) {
-                    p.setOriginalDirection(p.getDirection());
-                }
-            }
             eventBus.publish(new BlockFormEvent(dest.getPieces(), dest));
         }
     }
 
-    private void applyLanding(Piece piece, Cell dest, Player player) {
+    // route: the cells the piece just travelled through (null when it came from base)
+    private void applyLanding(Piece piece, Cell dest, Player player, List<Cell> route) {
         if (dest == null) {
             return;
         }
         if (dest.isMysteryCell()) {
             Direction dirBefore = piece.getDirection();
             Optional<TeleportDestination> teleportOpt = mysteryManager.handleLanding(piece);
-            teleportOpt.ifPresent(td -> ruleEngine.applyMysteryEffect(piece, td));
+            Optional<Piece> captured = teleportOpt.flatMap(td -> ruleEngine.applyMysteryEffect(piece, td));
             Cell newPos = piece.getPosition();
-            String destName = teleportOpt.map(TeleportDestination::name).orElse("NONE");
-            String effectDesc = teleportOpt
-                    .map(td -> OutputFormatter.buildEffectDescription(piece, td, dirBefore))
-                    .orElse("");
+            boolean refused = teleportOpt.isPresent() && teleportOpt.get() != TeleportDestination.BASE && newPos == dest;
+            String destName = refused ? "BLOCKED" : teleportOpt.map(td -> actualDestination(td, dirBefore)).orElse("NONE");
+            String effectDesc = refused ? piece.getName() + " cannot be teleported: an opposing blockade is in the way."
+                    : teleportOpt.map(td -> OutputFormatter.buildEffectDescription(piece, td, dirBefore)).orElse("");
             eventBus.publish(new MysteryTeleportEvent(piece, player, dest, newPos, destName, effectDesc));
+            captured.ifPresent(victim -> eventBus.publish(
+                    new CaptureEvent(piece, victim, newPos, findPlayer(victim.getColour()).orElse(null))));
+            checkBlockForm(piece, newPos);
         }
-        // T-7: piece reached its approach cell but lacks the required capture count
-        if (piece.canEnterHomeStraight()
-                && ruleEngine.getHomeEntryRule() != null
-                && !ruleEngine.getHomeEntryRule().canEnterHomeStraight(piece)) {
-            int capturesNeeded = Math.max(1 - piece.getCaptureCount(), 1);
+        announceRefusedHomeEntry(piece, route);
+    }
+
+    // T-7: the piece landed on or passed its approach cell but has not captured yet, so it stays on the path
+    private void announceRefusedHomeEntry(Piece piece, List<Cell> route) {
+        if (route == null || ruleEngine.getHomeEntryRule() == null || piece.getState() instanceof InHomeStraightState) {
+            return;
+        }
+        boolean reachedApproach = route.contains(board.getApproachCell(piece.getColour()));
+        int capturesNeeded = ruleEngine.getHomeEntryRule().capturesNeeded(piece);
+        if (reachedApproach && capturesNeeded > 0) {
             eventBus.publish(new HomeEntryRejectedEvent(piece, capturesNeeded));
         }
-        ruleEngine.applyLandingEffects(piece);
     }
 
 
