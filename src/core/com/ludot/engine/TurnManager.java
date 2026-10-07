@@ -180,12 +180,12 @@ public class TurnManager {
 
     /** Handles a triple-six penalty by forcing a block break and moving each freed piece six cells (Rule T-6). */
     public void handleTripleSix(Player player) {
-        boolean hasBlock = board.getStandardPath().stream()
+        boolean hasBlock = ruleEngine.supportsBlocks() && board.getStandardPath().stream()
                 .anyMatch(cell -> cell.hasBlock()
                               && !cell.getPieces().isEmpty()
                               && cell.getPieces().get(0).getColour() == player.getColour());
         eventBus.publish(new TripleSixEvent(player, hasBlock));
-        for (Cell cell : board.getStandardPath()) {
+        for (Cell cell : hasBlock ? board.getStandardPath() : List.<Cell>of()) {
             if (cell.hasBlock() && cell.getPieces().get(0).getColour() == player.getColour()) {
                 List<Piece> block = new ArrayList<>(cell.getPieces());
                 ruleEngine.getBlockRule().forceBreakBlock(block);

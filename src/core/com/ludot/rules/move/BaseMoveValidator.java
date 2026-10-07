@@ -51,6 +51,11 @@ public abstract class BaseMoveValidator implements GameRule {
     }
 
     
+    /** Classic Ludo has no coin toss: pieces always travel clockwise. */
+    public boolean usesCoinToss() {
+        return false;
+    }
+
     public Direction assignDirection(Piece piece) {
         return Direction.CLOCKWISE;
     }

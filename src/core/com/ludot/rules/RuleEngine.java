@@ -54,6 +54,16 @@ public class RuleEngine {
         this.effectRule = effectRule;
     }
 
+    /** True when this rule set has blockades (LUDO-T); Classic does not. */
+    public boolean supportsBlocks() {
+        return blockRule != null;
+    }
+
+    /** True when this rule set has mystery cells (LUDO-T); Classic does not. */
+    public boolean supportsMysteryCells() {
+        return mysteryRule != null;
+    }
+
     public void setEventBus(EventBus bus) {
         this.eventBus = bus;
     }
@@ -86,6 +96,9 @@ public class RuleEngine {
             publishBlocked(piece, null, startCell);
             return;
         }
+        if (landsOnOwnPiece(piece, startCell)) {
+            return; // Rule 7 (Classic): a move onto the player's own piece is not permitted
+        }
         valid.add(mfb);
     }
 
@@ -106,6 +119,9 @@ public class RuleEngine {
     // a single piece's move to a known destination: stopped short by a blockade, a capture, or a plain move
     private void addMoveTo(Cell dest, MoveOnBoard mob, List<Move> valid) {
         Piece p = mob.getPiece();
+        if (landsOnOwnPiece(p, dest)) {
+            return; // Rule 7 (Classic): a move onto the player's own piece is not permitted
+        }
         if (isBlocked(p, dest)) {
             publishBlocked(p, p.getPosition(), dest);
             int partialSteps = stepsBeforeBlock(p, mob.getSteps());
@@ -116,6 +132,12 @@ public class RuleEngine {
         }
         Piece opponent = singleOpponent(dest, p);
         valid.add(opponent != null ? new CaptureMove(p, opponent, dest, mob.getSteps()) : mob);
+    }
+
+    // Rule 7 applies on the standard path in Classic, where there are no blocks; LUDO-T replaces it with T-3
+    private boolean landsOnOwnPiece(Piece piece, Cell dest) {
+        return blockRule == null && dest.getId() < GameConstants.BOARD_SIZE
+                && dest.getPieces().stream().anyMatch(other -> other != piece && other.getColour() == piece.getColour());
     }
 
     // the blockade rule and the event bus are optional collaborators, so both are checked in one place each

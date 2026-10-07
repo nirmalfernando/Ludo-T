@@ -229,6 +229,9 @@ public class GameEngine {
 
     // T-10: spawn on the first eligible round; do not tick on the same round the cell spawns.
     private void tickMysteryLifecycle(int round) {
+        if (!ruleEngine.supportsMysteryCells()) {
+            return; // Classic has no mystery cells
+        }
         Cell cellBeforeSpawn = mysteryManager.getCurrentCell();
         mysteryManager.spawnMystery(round);
         boolean justSpawned = cellBeforeSpawn == null && mysteryManager.isActive();

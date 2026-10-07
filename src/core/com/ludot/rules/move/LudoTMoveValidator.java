@@ -13,6 +13,11 @@ public class LudoTMoveValidator extends BaseMoveValidator {
 
     
     @Override
+    public boolean usesCoinToss() {
+        return true;
+    }
+
+    @Override
     public Direction assignDirection(Piece piece) {
         return random.tossCoin() ? Direction.CLOCKWISE : Direction.COUNTER_CLOCKWISE;
     }

@@ -92,7 +92,9 @@ public class MoveExecutor {
 
     private MoveResult executeFromBase(MoveFromBase mfb, Player player) {
         Piece piece = mfb.getPiece();
-        eventBus.publish(new CoinTossEvent(piece, piece.getDirection()));
+        if (ruleEngine.getMoveValidator().usesCoinToss()) {
+            eventBus.publish(new CoinTossEvent(piece, piece.getDirection()));
+        }
         MoveResult result = mfb.execute();
         Cell dest = piece.getPosition();
         eventBus.publish(new MoveEvent(player, piece, null, dest, 0));
