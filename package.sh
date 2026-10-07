@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds a clean submission zip: ./package.sh [output.zip]
-# Leaves out secrets (config/server.properties), local databases, build output, downloaded libraries and tools,
+# Leaves out secrets (config/server.properties), the draft design notes, local databases, build output, downloaded libraries and tools,
 # then unpacks the zip into a temporary folder and checks that it compiles, so a missing file shows up here.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -15,6 +15,7 @@ rsync -a \
   --exclude='.git' --exclude='.DS_Store' \
   --exclude='/out' --exclude='/dist' --exclude='/reports' --exclude='/h2data' --exclude='/evidence/*/tmp' \
   --exclude='/config/server.properties' --exclude='/game_log.txt' \
+  --exclude='/docs/DESIGN_DECISIONS.md' \
   --exclude='/lib/javafx-sdk' --exclude='/lib/*.jar' \
   --exclude='/tools/*.jar' --exclude='/tools/pmd' --exclude='/tools/spotbugs' --exclude='/tools/*.zip' \
   ./ "$WORK/$NAME/"

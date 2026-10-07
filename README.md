@@ -101,11 +101,10 @@ These four seeds each show particular rules clearly. Run one in the console with
 | `2069` | The demo game stored by `./run-dbtool.sh reset`: a complete game with blockades and mystery cells | `Mystery cell expires.` |
 
 A game in which blockades jam each other so that nobody can move again is ended after 100 rounds without movement
-and awarded to the player furthest ahead (see [RULES_INTERPRETATION](docs/RULES_INTERPRETATION.md)).
+and awarded to the player furthest ahead (most pieces home, then most captures).
 
 The recorded logs of these seeds are kept in `test-resources/golden/` and checked by the tests, so the rules cannot
-change by accident. The [developer guide](docs/DEVELOPER_GUIDE.md#the-ludo-t-rules-and-scenario-seeds) lists
-every rule with its exact log line.
+change by accident.
 
 ## Quick start
 
@@ -135,7 +134,7 @@ Run the server on one computer and give the other person the client:
 ```
 
 Both computers must be able to reach each other on port 5555 (the same Wi-Fi works).
-See the [developer guide](docs/DEVELOPER_GUIDE.md#two-machines) for what the second computer needs.
+The second computer only needs Java 17 and the client: run `./download-tools.sh` and `./compile.sh` there too.
 
 ### Store games in a database (optional)
 
@@ -149,7 +148,7 @@ cp config/server.properties.example config/server.properties
 ```
 
 Any PostgreSQL works (the project was built against Supabase). For a fully offline option there is a local H2
-database: `./run-h2.sh`, see the [developer guide](docs/DEVELOPER_GUIDE.md#the-database).
+database: `./run-h2.sh`.
 
 ## Bots and stress testing
 
@@ -161,8 +160,7 @@ Create a Play room in the client first, then let bots take the seats:
 ```
 
 The bots each have a style (Red goes for captures, Green for blockades, Yellow races home, Blue cycles through its pieces and likes mystery cells). The
-stress client floods a room with fast, concurrent and deliberately wrong requests and checks every answer; the
-[developer guide](docs/DEVELOPER_GUIDE.md#automatic-clients) has all the options.
+stress client floods a room with fast, concurrent and deliberately wrong requests and checks every answer (`./run-stress.sh --help` lists the options).
 
 ## How it works
 
@@ -228,17 +226,9 @@ test/                                    tests, one folder per module (+ integra
 test-resources/golden/                   recorded games used as rule tests
 db/                                      schema, seed and reset SQL
 config/                                  server.properties.example (your real one is git-ignored)
-docs/                                    developer guide and images
+docs/images/                            screenshots used in this README
 *.sh / *.bat / *.ps1                     build, run and test scripts (no Maven or Gradle needed)
 ```
-
-## More documentation
-
-- [Developer guide](docs/DEVELOPER_GUIDE.md): configuration reference, database set-up, the automatic clients,
-  metrics, troubleshooting and the game-rule scenarios.
-- [Rules: corrections and interpretations](docs/RULES_INTERPRETATION.md): where the game follows the specification
-  and the decisions taken where it is silent.
-- [Design decisions](docs/DESIGN_DECISIONS.md): the patterns in use, and why some were replaced.
 
 ## Status
 

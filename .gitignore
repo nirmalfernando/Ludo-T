@@ -61,3 +61,8 @@ h2data/
 
 # Output of run-evidence.sh (regenerate it; copy the run you cite into the report)
 evidence/
+
+# Working notes (kept on disk, not in git)
+docs/DESIGN_DECISIONS.md
+docs/DEVELOPER_GUIDE.md
+docs/RULES_INTERPRETATION.md
