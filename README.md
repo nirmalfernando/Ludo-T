@@ -214,6 +214,7 @@ The code is split into modules that depend only on what they should (the compile
 ./test.sh                # about 660 tests across all modules
 ./run-metrics.sh         # coverage and static analysis (Checkstyle, PMD, SpotBugs)
 ./run-evidence.sh        # a recorded stress run against a live server and database
+./package.sh             # a clean zip without secrets or downloaded libraries, checked to compile
 ```
 
 Highlights: golden game logs that pin the rules, concurrency tests for the room queues, reconnect and replay
