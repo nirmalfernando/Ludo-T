@@ -6,13 +6,10 @@ import com.ludot.effects.TeleportDestination;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Piece;
-import com.ludot.rules.GameRule;
-import com.ludot.rules.MoveContext;
-import com.ludot.rules.RuleResult;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MysteryRule implements GameRule {
+public class MysteryRule {
 
     private final RandomProvider random;
     private final Set<Integer> previousLocations = new HashSet<>();
@@ -50,18 +47,4 @@ public class MysteryRule implements GameRule {
         };
     }
 
-    @Override
-    public boolean isApplicable(MoveContext ctx) {
-        Cell dest = ctx.destination();
-        return dest != null && dest.isMysteryCell();
-    }
-
-    @Override
-    public RuleResult apply(MoveContext ctx) {
-        return isApplicable(ctx) ? RuleResult.success("Mystery cell effect will be triggered")
-                                 : RuleResult.notApplicable();
-    }
-
-    @Override
-    public int getPriority() { return 70; }
 }

@@ -24,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Finished games and replays through the request router")
 class ReplayRouterTest {
 
+    // "Nothing arrives" can only be shown by waiting: a paused replay would have sent several events in this time.
+    private static final long QUIET_PERIOD_MS = 100;
+
+
     private RouterKit kit;
 
     @AfterEach
@@ -104,7 +108,7 @@ class ReplayRouterTest {
 
         assertTrue(viewer.call(new ClientMessage.ControlReplay(id(), replayId, ReplayAction.PAUSE, null)).isOk());
         int frozen = viewer.inbox.of(ReplayEvent.class).size();
-        Thread.sleep(100);
+        Thread.sleep(QUIET_PERIOD_MS);
         assertEquals(frozen, viewer.inbox.of(ReplayEvent.class).size());
         assertEquals(1, kit.replays.running());
 

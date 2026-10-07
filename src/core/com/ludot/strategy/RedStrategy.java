@@ -5,7 +5,6 @@ import com.ludot.command.BlockCaptureMove;
 import com.ludot.command.BlockMove;
 import com.ludot.command.CaptureMove;
 import com.ludot.command.Move;
-import com.ludot.command.MoveFromBase;
 import com.ludot.command.MoveOnBoard;
 import com.ludot.model.Cell;
 import com.ludot.model.Colour;

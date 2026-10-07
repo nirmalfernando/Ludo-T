@@ -11,7 +11,6 @@ import com.ludot.events.dice.CoinTossEvent;
 import com.ludot.events.home.HomeReachEvent;
 import com.ludot.events.move.CaptureEvent;
 import com.ludot.events.move.MoveEvent;
-import com.ludot.factory.CellFactory;
 import com.ludot.factory.RuleEngineFactory;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
@@ -25,7 +24,6 @@ import com.ludot.rules.RuleEngine;
 import com.ludot.rules.block.BlockRule;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,7 +116,7 @@ class MoveExecutorTest {
         executor.execute(new MoveOnBoard(p2, 2)); // forms block, originalDirections saved
 
         // simulate break (BlockRule.forceBreakBlock restores originalDirection)
-        new BlockRule(new FixedRandomProvider()).forceBreakBlock(List.of(p1, p2));
+        new BlockRule().forceBreakBlock(List.of(p1, p2));
 
         assertEquals(Direction.CLOCKWISE, p1.getDirection(), "T-5: p1 direction must be restored");
         assertEquals(Direction.CLOCKWISE, p2.getDirection(), "T-5: p2 direction must be restored");

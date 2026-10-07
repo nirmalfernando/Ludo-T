@@ -15,7 +15,7 @@ public class LudoTRuleEngineFactory extends RuleEngineFactory {
 
     @Override
     public RuleEngine create(RandomProvider random) {
-        BlockRule blockRule = new BlockRule(random);
+        BlockRule blockRule = new BlockRule();
         LudoTDiceRule diceRule = new LudoTDiceRule(blockRule);
         return new RuleEngine(
                 new LudoTMoveValidator(random),

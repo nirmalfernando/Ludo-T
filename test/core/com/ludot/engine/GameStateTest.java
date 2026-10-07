@@ -1,7 +1,6 @@
 package com.ludot.engine;
 
 import com.ludot.TestBoard;
-import com.ludot.factory.CellFactory;
 import com.ludot.model.Board;
 import com.ludot.model.Cell;
 import com.ludot.model.Colour;
@@ -11,7 +10,6 @@ import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.model.state.OnBoardState;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -37,7 +37,6 @@ import com.ludot.model.Direction;
 import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 // Converts each event type into a console-ready string via overloaded format() methods.

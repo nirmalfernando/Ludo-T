@@ -3,7 +3,6 @@ package com.ludot.bot;
 import com.ludot.protocol.Colour;
 import com.ludot.protocol.MoveKind;
 import com.ludot.protocol.MoveOption;
-import java.util.List;
 import java.util.Random;
 import java.util.function.ToIntFunction;
 

@@ -2,7 +2,6 @@ package com.ludot.factory;
 
 import com.ludot.model.Board;
 import com.ludot.model.Colour;
-import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

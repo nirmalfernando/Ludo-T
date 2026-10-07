@@ -20,7 +20,6 @@ import com.ludot.model.Piece;
 import com.ludot.model.Player;
 import com.ludot.rules.RuleEngine;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,6 @@ public class GameEngine {
     private final Board board;
     private final List<Player> players;
     private final TurnManager turnManager;
-    private final MoveExecutor moveExecutor;
     private final MysteryManager mysteryManager;
     private final RuleEngine ruleEngine;
     private final EventBus eventBus;
@@ -47,12 +45,11 @@ public class GameEngine {
 
     /** Constructs a GameEngine with all collaborators wired in by the caller (GameBuilder). */
     public GameEngine(Board board, List<Player> players, TurnManager turnManager,
-                      MoveExecutor moveExecutor, MysteryManager mysteryManager,
+                      MysteryManager mysteryManager,
                       RuleEngine ruleEngine, EventBus eventBus, RandomProvider random) {
         this.board = board;
         this.players = players;
         this.turnManager = turnManager;
-        this.moveExecutor = moveExecutor;
         this.mysteryManager = mysteryManager;
         this.ruleEngine = ruleEngine;
         this.eventBus = eventBus;

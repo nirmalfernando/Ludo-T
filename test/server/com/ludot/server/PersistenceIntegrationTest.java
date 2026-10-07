@@ -4,7 +4,6 @@ import com.ludot.protocol.ClientMessage;
 import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.ServerLink;
 import com.ludot.protocol.ServerMessage;
-import com.ludot.protocol.Speed;
 import com.ludot.protocol.Variant;
 import com.ludot.server.adapters.jdbc.Database;
 import com.ludot.server.adapters.jdbc.DatabaseConfig;

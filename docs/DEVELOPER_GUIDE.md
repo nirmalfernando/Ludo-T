@@ -217,7 +217,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 
 | Suite | What it covers |
 |---|---|
-| `core` (313) | The original unit tests, plus the **golden logs**: seeds 1, 2, 10, 11 and 2069 must reproduce the recorded output byte for byte; phased-turn tests |
+| `core` (311) | The original unit tests, plus the **golden logs**: seeds 1, 2, 10, 11 and 2069 must reproduce the recorded output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
 | `client` (92) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing, event-log categories, the synthesised sounds and their mapping, confetti physics, reconnect retry rules and stale-connection detection, replay state and wording |

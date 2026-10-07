@@ -31,6 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Reconnect over real sockets")
 class ReconnectOverTcpTest {
 
+    // The server has no event to wait for when it notices a dropped connection. The assertion below also holds if it has
+    // not noticed yet (the live connection keeps the nickname), so this wait only makes the test exercise the grace path.
+    private static final long SERVER_NOTICES_CUT_MS = 300;
+
     private GameServer server;
 
     @BeforeEach void startServer() throws Exception {
@@ -136,7 +140,7 @@ class ReconnectOverTcpTest {
         Listening alice = new Listening(ServerLink.connect("localhost", server.port()));
         assertTrue(ask(alice.link, new ClientMessage.Hello(id(), "alice", true)).isOk());
         alice.link.close();
-        Thread.sleep(300); // let the server notice the cut
+        Thread.sleep(SERVER_NOTICES_CUT_MS);
 
         try (ServerLink thief = ServerLink.connect("localhost", server.port())) {
             Response refused = ask(thief, new ClientMessage.Hello(id(), "alice", true));

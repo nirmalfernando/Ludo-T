@@ -74,7 +74,7 @@ public class GameBuilder {
 
         TurnManager turnManager = new TurnManager(ruleEngine, moveExecutor, eventBus, random, players, board);
 
-        return new GameEngine(board, players, turnManager, moveExecutor,
+        return new GameEngine(board, players, turnManager,
                 mysteryManager, ruleEngine, eventBus, random);
     }
 }

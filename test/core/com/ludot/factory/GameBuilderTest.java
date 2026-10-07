@@ -3,7 +3,6 @@ package com.ludot.factory;
 import com.ludot.TestBoard;
 import com.ludot.engine.GameEngine;
 import com.ludot.model.Board;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -236,6 +236,9 @@ docs/                                    developer guide and images
 
 - [Developer guide](docs/DEVELOPER_GUIDE.md): configuration reference, database set-up, the automatic clients,
   metrics, troubleshooting and the game-rule scenarios.
+- [Rules: corrections and interpretations](docs/RULES_INTERPRETATION.md): where the game follows the specification
+  and the decisions taken where it is silent.
+- [Design decisions](docs/DESIGN_DECISIONS.md): the patterns in use, and why some were replaced.
 
 ## Status
 

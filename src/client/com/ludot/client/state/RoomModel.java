@@ -47,7 +47,6 @@ public final class RoomModel {
     private final ObjectProperty<TurnInfo> turn = new SimpleObjectProperty<>();
     private final ObjectProperty<ServerMessage.YourTurn> myTurn = new SimpleObjectProperty<>();
     private final ObjectProperty<List<EventDto>> latestEvents = new SimpleObjectProperty<>(List.of());
-    private final ObjectProperty<List<Integer>> winners = new SimpleObjectProperty<>(List.of());
     private final ObjectProperty<List<com.ludot.protocol.Colour>> standings = new SimpleObjectProperty<>();
     private final LongProperty stateHash = new SimpleLongProperty();
     private final LongProperty seq = new SimpleLongProperty();

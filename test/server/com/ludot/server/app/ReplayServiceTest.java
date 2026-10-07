@@ -27,6 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("ReplayService: playing a finished game again")
 class ReplayServiceTest {
 
+    // "Nothing arrives" can only be shown by waiting: at this replay speed these spans cover many events (ten steps' worth).
+    private static final long PAUSED_QUIET_MS = 250;
+    private static final long STOPPED_QUIET_MS = 150;
+
+
     private static ReplayFixtures.Played played;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
@@ -158,7 +163,7 @@ class ReplayServiceTest {
         Response paused = service.control(viewer, new ClientMessage.ControlReplay(UUID.randomUUID(), id, ReplayAction.PAUSE, null));
         assertTrue(paused.isOk());
         int frozen = sink.of(ReplayEvent.class).size();
-        Thread.sleep(250); // ten steps' worth of time
+        Thread.sleep(PAUSED_QUIET_MS);
         assertEquals(frozen, sink.of(ReplayEvent.class).size(), "nothing may arrive while paused");
 
         assertTrue(service.control(viewer, new ClientMessage.ControlReplay(UUID.randomUUID(), id, ReplayAction.RESUME, null)).isOk());
@@ -167,7 +172,7 @@ class ReplayServiceTest {
         assertTrue(service.control(viewer, new ClientMessage.ControlReplay(UUID.randomUUID(), id, ReplayAction.STOP, null)).isOk());
         assertEquals(ReplayEndReason.STOPPED, awaitEnd().reason());
         int after = sink.of(ReplayEvent.class).size();
-        Thread.sleep(150);
+        Thread.sleep(STOPPED_QUIET_MS);
         assertEquals(after, sink.of(ReplayEvent.class).size(), "nothing may arrive after stopping");
         assertEquals(0, service.running());
     }

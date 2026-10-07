@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +47,7 @@ public final class AsyncGameRepository implements GameRepository, AutoCloseable 
     private volatile int maxQueueDepth;
     private volatile boolean closing;
     private volatile boolean backlogWarned;
+    private final AtomicInteger inFlight = new AtomicInteger();
 
     public AsyncGameRepository(BatchWriter writer) {
         this(writer, DEFAULT_MAX_BATCH, DEFAULT_RETRY_DELAYS_MS);
@@ -93,7 +95,6 @@ public final class AsyncGameRepository implements GameRepository, AutoCloseable 
         return queue.isEmpty() && inFlight.get() == 0;
     }
 
-    private final java.util.concurrent.atomic.AtomicInteger inFlight = new java.util.concurrent.atomic.AtomicInteger();
 
     private void writeLoop() {
         try {

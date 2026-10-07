@@ -5,7 +5,6 @@ import com.ludot.model.state.AtHomeState;
 import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.state.OnBoardState;
 import com.ludot.model.state.PieceState;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

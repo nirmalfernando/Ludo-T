@@ -21,13 +21,4 @@ public class LudoTMoveValidator extends BaseMoveValidator {
     public Direction assignDirection(Piece piece) {
         return random.tossCoin() ? Direction.CLOCKWISE : Direction.COUNTER_CLOCKWISE;
     }
-
-    
-    @Override
-    public boolean canEnterHomeStraight(Piece piece) {
-        if (piece.getDirection() == Direction.COUNTER_CLOCKWISE) {
-            return piece.canEnterHomeStraight() && piece.getApproachPassCount() >= 2;
-        }
-        return super.canEnterHomeStraight(piece);
-    }
 }

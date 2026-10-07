@@ -5,7 +5,6 @@ import com.ludot.model.Cell;
 import com.ludot.model.CellType;
 import com.ludot.model.Colour;
 import com.ludot.model.Piece;
-import com.ludot.model.state.AtBaseState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

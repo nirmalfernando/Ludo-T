@@ -2,7 +2,6 @@ package com.ludot.engine;
 
 import com.ludot.GameConstants;
 import com.ludot.command.Move;
-import com.ludot.command.MoveOnBoard;
 import com.ludot.command.MoveResult;
 import com.ludot.command.SkipMove;
 import com.ludot.dice.RandomProvider;
@@ -14,7 +13,6 @@ import com.ludot.events.flow.TurnStartEvent;
 import com.ludot.events.move.SkipTurnEvent;
 import com.ludot.events.dice.TripleSixEvent;
 import com.ludot.model.Board;
-import com.ludot.model.state.AtBaseState;
 import com.ludot.model.state.AtBriefingState;
 import com.ludot.model.Cell;
 import com.ludot.model.GameState;

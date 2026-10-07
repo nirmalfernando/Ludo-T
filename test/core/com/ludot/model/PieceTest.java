@@ -2,10 +2,8 @@ package com.ludot.model;
 
 import com.ludot.TestBoard;
 import com.ludot.effects.EnergisedEffect;
-import com.ludot.factory.CellFactory;
 import com.ludot.model.state.AtBaseState;
 import com.ludot.model.state.OnBoardState;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
