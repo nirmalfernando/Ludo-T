@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,7 +85,8 @@ class GameServerTest {
                 other.call(new ClientMessage.Hello(id(), "alice")).errorCode());
     }
 
-    @Test @DisplayName("a request before Hello gets PROTOCOL_ERROR and the connection is closed")
+    // repeated: the reply and the close race on the server, which showed up once in a few hundred runs
+    @RepeatedTest(100) @DisplayName("a request before Hello gets PROTOCOL_ERROR and the connection is closed")
     void requestBeforeHelloClosesConnection() throws IOException {
         TestClient rude = client(null);
         Response response = rude.call(new ClientMessage.ListRooms(id()));

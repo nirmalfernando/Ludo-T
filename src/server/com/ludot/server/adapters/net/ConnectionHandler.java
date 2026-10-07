@@ -16,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +43,7 @@ final class ConnectionHandler implements ClientSink {
     private final Semaphore window;          // one permit per request that has not yet had its answer sent
     private final int maxInFlight;
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicInteger unsent = new AtomicInteger(); // queued or being written: not yet on the wire
     private volatile Thread writerThread;
 
     ConnectionHandler(Socket socket, RequestRouter router, int outboundCapacity, int readTimeoutMs,
@@ -66,9 +68,11 @@ final class ConnectionHandler implements ClientSink {
         if (closed.get()) {
             return false;
         }
+        unsent.incrementAndGet();
         if (outbound.offer(message)) {
             return true;
         }
+        unsent.decrementAndGet();
         LOG.warning("Closing " + remoteAddress() + ": its outbound queue is full (" + outbound.size()
                 + " messages waiting), so the client is too slow to keep up");
         return false;
@@ -131,7 +135,11 @@ final class ConnectionHandler implements ClientSink {
         try {
             while (!closed.get()) {
                 ServerMessage message = outbound.take();
-                channel.send(message);
+                try {
+                    channel.send(message);
+                } finally {
+                    unsent.decrementAndGet();
+                }
                 if (message instanceof ServerMessage.Response) {
                     releaseWindow(); // the answer is on the wire: the client may have another request in flight
                 }
@@ -166,7 +174,8 @@ final class ConnectionHandler implements ClientSink {
     // give an error response a moment to reach the client before the socket is closed
     private void flushBriefly() {
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(FLUSH_BEFORE_CLOSE_MS);
-        while (!outbound.isEmpty() && System.nanoTime() < deadline) {
+        // not outbound.isEmpty(): the writer may already have taken the reply off the queue without having written it
+        while (unsent.get() > 0 && System.nanoTime() < deadline) {
             try {
                 Thread.sleep(5);
             } catch (InterruptedException e) {
