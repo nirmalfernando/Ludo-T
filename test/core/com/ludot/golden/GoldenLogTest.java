@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class GoldenLogTest {
 
     @ParameterizedTest(name = "seed {0}")
-    @ValueSource(longs = {1, 2, 3, 20, 2069})
+    @ValueSource(longs = {1, 2, 10, 11, 2069})
     void fullGameLogMatchesGolden(long seed) throws IOException {
         String expected = Files.readString(Path.of("test-resources", "golden", "seed-" + seed + ".log"),
                 StandardCharsets.UTF_8);

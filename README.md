@@ -94,10 +94,10 @@ These four seeds each show particular rules clearly. Run one in the console with
 
 | Seed | What it demonstrates | A line to look for in the log |
 |---|---|---|
-| `1` | The core rules: T-1 direction, T-2 bonus, T-3/T-4 blockades, T-5 break, T-6 triple six, T-7 home entry refused, T-8 block capture, T-9 capture, T-10/T-11 mystery cells, T-14 Gamma, T-15 expiry | `G2 forms a blockade with G3 at cell 39 (T-3)` |
-| `2` | T-12 Alpha makes a piece **Sick**; T-13 Beta sends a piece to **briefing** | `Green piece G1 feels sick, and movement speed halves.` |
-| `3` | T-12 Alpha makes a piece **Energised** | `Green piece G4 feels energized, and movement speed doubles.` |
-| `20` | The rare T-13 **early escape** from briefing with three 3s | `Teleporting piece B3 to base.` |
+| `1` | The core rules: T-1 direction, T-2 bonus, T-3/T-4 blockades, T-5 break, T-6 triple six, T-7 home entry refused, T-8 block capture, T-9 capture, T-10/T-11 mystery cells, T-14 Gamma, T-15 effects | `R1 forms a blockade with R2 at cell 26 (T-3)` |
+| `2` | T-12 Alpha makes a piece **Sick**; T-13 Beta sends a piece to **briefing** | `Red piece R1 feels sick, and movement speed halves.` |
+| `10` | T-12 Alpha makes a piece **Energised** | `Red piece R3 feels energized, and movement speed doubles.` |
+| `11` | The rare T-13 **early escape** from briefing with three 3s | `Green piece G2 is movement-restricted and has rolled three consecutively. Teleporting piece G2 to base.` |
 | `2069` | The demo game stored by `./run-dbtool.sh reset`: a complete game with blockades and mystery cells | `Mystery cell expires.` |
 
 A game in which blockades jam each other so that nobody can move again is ended after 100 rounds without movement
@@ -160,7 +160,7 @@ Create a Play room in the client first, then let bots take the seats:
 ./run-stress.sh --create --name stressA --seat RED --speed fast --start-game
 ```
 
-The bots each have a style (Red goes for captures, Green for blockades, Yellow races home, Blue is random). The
+The bots each have a style (Red goes for captures, Green for blockades, Yellow races home, Blue cycles through its pieces and likes mystery cells). The
 stress client floods a room with fast, concurrent and deliberately wrong requests and checks every answer; the
 [developer guide](docs/DEVELOPER_GUIDE.md#automatic-clients) has all the options.
 

@@ -217,7 +217,7 @@ Client options: `--host H --port P --nickname N --connect` (connect straight awa
 
 | Suite | What it covers |
 |---|---|
-| `core` (296) | The original unit tests, plus the **golden logs**: seeds 1, 2, 3, 20 and 2069 must reproduce the recorded output byte for byte; phased-turn tests |
+| `core` (313) | The original unit tests, plus the **golden logs**: seeds 1, 2, 10, 11 and 2069 must reproduce the recorded output byte for byte; phased-turn tests |
 | `protocol` (25) | Every message round-trips, oversized / malformed / disallowed input is rejected, state hash |
 | `server` (225) | Rooms, validation order, chat, timers and AFK, the **race tests** (seat claim, duplicate ids, join under load, backpressure, chat ordering, rate limit, pause vs AI, timeout vs move), lobby races, real-socket integration, JDBC and the async writer on H2, end-to-end persistence |
 | `client` (92) | Board geometry, state model and sequence-gap handling, countdown clock, how a room card and the connection light look, ping round-trip timing, event-log categories, the synthesised sounds and their mapping, confetti physics, reconnect retry rules and stale-connection detection, replay state and wording |
@@ -314,41 +314,41 @@ the golden-log tests pin their output.
 |------|-------------------------------|
 | **T-1** CCW movement | `B1 exits base. Coin toss: Tails -> Counter-Clockwise` |
 | **T-1** Approach cell pass | `R1 passes approach cell (pass count: 1)` |
-| **T-2** Bonus roll on capture | `Green receives a bonus roll! (T-2)` |
-| **T-3** Block formation | `G2 forms a blockade with G3 at cell 39 (T-3)` |
-| **T-4** Block movement | `Blockade of 2 moves 1 steps (roll 2 / 2) (T-4)` |
-| **T-5** Direction restored on break | `Blockade broken! B2 reverts to counter-clockwise (T-5)` |
-| **T-6** Triple-six penalty | `Yellow rolled three consecutive 6s! Forced block break! (T-6)` |
+| **T-2** Bonus roll on capture | `Red receives a bonus roll! (T-2)` |
+| **T-3** Block formation | `R1 forms a blockade with R2 at cell 26 (T-3)` |
+| **T-4** Block movement | `Blockade of 2 moves 2 steps (roll 5 / 2) (T-4)` |
+| **T-5** Direction restored on break | `Blockade broken! R1 reverts to counter-clockwise (T-5)` |
+| **T-6** Triple-six penalty | `Red rolled three consecutive 6s! Forced block break! (T-6)` |
 | **T-7** Home entry rejected | `R1 cannot enter home straight (needs 1 more capture(s)) (T-7)` |
 | **T-8** Block-vs-block capture | `Blockade of 2 moves 1 steps (roll 0 / 2) (T-4)` *(roll 0 marks a block-capture move)* |
-| **T-9** Capture + return to base | `Green piece G1 lands on square 25, captures Blue piece B1, and returns it to the base.` |
+| **T-9** Capture + return to base | `Red piece R2 lands on square 45, captures Yellow piece Y1, and returns it to the base.` |
 | **T-10** Mystery cell spawns | `A mystery cell has spawned in location 13 and will be at this location for the next 4 rounds.` |
 | **T-11** Mystery teleport | `B1 lands on mystery cell! Teleporting...` → `B1 teleported to Beta Cell (cell 25)` |
 | **T-14** Gamma from counter-clockwise | `Blue piece B1 is moving in a counter-clockwise direction. Teleporting to Beta from Gamma.` |
 | **T-10** Mystery cell moves on | `Mystery cell expires.` |
 | Home straight entry | `R2 enters the home straight!` |
-| Piece reaches home | `G1 reaches Home!` |
+| Piece reaches home | `R2 reaches Home!` |
 
 ### Seed 2: Alpha (Sick) and Beta Briefing (T-12, T-13)
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-12** Alpha → Sick | `Green piece G1 feels sick, and movement speed halves.` |
-| **T-13** Beta → Briefing lock | `Yellow piece Y1 attends briefing and cannot move for four rounds.` |
+| **T-12** Alpha → Sick | `Red piece R1 feels sick, and movement speed halves.` |
+| **T-13** Beta → Briefing lock | `Blue piece B4 attends briefing and cannot move for four rounds.` |
 
-### Seed 3: Alpha (Energised) (T-12)
+### Seed 10: Alpha (Energised) (T-12)
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-12** Alpha → Energised | `Green piece G4 feels energized, and movement speed doubles.` |
+| **T-12** Alpha → Energised | `Red piece R3 feels energized, and movement speed doubles.` |
 
-### Seed 20: Beta Briefing escape via triple-3 (T-13 escape)
+### Seed 11: Beta Briefing escape via triple-3 (T-13 escape)
 
 The rarest scenario: a piece in briefing is present for three rolls of 3 in a row and escapes early.
 
 | Rule | What to look for in the output |
 |------|-------------------------------|
-| **T-13** Briefing early escape | `Blue piece B3 is movement-restricted and has rolled three consecutively. Teleporting piece B3 to base.` |
+| **T-13** Briefing early escape | `Green piece G2 is movement-restricted and has rolled three consecutively. Teleporting piece G2 to base.` |
 
 Seed `2069` is the demo game that `DbTool reset` stores: a complete game with blockades and mystery cells.
 
@@ -356,6 +356,6 @@ Seed `2069` is the demo game that `DbTool reset` stores: a complete game with bl
 |------|-----------------|
 | `1` | T-1 CCW · T-2 Bonus · T-3/T-4 Block · T-5 Break · T-6 Triple-Six · T-7 Home reject · T-8 Block capture · T-9 Capture · T-10/T-11 Mystery · T-14 Gamma · T-15 Effects |
 | `2` | T-12 Alpha Sick · T-13 Beta Briefing |
-| `3` | T-12 Alpha Energised |
-| `20` | T-13 Beta Briefing escape (triple-3) |
+| `10` | T-12 Alpha Energised |
+| `11` | T-13 Beta Briefing escape (triple-3) |
 | `2069` | The stored demo game |

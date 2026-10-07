@@ -25,6 +25,9 @@ Where the specification is silent, the decision taken is listed in the second ta
 | Rule 7 | Classic let a piece land on its own piece | Not allowed in Classic; if no other piece can move the roll is ignored | `ClassicVariantTest` |
 | Classic | Mystery cells, a coin toss and blockade logic leaked into the Classic variant | Classic has none of them | `ClassicVariantTest` |
 | Turn order | Players were sorted by their roll-off number | The highest roller starts and play continues clockwise R, G, Y, B; ties for the highest roll roll again | `GameEngineTest` |
+| Red (2.1.1) | Left base only when it had no piece on the board, and ignored block creation | Captures first (victim closest to its home); on a 6 with no capture it brings a second piece out; avoids moves that create a block unless every move does | `StrategyBehaviourTest` |
+| Green (2.1.2) | Took any capture and then the first move; no "other pieces before breaking a block" | On a 6 leaves base unless a move forms a block; moves the block (T-4); captures only where the attacker still needs a capture; moves its other pieces home before it breaks a block | `StrategyBehaviourTest` |
+| Yellow (2.1.3) | Moved home-straight pieces before checking needed captures; "closest to home" ignored the straight | On a 6 leaves base; a piece that still needs a capture captures first; otherwise moves the piece closest to Home (home-straight pieces first) | `StrategyBehaviourTest` |
 | Blue (2.1.4) | Used the global turn counter, so it kept moving the same piece | Cycles B1, B2, B3, B4 on its own counter | `BlueCycleTest` |
 
 "The behaviour is unchanged" therefore holds for the architecture and the rules not listed above; the golden logs
@@ -43,3 +46,6 @@ were re-recorded once after these corrections and every game stored in a databas
 | Effects and blocks | Energised/Sick change a single piece's steps, not a block's |
 | Several players tie for the highest roll in the roll-off | Only those players roll again |
 | Opposing blockades jam each other so that nobody can ever move again (T-3 forbids jumping) | After **100 rounds without any piece moving** the game is ended and awarded to the player with most pieces home, then most captures |
+| "Pieces in front of the block" (Green) | Pieces of that colour that are not part of a block |
+| "Needs a capture" (Green, Yellow) | The piece has captured nothing yet (the T-7 requirement) |
+| Red "keeps one piece on the path" | Red brings a second piece out on a 6 only when it has no capture; it never moves a piece out when nothing needs to |

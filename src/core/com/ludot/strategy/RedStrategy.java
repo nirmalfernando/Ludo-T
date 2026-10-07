@@ -33,40 +33,41 @@ public class RedStrategy implements PlayerStrategy {
                     .orElse(captures.get(0));
         }
 
-        long onBoard = pieces.stream().filter(p -> p.getPosition() != null).count();
-
-        // 2. S-R3: maintain exactly one piece on the standard path.
-        //    Only exit base when no piece is currently on the board.
-        if (onBoard == 0) {
-            Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
-            if (fromBase.isPresent()) {
-                return fromBase.get();
-            }
+        // 2. S-R3: Red keeps one piece on the path and brings another out only when it cannot capture
+        //    by moving six cells, which is the case here because captures were handled above.
+        Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
+        if (fromBase.isPresent()) {
+            return fromBase.get();
         }
 
-        // 3. Move the piece that is currently closest to any opponent (non-block board moves)
+        // 3. Otherwise move the piece closest to an opponent, avoiding block-forming moves unless unavoidable.
         List<Move> boardMoves = validMoves.stream()
                 .filter(m -> m instanceof MoveOnBoard)
                 .collect(Collectors.toList());
-        if (!boardMoves.isEmpty() && gameState != null && !pieces.isEmpty()) {
-            Colour colour = pieces.get(0).getColour();
-            List<Piece> opponents = gameState.getOpponentPieces(colour);
-            if (!opponents.isEmpty()) {
-                return boardMoves.stream()
-                        .min(Comparator.comparingInt(m -> minDistToOpponent(m, opponents)))
-                        .orElse(boardMoves.get(0));
-            }
-            return boardMoves.get(0);
+        List<Move> withoutBlock = boardMoves.stream()
+                .filter(m -> !StrategyHelper.formsBlock(m))
+                .collect(Collectors.toList());
+        List<Move> candidates = withoutBlock.isEmpty() ? boardMoves : withoutBlock;
+        if (!candidates.isEmpty()) {
+            return closestToAnOpponent(gameState, pieces, candidates);
         }
+        return validMoves.stream()
+                .filter(m -> !(m instanceof BlockMove) && !(m instanceof BlockCaptureMove))
+                .findFirst()
+                .orElseGet(() -> StrategyHelper.firstOf(validMoves));
+    }
 
-        // 4. Avoid creating a block — prefer any non-block, non-base-exit move.
-        //    S-R3: exclude MoveFromBase here since onBoard >= 1 at this point; step 2 handles onBoard == 0.
-        Optional<Move> nonBlock = validMoves.stream()
-                .filter(m -> !(m instanceof BlockMove)
-                        && !(m instanceof BlockCaptureMove)
-                        && !(m instanceof MoveFromBase))
-                .findFirst();
-        return nonBlock.orElseGet(() -> StrategyHelper.firstOf(validMoves));
+    private Move closestToAnOpponent(GameState gameState, List<Piece> pieces, List<Move> candidates) {
+        if (gameState == null || pieces.isEmpty()) {
+            return candidates.get(0);
+        }
+        List<Piece> opponents = gameState.getOpponentPieces(pieces.get(0).getColour());
+        if (opponents.isEmpty()) {
+            return candidates.get(0);
+        }
+        return candidates.stream()
+                .min(Comparator.comparingInt(m -> minDistToOpponent(m, opponents)))
+                .orElse(candidates.get(0));
     }
 
     // S-R2: distance from the capture victim to its own approach cell (smaller = closer to winning).
@@ -94,7 +95,7 @@ public class RedStrategy implements PlayerStrategy {
     }
 
     private int minDistToOpponent(Move m, List<Piece> opponents) {
-        Cell dest = destinationOf(m);
+        Cell dest = StrategyHelper.destinationOf(m);
         if (dest == null) {
             return Integer.MAX_VALUE;
         }
@@ -105,9 +106,4 @@ public class RedStrategy implements PlayerStrategy {
                 .orElse(Integer.MAX_VALUE);
     }
 
-    private Cell destinationOf(Move m) {
-        if (m instanceof CaptureMove cm)   return cm.getTargetCell();
-        if (m instanceof MoveOnBoard mob)  return StrategyHelper.computeDest(mob.getPiece(), mob.getSteps());
-        return null;
-    }
 }
