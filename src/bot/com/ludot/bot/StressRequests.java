@@ -34,7 +34,7 @@ final class StressRequests {
 
     /** The real move for an offered turn: a roll, or the option the seat's style prefers. */
     ClientMessage.Request legitMove(ServerMessage.YourTurn turn) {
-        return turn.phase() == Phase.AWAITING_ROLL
+        return turn.phase() != Phase.AWAITING_MOVE // a roll, or the roll for the playing order
                 ? new ClientMessage.Roll(UUID.randomUUID(), roomId, turn.turnNumber())
                 : new ClientMessage.ChooseMove(UUID.randomUUID(), roomId, turn.turnNumber(),
                         strategy.choose(turn.options()));

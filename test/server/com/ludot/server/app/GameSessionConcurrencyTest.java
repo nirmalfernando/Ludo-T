@@ -312,8 +312,8 @@ class GameSessionConcurrencyTest {
         GameSession room = kit.roomWith(RoomMode.PLAY, 2069, alice);
         Kit.call(room, alice, new ClientMessage.ClaimSeat(id(), room.roomId(), Colour.RED));
         Kit.call(room, alice, new ClientMessage.StartGame(id(), room.roomId()));
-        ServerMessage.YourTurn turn = Kit.sink(alice).await(ServerMessage.YourTurn.class,
-                t -> t.phase() == com.ludot.protocol.Phase.AWAITING_ROLL, 10_000);
+        // her first turn is the roll for the playing order: a timeout and her Roll race for it just like for any roll
+        ServerMessage.YourTurn turn = Kit.sink(alice).await(ServerMessage.YourTurn.class, 10_000);
 
         ClientMessage.Roll roll = new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber());
         List<Callable<Object>> racers = new ArrayList<>();

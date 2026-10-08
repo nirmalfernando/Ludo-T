@@ -104,7 +104,7 @@ public final class BotClient {
     }
 
     private void act(ServerMessage.YourTurn turn) {
-        if (turn.phase() == Phase.AWAITING_ROLL) {
+        if (turn.phase() != Phase.AWAITING_MOVE) { // a roll, or the roll for the playing order
             rolls++;
             link.request(new ClientMessage.Roll(UUID.randomUUID(), roomId, turn.turnNumber()));
         } else {

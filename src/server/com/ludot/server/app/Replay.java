@@ -55,7 +55,7 @@ final class Replay {
         if (ended) {
             return;
         }
-        push(game.start().events());
+        push(game.open().events()); // the roll-off rolls are recorded steps like any other, so they replay one by one
         scheduleNext();
     }
 
@@ -111,8 +111,9 @@ final class Replay {
     private RoomGame.Step applyNext() {
         ReplayData.Step decision = data.steps().get(next);
         try {
-            RoomGame.Step result = decision.optionIndex() == null
-                    ? game.roll(decision.colour()) : game.applyMove(decision.colour(), decision.optionIndex());
+            RoomGame.Step result = decision.optionIndex() != null ? game.applyMove(decision.colour(), decision.optionIndex())
+                    : game.phase() == com.ludot.protocol.Phase.ROLL_OFF ? game.rollOff(decision.colour())
+                    : game.roll(decision.colour());
             if (rollDiffers(decision, result)) {
                 end(ReplayEndReason.DIVERGED); // the same seed must give the same dice
                 return null;

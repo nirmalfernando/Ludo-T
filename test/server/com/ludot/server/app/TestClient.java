@@ -87,7 +87,7 @@ final class TestClient implements AutoCloseable {
                     return true;
                 }
                 if (message instanceof ServerMessage.YourTurn turn) {
-                    send(turn.phase() == Phase.AWAITING_ROLL
+                    send(turn.phase() != Phase.AWAITING_MOVE
                             ? new ClientMessage.Roll(UUID.randomUUID(), roomId, turn.turnNumber())
                             : new ClientMessage.ChooseMove(UUID.randomUUID(), roomId, turn.turnNumber(), 0));
                 }

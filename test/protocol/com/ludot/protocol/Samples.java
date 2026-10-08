@@ -71,6 +71,8 @@ final class Samples {
         SeatDto seat = new SeatDto(Colour.RED, Controller.HUMAN, "p1", "alice", true);
         MemberDto member = new MemberDto("p1", "alice", Role.PLAYER, true);
         EventDto event = new EventDto(EventType.CAPTURE, Colour.RED, 2, 30, 33, "R3 captures G1");
+        EventDto rollOff = new EventDto(EventType.ROLL_OFF, Colour.GREEN, null, null, null, "Green rolls 5", 5);
+        EventDto coinToss = new EventDto(EventType.COIN_TOSS, Colour.BLUE, 1, null, null, "B2 coin toss", 0);
         return List.of(
                 new ServerMessage.Welcome("p1", "alice", "token"),
                 Response(),
@@ -80,8 +82,14 @@ final class Samples {
                 new ServerMessage.RoomSnapshot("R-0001", 120, RoomMode.PLAY, Variant.LUDO_T, 7L,
                         RoomStatus.RUNNING, "p1", false, Speed.NORMAL, List.of(seat), board(), turn(),
                         List.of(member), List.of("line"), List.of(chat()), 42L),
+                new ServerMessage.RoomSnapshot("R-0001", 120, RoomMode.PLAY, Variant.LUDO_T, 7L,
+                        RoomStatus.RUNNING, "p1", false, Speed.NORMAL, List.of(seat), board(), turn(),
+                        List.of(member), List.of("line"), List.of(chat()), 42L,
+                        List.of(Colour.GREEN, Colour.YELLOW, Colour.BLUE, Colour.RED)),
                 new ServerMessage.SeatsUpdated("R-0001", 121, List.of(seat)),
                 new ServerMessage.StateUpdate("R-0001", 122, turn(), List.of(event), board(), 43L),
+                new ServerMessage.StateUpdate("R-0001", 123, turn(), List.of(rollOff, coinToss), board(), 44L),
+                new ServerMessage.YourTurn("R-0001", 0, Phase.ROLL_OFF, null, List.of(), null),
                 new ServerMessage.YourTurn("R-0001", 12, Phase.AWAITING_MOVE, 6, List.of(option()), null),
                 new ServerMessage.RoomStateChanged("R-0001", 123, RoomStatus.PAUSED, true, Speed.FAST, "p1"),
                 new ServerMessage.MembersChanged("R-0001", 124, List.of(member)),

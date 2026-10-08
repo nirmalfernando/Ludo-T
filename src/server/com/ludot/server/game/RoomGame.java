@@ -56,10 +56,31 @@ public final class RoomGame {
         return variant == Variant.CLASSIC ? new ClassicRuleEngineFactory() : new LudoTRuleEngineFactory();
     }
 
-    /** Runs the roll-off and opens the first turn. */
+    /** Runs the whole roll-off at once and opens the first turn (a replay uses this: it draws the same dice). */
     public Step start() {
         engine.start();
         return step(null);
+    }
+
+    /** Announces the game and waits for the roll-off: the contenders then roll one at a time with {@link #rollOff}. */
+    public Step open() {
+        engine.beginRollOff();
+        return step(null);
+    }
+
+    /** One contender's roll for the order; the last roll of the roll-off announces it and opens the first turn. */
+    public Step rollOff(Colour colour) {
+        int roll = engine.rollOff(DtoMapper.coreColour(colour));
+        return step(roll);
+    }
+
+    /** The colours in playing order, once the roll-off has decided it; empty before. */
+    public List<Colour> playOrder() {
+        GamePhase now = engine.getPhase();
+        if (now == GamePhase.NOT_STARTED || now == GamePhase.ROLL_OFF) {
+            return List.of();
+        }
+        return engine.getPlayers().stream().map(p -> DtoMapper.colour(p.getColour())).toList();
     }
 
     public Step roll(Colour colour) {
@@ -101,9 +122,10 @@ public final class RoomGame {
 
     public Phase phase() {
         return switch (engine.getPhase()) {
+            case ROLL_OFF -> Phase.ROLL_OFF;
             case AWAITING_MOVE -> Phase.AWAITING_MOVE;
             case FINISHED -> Phase.FINISHED;
-            default -> Phase.AWAITING_ROLL;
+            case NOT_STARTED, AWAITING_ROLL -> Phase.AWAITING_ROLL;
         };
     }
 

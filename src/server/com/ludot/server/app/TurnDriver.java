@@ -178,9 +178,10 @@ final class TurnDriver {
         if (seat.controller() != Controller.HUMAN) {
             return;
         }
-        int missed = missedTurns.merge(colour, 1, Integer::sum);
+        boolean rollOff = state.game.phase() == Phase.ROLL_OFF; // rolled for, but not a missed turn: nothing was at stake
+        int missed = rollOff ? 0 : missedTurns.merge(colour, 1, Integer::sum);
         RoomGame.Step step = actFor(colour, expectedTurn, DecisionSource.TIMEOUT, false);
-        if (missed >= state.config.afkAfterTimeouts()) {
+        if (!rollOff && missed >= state.config.afkAfterTimeouts()) {
             state.seats.setController(colour, Controller.AFK);
             broadcaster.seats();
             chat.postSystem(seat.nickname() + " is away: the AI plays " + colour + " until they take it back");
@@ -206,10 +207,11 @@ final class TurnDriver {
         return state.status == RoomStatus.RUNNING && !state.game.isFinished() && state.game.turnNumber() == turn;
     }
 
-    // the roll if one is due, otherwise the move the seat's own strategy picks (or the skip, when forced)
+    // the roll-off roll or the roll if one is due, otherwise the move the seat's own strategy picks (or the skip, when forced)
     private RoomGame.Step actFor(Colour colour, int turn, DecisionSource source, boolean takeFirstOption) {
-        if (state.game.phase() == Phase.AWAITING_ROLL) {
-            RoomGame.Step step = state.game.roll(colour);
+        Phase phase = state.game.phase();
+        if (phase == Phase.ROLL_OFF || phase == Phase.AWAITING_ROLL) {
+            RoomGame.Step step = phase == Phase.ROLL_OFF ? state.game.rollOff(colour) : state.game.roll(colour);
             record(turn, colour, step.rolled(), null, source);
             return step;
         }

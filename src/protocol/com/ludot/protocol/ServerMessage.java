@@ -64,7 +64,7 @@ public sealed interface ServerMessage extends Serializable
         }
     }
 
-    record RoomSnapshot(String roomId, long seq, RoomMode mode, Variant variant, Long seed, RoomStatus status, String hostId, boolean paused, Speed speed, List<SeatDto> seats, BoardDto board, TurnInfo turn, List<MemberDto> members, List<String> recentLog, List<ChatMessage> recentChat, long stateHash) implements RoomPush {
+    record RoomSnapshot(String roomId, long seq, RoomMode mode, Variant variant, Long seed, RoomStatus status, String hostId, boolean paused, Speed speed, List<SeatDto> seats, BoardDto board, TurnInfo turn, List<MemberDto> members, List<String> recentLog, List<ChatMessage> recentChat, long stateHash, List<Colour> playOrder) implements RoomPush {
         public RoomSnapshot {
             Objects.requireNonNull(roomId, "roomId");
             Objects.requireNonNull(mode, "mode");
@@ -77,6 +77,12 @@ public sealed interface ServerMessage extends Serializable
             members = List.copyOf(members);
             recentLog = List.copyOf(recentLog);
             recentChat = List.copyOf(recentChat);
+            playOrder = playOrder == null ? List.of() : List.copyOf(playOrder);
+        }
+
+        /** A snapshot before the play order is known (it is empty until the opening roll-off is over). */
+        public RoomSnapshot(String roomId, long seq, RoomMode mode, Variant variant, Long seed, RoomStatus status, String hostId, boolean paused, Speed speed, List<SeatDto> seats, BoardDto board, TurnInfo turn, List<MemberDto> members, List<String> recentLog, List<ChatMessage> recentChat, long stateHash) {
+            this(roomId, seq, mode, variant, seed, status, hostId, paused, speed, seats, board, turn, members, recentLog, recentChat, stateHash, List.of());
         }
     }
 

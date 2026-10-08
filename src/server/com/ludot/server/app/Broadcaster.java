@@ -88,7 +88,7 @@ final class Broadcaster {
         return new ServerMessage.RoomSnapshot(state.roomId, seq, state.mode, state.variant, state.seed, state.status,
                 state.hostId, state.status == RoomStatus.PAUSED, state.speed, state.seats.dtos(), state.game.board(),
                 state.game.turnInfo(state.deadline), memberDtos(), List.copyOf(state.log), state.chat.recent(),
-                state.game.stateHash());
+                state.game.stateHash(), state.game.playOrder());
     }
 
     private List<MemberDto> memberDtos() {

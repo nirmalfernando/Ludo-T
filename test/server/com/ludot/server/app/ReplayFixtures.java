@@ -24,12 +24,14 @@ final class ReplayFixtures {
     /** Plays a whole game, always choosing the first offered option (deterministic for a seed). */
     static Played play(String gameId, Variant variant, long seed) {
         RoomGame game = new RoomGame(variant, seed);
-        game.start();
+        game.open();
         List<ReplayData.Step> steps = new ArrayList<>();
         int turn = 0;
         while (!game.isFinished() && steps.size() < 50_000) {
             Colour colour = game.currentColour();
-            if (game.phase() == Phase.AWAITING_ROLL) {
+            if (game.phase() == Phase.ROLL_OFF) {
+                steps.add(new ReplayData.Step(++turn, colour, game.rollOff(colour).rolled(), null));
+            } else if (game.phase() == Phase.AWAITING_ROLL) {
                 steps.add(new ReplayData.Step(++turn, colour, game.roll(colour).rolled(), null));
             } else {
                 game.applyMove(colour, 0);

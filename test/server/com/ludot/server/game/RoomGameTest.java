@@ -154,4 +154,88 @@ class RoomGameTest {
         }
         assertEquals(hashB, b.stateHash());
     }
+
+    // ---------------------------------------------------------------- the opening roll-off, one roller at a time
+
+    @Test @DisplayName("opening the game announces it and waits for the first roller: nothing has been rolled")
+    void openWaitsForTheRollOff() {
+        RoomGame game = new RoomGame(Variant.LUDO_T, 1);
+        RoomGame.Step step = game.open();
+        assertEquals(List.of(EventType.GAME_START), step.events().stream().map(e -> e.type()).toList());
+        assertTrue(game.isStarted());
+        assertEquals(Phase.ROLL_OFF, game.phase());
+        assertEquals(Colour.RED, game.currentColour());
+        assertEquals(Phase.ROLL_OFF, game.turnInfo(null).phase());
+        assertEquals(0, game.turnNumber());
+        assertTrue(game.playOrder().isEmpty(), "the order is not known until the roll-off is over");
+    }
+
+    @Test @DisplayName("each roll-off roll is one step; the last one announces the order and opens the first turn")
+    void rollOffStepsToTheFirstTurn() {
+        RoomGame game = new RoomGame(Variant.LUDO_T, 1);
+        game.open();
+        List<RoomGame.Step> steps = new ArrayList<>();
+        int expectedTurn = 0;
+        while (game.phase() == Phase.ROLL_OFF) {
+            Colour roller = game.currentColour();
+            RoomGame.Step step = game.rollOff(roller);
+            steps.add(step);
+            assertEquals(++expectedTurn, game.turnNumber(), "every roll-off roll advances the turn number");
+            var rolled = step.events().stream().filter(e -> e.type() == EventType.ROLL_OFF).findFirst().orElseThrow();
+            assertEquals(roller, rolled.colour());
+            assertTrue(rolled.value() >= 1 && rolled.value() <= 6, "the roll travels as a number, not only as text");
+        }
+        assertEquals(Phase.AWAITING_ROLL, game.phase());
+        assertTrue(steps.size() >= 4);
+        var last = steps.get(steps.size() - 1);
+        assertTrue(last.events().stream().anyMatch(e -> e.type() == EventType.TURN_ORDER));
+        assertEquals(4, game.playOrder().size());
+        assertEquals(game.currentColour(), game.playOrder().get(0), "the highest roller starts");
+    }
+
+    @Test @DisplayName("rolling for the order by hand ends exactly where the automatic start ends, for any seed")
+    void interactiveRollOffEqualsTheAutomaticStart() {
+        for (long seed : new long[]{1, 2, 3, 55, 2069}) {
+            RoomGame automatic = new RoomGame(Variant.LUDO_T, seed);
+            automatic.start();
+            RoomGame byHand = new RoomGame(Variant.LUDO_T, seed);
+            byHand.open();
+            while (byHand.phase() == Phase.ROLL_OFF) {
+                byHand.rollOff(byHand.currentColour());
+            }
+            assertEquals(automatic.stateHash(), byHand.stateHash(), "seed " + seed);
+            assertEquals(automatic.currentColour(), byHand.currentColour(), "seed " + seed);
+            assertEquals(automatic.turnNumber(), byHand.turnNumber(), "seed " + seed);
+            assertEquals(automatic.playOrder(), byHand.playOrder(), "seed " + seed);
+        }
+    }
+
+    @Test @DisplayName("a roll-off roll is refused outside the roll-off")
+    void rollOffOutsideTheRollOffIsRefused() {
+        RoomGame game = new RoomGame(Variant.LUDO_T, 1);
+        assertThrows(IllegalStateException.class, () -> game.rollOff(Colour.RED));
+        game.start();
+        assertThrows(IllegalStateException.class, () -> game.rollOff(game.currentColour()));
+    }
+
+    @Test @DisplayName("the coin toss event says which way the piece will travel")
+    void coinTossCarriesTheDirection() {
+        RoomGame game = new RoomGame(Variant.LUDO_T, 1);
+        game.start();
+        List<com.ludot.protocol.EventDto> tosses = new ArrayList<>();
+        while (!game.isFinished() && tosses.size() < 3) {
+            Colour colour = game.currentColour();
+            RoomGame.Step rolled = game.roll(colour);
+            rolled.events().stream().filter(e -> e.type() == EventType.COIN_TOSS).forEach(tosses::add);
+            if (game.phase() == Phase.AWAITING_MOVE) {
+                game.applyMove(colour, game.strategyChoice()).events().stream()
+                        .filter(e -> e.type() == EventType.COIN_TOSS).forEach(tosses::add);
+            }
+        }
+        assertFalse(tosses.isEmpty());
+        for (var toss : tosses) {
+            assertTrue(toss.value() == 0 || toss.value() == 1, "1 = clockwise, 0 = counter-clockwise");
+            assertNotNull(toss.pieceIndex());
+        }
+    }
 }

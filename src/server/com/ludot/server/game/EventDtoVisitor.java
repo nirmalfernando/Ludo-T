@@ -63,7 +63,8 @@ final class EventDtoVisitor implements GameEventListener, EventVisitor {
 
     @Override
     public void visit(CoinTossEvent e) {
-        recorder.add(EventType.COIN_TOSS, EventRecorder.colourOf(e.piece()), e.piece(), null, null, formatter.format(e));
+        recorder.add(EventType.COIN_TOSS, EventRecorder.colourOf(e.piece()), e.piece(), null, null, formatter.format(e),
+                e.direction() == com.ludot.model.Direction.CLOCKWISE ? 1 : 0);
     }
 
     @Override
@@ -168,7 +169,7 @@ final class EventDtoVisitor implements GameEventListener, EventVisitor {
 
     @Override
     public void visit(RollOffEvent e) {
-        recorder.add(EventType.ROLL_OFF, EventRecorder.colourOf(e.player()), null, null, null, formatter.format(e));
+        recorder.add(EventType.ROLL_OFF, EventRecorder.colourOf(e.player()), null, null, null, formatter.format(e), e.roll());
     }
 
     @Override

@@ -63,7 +63,7 @@ class GameSessionTest {
                     return;
                 }
                 if (message instanceof ServerMessage.YourTurn turn) {
-                    ClientMessage.Request move = turn.phase() == Phase.AWAITING_ROLL
+                    ClientMessage.Request move = turn.phase() != Phase.AWAITING_MOVE // a roll, or the roll for the order
                             ? new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber())
                             : new ClientMessage.ChooseMove(id(), room.roomId(), turn.turnNumber(), 0);
                     room.submit(human, move);
@@ -221,7 +221,7 @@ class GameSessionTest {
     private ServerMessage.YourTurn startAndWaitForHumanTurn(GameSession room, Participant alice, Participant bob) {
         claim(room, alice, Colour.RED);
         start(room, alice);
-        return Kit.sink(alice).await(ServerMessage.YourTurn.class, 10_000);
+        return firstRealTurn(room, alice);
     }
 
     @Test @DisplayName("a spectator cannot play; a wrong turn number is stale; the wrong phase is refused")
@@ -249,7 +249,7 @@ class GameSessionTest {
 
         // early in a game most rolls leave nothing to decide (the AI skips for us), so roll until a move is offered
         ServerMessage.YourTurn moveTurn = null;
-        int lastTurn = -1;
+        int lastTurn = turn.turnNumber() - 1; // start at her first real turn, past the roll-off offers
         for (int attempt = 0; attempt < 200 && moveTurn == null; attempt++) {
             final int after = lastTurn;
             ServerMessage.YourTurn next = Kit.sink(alice).await(ServerMessage.YourTurn.class,
@@ -513,7 +513,20 @@ class GameSessionTest {
     private ServerMessage.YourTurn startWithAlice(GameSession room, Participant alice) {
         claim(room, alice, Colour.RED);
         start(room, alice);
-        return awaitTurnAfter(alice, -1);
+        return firstRealTurn(room, alice);
+    }
+
+    // she presses Roll for the opening roll-off (and again if there is a tie), then the first offer of a real turn is returned
+    private ServerMessage.YourTurn firstRealTurn(GameSession room, Participant alice) {
+        int after = -1;
+        while (true) {
+            ServerMessage.YourTurn turn = awaitTurnAfter(alice, after);
+            if (turn.phase() != Phase.ROLL_OFF) {
+                return turn;
+            }
+            after = turn.turnNumber();
+            assertTrue(Kit.call(room, alice, new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber())).isOk());
+        }
     }
 
     @Test @DisplayName("a person's turn carries a deadline, told to the player and to every spectator")
@@ -591,7 +604,7 @@ class GameSessionTest {
 
         room.injectTimeoutForTest(turn.turnNumber());                 // miss 1
         turn = awaitTurnAfter(alice, turn.turnNumber());
-        ClientMessage.Request act = turn.phase() == Phase.AWAITING_ROLL
+        ClientMessage.Request act = turn.phase() != Phase.AWAITING_MOVE
                 ? new ClientMessage.Roll(id(), room.roomId(), turn.turnNumber())
                 : new ClientMessage.ChooseMove(id(), room.roomId(), turn.turnNumber(), 0);
         assertTrue(Kit.call(room, alice, act).isOk());               // acts: count back to zero

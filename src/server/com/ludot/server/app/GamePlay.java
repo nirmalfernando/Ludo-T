@@ -55,13 +55,13 @@ final class GamePlay {
         });
     }
 
-    /** Hands empty seats to the AI, runs the roll-off and opens the first turn. */
+    /** Hands empty seats to the AI and opens the game with its roll-off; the first turn follows once the order is decided. */
     void beginGame() {
         state.seats.fillFreeSeatsWithAi();
         state.status = RoomStatus.RUNNING;
         repository.record(new SeatsRecord(state.roomId, state.seats.rows()));
         repository.record(new RoomStatusRecord(state.roomId, RoomStatus.RUNNING, null, 0));
-        RoomGame.Step step = state.game.start();
+        RoomGame.Step step = state.game.open(); // the roll-off follows: people roll for themselves, the AI seats on the timer
         broadcaster.seats();
         broadcaster.roomState();
         chat.postSystem("The game has started");
@@ -70,11 +70,13 @@ final class GamePlay {
 
     // ------------------------------------------------------------------ a person's turn
 
+    // one message for both kinds of roll: in the opening roll-off it is the roll for the playing order
     private Reply roll(Participant from, ClientMessage.Roll request) {
-        requireTurn(from, request.turnNumber(), Phase.AWAITING_ROLL);
+        boolean rollOff = state.game.phase() == Phase.ROLL_OFF;
+        requireTurn(from, request.turnNumber(), rollOff ? Phase.ROLL_OFF : Phase.AWAITING_ROLL);
         Colour colour = state.game.currentColour();
         turns.resetMisses(colour);
-        RoomGame.Step step = state.game.roll(colour);
+        RoomGame.Step step = rollOff ? state.game.rollOff(colour) : state.game.roll(colour);
         turns.record(request.turnNumber(), colour, step.rolled(), null, DecisionSource.HUMAN);
         return Reply.ok(request, step.rolled()).then(() -> turns.afterStep(step));
     }

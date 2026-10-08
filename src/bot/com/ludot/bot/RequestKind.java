@@ -10,7 +10,8 @@ import java.util.Set;
  */
 enum RequestKind {
 
-    STALE_MOVE(15, false, ErrorCode.STALE_TURN, ErrorCode.NOT_YOUR_TURN, ErrorCode.NOT_A_PLAYER),
+    STALE_MOVE(15, false, ErrorCode.STALE_TURN, ErrorCode.NOT_YOUR_TURN, ErrorCode.NOT_A_PLAYER,
+            ErrorCode.WRONG_PHASE),
     OUT_OF_TURN_ROLL(10, true, ErrorCode.NOT_YOUR_TURN, ErrorCode.NOT_A_PLAYER, ErrorCode.STALE_TURN,
             ErrorCode.WRONG_PHASE),
     DUPLICATE(10, true),
