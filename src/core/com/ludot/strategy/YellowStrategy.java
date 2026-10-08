@@ -9,8 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-// Winning strategy (spec 2.1.3): empty the base on a six > let a piece that still needs a capture capture >
-// move the piece closest to its home. It never captures more than it needs for the home straight.
+// it never captures more than it needs for the home straight
 public class YellowStrategy implements PlayerStrategy {
 
     @Override

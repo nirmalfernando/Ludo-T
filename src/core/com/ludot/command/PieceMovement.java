@@ -8,13 +8,12 @@ import com.ludot.model.state.InHomeStraightState;
 import com.ludot.model.state.OnBoardState;
 import java.util.List;
 
-/** Moves a piece along a route worked out by the rules, keeping its bookkeeping (approach passes, state) right. */
 final class PieceMovement {
 
     private PieceMovement() {
     }
 
-    /** Puts the piece on the last cell of the route; reaching the approach cell counter-clockwise counts as a pass (T-1). */
+    // reaching the approach cell counter-clockwise counts as a pass (T-1)
     static void follow(Piece piece, List<Cell> route) {
         Board board = piece.getBoard();
         Cell approach = board.getApproachCell(piece.getColour());

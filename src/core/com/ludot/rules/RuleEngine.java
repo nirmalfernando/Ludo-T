@@ -54,12 +54,10 @@ public class RuleEngine {
         this.effectRule = effectRule;
     }
 
-    /** True when this rule set has blockades (LUDO-T); Classic does not. */
     public boolean supportsBlocks() {
         return blockRule != null;
     }
 
-    /** True when this rule set has mystery cells (LUDO-T); Classic does not. */
     public boolean supportsMysteryCells() {
         return mysteryRule != null;
     }
@@ -117,22 +115,16 @@ public class RuleEngine {
         planMove(p, mob.getSteps()).ifPresent(valid::add);
     }
 
-    /** The direction a piece travels in once it is out of a block: the one it was given when it was placed on X (T-5). */
+    // the direction a piece travels in once it is out of a block: the one it was given when it was placed on X (T-5)
     public static Direction directionAfterLeavingBlock(Piece piece) {
         return piece.getOriginalDirection() != null ? piece.getOriginalDirection() : piece.getDirection();
     }
 
-    /**
-     * Plans one piece's move of the given steps along its real route (Rule 9: into the home straight when it lands on
-     * or passes the approach cell, if allowed). A blockade anywhere on the way stops the piece on the cell before it
-     * (T-3); a lone opponent on the last cell is captured (Rule 6); landing on an own piece is refused in Classic
-     * (Rule 7). Empty if nothing is possible, for example an overshoot of home (Rule 10).
-     */
+    // a lone opponent on the last cell is captured (Rule 6)
     public Optional<Move> planMove(Piece piece, int steps) {
         return planMove(piece, steps, piece.getDirection());
     }
 
-    /** The same, travelling in the given direction. */
     public Optional<Move> planMove(Piece piece, int steps, Direction direction) {
         List<Cell> route = PiecePath.route(piece, steps, homeEntryRule, direction);
         if (route.isEmpty()) {
@@ -188,12 +180,7 @@ public class RuleEngine {
         }
     }
 
-    /**
-     * T-4: a block moves as one, roll / size cells in the direction of the member furthest from home. Like single
-     * pieces it cannot jump an opposing block (T-3); it captures an opposing block of the same size (T-8) and a
-     * lone opponent on its last cell (Rule 6). Blocks stay on the 52-cell path: a piece must leave the block to
-     * turn into its home straight.
-     */
+    // like single pieces it cannot jump an opposing block (T-3)
     private void addBlockMove(Cell currentCell, Set<Cell> processedBlocks, List<Move> valid, int roll) {
         processedBlocks.add(currentCell);
         List<Piece> block = new ArrayList<>(currentCell.getPieces());
@@ -221,8 +208,7 @@ public class RuleEngine {
         }
     }
 
-    // the cells a block passes on the standard path; the last cell may hold an opposing block of its own size
-    // (a capture, T-8) which is not an obstacle, every other opposing block is
+    // the last cell may hold an opposing block of its own size (a capture, T-8) which is not an obstacle, every other opposing block is
     private int firstBlockedIndex(List<Piece> block, List<Cell> route) {
         for (int i = 0; i < route.size(); i++) {
             Cell cell = route.get(i);
@@ -256,13 +242,7 @@ public class RuleEngine {
         return null;
     }
 
-    /**
-     * T-11 to T-15: teleports a piece that has landed on the mystery cell. Alpha, Beta and Gamma are real cells on the
-     * path (7, 25 and 44) and their effects apply only through this teleport (T-15). A lone opponent on the destination
-     * is captured; an opposing block on it refuses the teleport and the piece stays where it is.
-     *
-     * @return the opponent piece captured by arriving, if any
-     */
+    // T-11 to T-15: teleports a piece that has landed on the mystery cell
     public Optional<Piece> applyMysteryEffect(Piece piece, TeleportDestination dest) {
         Board board = piece.getBoard();
         return switch (dest) {

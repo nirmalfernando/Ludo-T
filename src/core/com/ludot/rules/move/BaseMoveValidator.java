@@ -14,7 +14,6 @@ public abstract class BaseMoveValidator {
     }
 
     
-    /** Classic Ludo has no coin toss: pieces always travel clockwise. */
     public boolean usesCoinToss() {
         return false;
     }

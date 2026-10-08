@@ -11,9 +11,6 @@ import com.ludot.model.Piece;
 import java.util.List;
 import java.util.Optional;
 
-// Cyclic strategy: rotate through pieces B1→B2→B3→B4 each turn.
-// CCW pieces seek the mystery cell; CW pieces avoid it.
-// When pieces list is empty (e.g. tests), falls back to cycling by move index.
 public class BlueStrategy implements PlayerStrategy {
 
     // the piece after the one Blue moved last: the cycle belongs to this player, not to the global turn counter
@@ -63,8 +60,6 @@ public class BlueStrategy implements PlayerStrategy {
                 .findFirst();
     }
 
-    // CCW pieces seek the mystery cell (prefer landing on it);
-    // CW pieces avoid it (prefer an alternative if the default move would land on it).
     private Optional<Move> applyMysteryPreference(List<Move> validMoves, Piece piece,
                                                    Move defaultMove, GameState state) {
         Cell mysteryCell = findMysteryCell(state);

@@ -24,10 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Orchestrates the full game loop including turn sequencing, win detection, and event publishing.
- * Implements the Mediator pattern, coordinating TurnManager, MoveExecutor, MysteryManager, and the EventBus.
- */
 public class GameEngine {
 
     private final Board board;
@@ -50,7 +46,6 @@ public class GameEngine {
     private int rollOffHighest;
     private int rollOffRounds;
 
-    /** Constructs a GameEngine with all collaborators wired in by the caller (GameBuilder). */
     public GameEngine(Board board, List<Player> players, TurnManager turnManager,
                       MysteryManager mysteryManager,
                       RuleEngine ruleEngine, EventBus eventBus, RandomProvider random) {
@@ -63,7 +58,6 @@ public class GameEngine {
         this.random = random;
     }
 
-    /** Starts the game, then lets every seat's strategy play it to the end; the winner is announced by a WinEvent. */
     public void run() {
         start();
         while (phase != GamePhase.FINISHED) {
@@ -77,16 +71,11 @@ public class GameEngine {
         }
     }
 
-    /** Publishes the start event, runs the whole roll-off automatically and opens the first player's turn. */
     public void start() {
         beginRollOff();
         determineFirstPlayer();
     }
 
-    /**
-     * Publishes the start event and opens the roll-off without rolling anything: the contenders then roll one at a
-     * time, in seat order, with {@link #rollOff}. This is how a person gets to press Roll for their own roll-off.
-     */
     public void beginRollOff() {
         requirePhase(GamePhase.NOT_STARTED);
         eventBus.publish(new GameStartEvent(List.copyOf(players)));
@@ -99,11 +88,7 @@ public class GameEngine {
         phase = GamePhase.ROLL_OFF;
     }
 
-    /**
-     * Roll-off phase: the contender whose turn it is rolls one die. When every contender of the round has rolled, those
-     * who tied for the highest roll roll again; when one is left, the order is announced and the first turn opens.
-     * The dice are drawn in exactly the order the automatic roll-off draws them, so a seed gives the same game either way.
-     */
+    // the dice are drawn in exactly the order the automatic roll-off draws them, so a seed gives the same game either way
     public int rollOff(Colour colour) {
         requirePhase(GamePhase.ROLL_OFF);
         requireCurrentPlayer(colour);
@@ -143,7 +128,6 @@ public class GameEngine {
         beginTurn();
     }
 
-    /** Roll phase for the player whose turn it is. A triple six forfeits the turn and moves play on. */
     public RollResult roll(Colour colour) {
         requirePhase(GamePhase.AWAITING_ROLL);
         requireCurrentPlayer(colour);
@@ -157,7 +141,6 @@ public class GameEngine {
         return result;
     }
 
-    /** Move phase: applies the index-th valid move offered by the last roll. */
     public StepResult applyMove(Colour colour, int moveIndex) {
         requirePhase(GamePhase.AWAITING_MOVE);
         requireCurrentPlayer(colour);
@@ -175,47 +158,40 @@ public class GameEngine {
         return result;
     }
 
-    /** The current phase of the turn cycle. */
     public GamePhase getPhase() {
         return phase;
     }
 
-    /** The player who must act now: roll, choose a move, or (in the roll-off) roll for the first turn. */
     public Player getCurrentPlayer() {
         return phase == GamePhase.ROLL_OFF ? rollOffContenders.get(rollOffCursor) : players.get(currentIndex);
     }
 
-    /** The board this game is played on. */
     public Board getBoard() {
         return board;
     }
 
-    /** Completed rounds so far. */
     public int getRoundCount() {
         return turnManager.getRoundCount();
     }
 
-    /** The mystery cell currently on the board, or null when none is active. */
     public Cell getMysteryCell() {
         return mysteryManager.getCurrentCell();
     }
 
-    /** Rounds the active mystery cell has left. */
     public int getMysteryRoundsLeft() {
         return mysteryManager.getRoundsLeft();
     }
 
-    /** Counts every roll and move applied so far; requests quote it so stale ones can be rejected. */
+    // requests quote it so stale ones can be rejected
     public int getTurnNumber() {
         return stepNumber;
     }
 
-    /** The valid moves offered by the last roll (empty unless awaiting a move). */
+    // the valid moves offered by the last roll (empty unless awaiting a move)
     public List<Move> getPendingMoves() {
         return turnManager.getPendingMoves();
     }
 
-    /** The view of the game strategies decide from. */
     public GameState currentGameState() {
         return turnManager.currentGameState();
     }
@@ -259,9 +235,7 @@ public class GameEngine {
         beginTurn();
     }
 
-    // Opposing blockades can end up jammed against each other so that no piece of any colour can ever move again (T-3
-    // forbids jumping a blockade). After STALEMATE_ROUNDS rounds without a single piece moving the game is adjudicated
-    // in favour of the player furthest ahead; this is documented in docs/RULES_INTERPRETATION.md.
+    // opposing blockades can end up jammed against each other so that no piece of any colour can ever move again (T-3 forbids jumping a blockade)
     private boolean isStalemate() {
         String signature = players.stream().flatMap(player -> player.getPieces().stream())
                 .map(piece -> (piece.getPosition() == null ? "-" : piece.getPosition().getId())
@@ -280,11 +254,6 @@ public class GameEngine {
                 .orElse(players.get(0));
     }
 
-    /**
-     * Conducts the whole roll-off at once (PDF, section 1.1): everyone rolls and the highest roller plays first; players
-     * who tie for the highest roll roll again. Play then passes clockwise, which is the order of the colours R, G, Y, B.
-     * Opens the roll-off first if the game has not begun it. Returns the player who starts.
-     */
     public Player determineFirstPlayer() {
         if (phase == GamePhase.NOT_STARTED) {
             beginRollOff();
@@ -332,12 +301,10 @@ public class GameEngine {
         }
     }
 
-    /** Returns true if any player has moved all pieces to the home position. */
     public boolean checkWinCondition() {
         return players.stream().anyMatch(Player::hasWon);
     }
 
-    /** Returns an unmodifiable snapshot of the current player list in play order. */
     public List<Player> getPlayers() {
         return List.copyOf(players);
     }

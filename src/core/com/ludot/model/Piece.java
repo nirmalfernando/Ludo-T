@@ -33,8 +33,7 @@ public class Piece {
     public void move(int steps) {
         int id = position.getId();
 
-        // T-1: walk step-by-step so that passing THROUGH the approach cell mid-move is counted,
-        // not just landing on it. A CCW piece skipping over cell 24 in a 6-step move still qualifies.
+        // T-1: walk step-by-step so that passing THROUGH the approach cell mid-move is counted, not just landing on it
         for (int i = 0; i < steps; i++) {
             if (direction == Direction.CLOCKWISE) {
                 id = (id + 1) % GameConstants.BOARD_SIZE;
@@ -112,7 +111,7 @@ public class Piece {
     }
 
     
-    /** Counts one round of briefing (T-13) if the piece is in one. */
+    // counts one round of briefing (T-13) if the piece is in one
     public void tickBriefing() {
         if (state instanceof AtBriefingState briefing) {
             briefing.tickRound(this);

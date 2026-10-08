@@ -71,8 +71,6 @@ public class OutputFormatter {
         return "\n--- " + cap(e.player().getColour()) + "'s turn ---";
     }
 
-    // dice
-    // O5: "[Color X] player rolled [value]."
     public String format(DiceRollEvent e) {
         return cap(e.player().getColour()) + " player rolled " + e.roll() + ".";
     }
@@ -90,10 +88,6 @@ public class OutputFormatter {
         return cap(e.player().getColour()) + " rolled three consecutive 6s! Turn forfeited.";
     }
 
-    // movement
-    // O6: base exit — "[Color X] player moves piece [Name] to the starting point."
-    // O8: board move — "[Color X] player moves piece [Name] from location L1 to L2 by N units in [dir] direction."
-    // O7: board count appended to both.
     public String format(MoveEvent e) {
         StringBuilder sb = new StringBuilder();
         String colour = cap(e.piece().getColour());
@@ -186,8 +180,6 @@ public class OutputFormatter {
                 + e.capturesNeeded() + " more capture(s)) (T-7)";
     }
 
-    // mystery cell
-    // O13: "A mystery cell has spawned in location L and will be at this location for the next N rounds."
     public String format(MysterySpawnEvent e) {
         return "A mystery cell has spawned in location " + e.cell().getId()
                 + " and will be at this location for the next " + e.roundCount() + " rounds.";
@@ -328,8 +320,6 @@ public class OutputFormatter {
         return sb.toString();
     }
 
-    // Builds the effect description line for a mystery teleport event.
-    // Static so MoveExecutor can call it without holding an OutputFormatter instance.
     public static String buildEffectDescription(Piece piece, TeleportDestination dest, Direction dirBefore) {
         if (dest == null) return "";
         String name = pieceLabel(piece);

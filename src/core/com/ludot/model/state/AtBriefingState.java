@@ -17,18 +17,13 @@ public class AtBriefingState implements PieceState {
         this.consecutiveThrees = 0;
     }
 
-    /** A piece in briefing cannot move, whatever is rolled. (Asking for its moves changes nothing.) */
+    // A piece in briefing cannot move, whatever is rolled
     @Override
     public List<Move> handleRoll(Piece piece, int roll) {
         return List.of();
     }
 
-    /**
-     * T-13: called once for every roll the player makes while the piece is in briefing. Three 3s in a row teleport the
-     * piece to its base (and, like any piece sent home, its information is reset: T-9).
-     *
-     * @return true if the piece escaped
-     */
+    // T-13: called once for every roll the player makes while the piece is in briefing
     public boolean registerRoll(Piece piece, int roll) {
         consecutiveThrees = roll == GameConstants.BRIEFING_ESCAPE_ROLL ? consecutiveThrees + 1 : 0;
         if (consecutiveThrees == GameConstants.BRIEFING_ESCAPE_COUNT) {
@@ -39,7 +34,7 @@ public class AtBriefingState implements PieceState {
         return false;
     }
 
-    /** T-13: called once at the end of every round; after four rounds the piece is free again. */
+    // T-13: called once at the end of every round
     public void tickRound(Piece piece) {
         roundsLeft--;
         if (roundsLeft <= 0) {

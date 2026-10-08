@@ -27,8 +27,6 @@ public class BlockCaptureMove implements Move {
             targetCell.addPiece(attacker);
             attacker.setPosition(targetCell);
         }
-        // Victim reset and the attackers' capture counts are intentionally NOT done here: MoveExecutor delegates to
-        // the CaptureRule once per victim, pairing each victim with an attacker, so every attacker is credited once (T-8).
         return new MoveResult(true, null, false, true, describe());
     }
 

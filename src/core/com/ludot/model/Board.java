@@ -5,20 +5,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Represents the Ludo game board, providing access to standard path cells and colour-specific home straights.
- * Each game owns its own Board (created by GameBuilder and injected), so several games can run concurrently.
- */
 public final class Board {
 
     private List<Cell> cells;                        // 52-cell standard path (indices 0–51)
     private Map<Colour, List<Cell>> homeStraights;   // 5 home-straight cells per colour
 
-    /** Creates an empty board; CellFactory.initializeBoard populates it. */
     public Board() {
     }
 
-    /** Returns the standard-path cell at the given index, throwing if the id is out of range. */
     public Cell getCell(int id) {
         if (id < 0 || id >= cells.size()) {
             throw new IllegalArgumentException("Cell id out of range: " + id);
@@ -26,12 +20,10 @@ public final class Board {
         return cells.get(id);
     }
 
-    /** Returns an unmodifiable view of the home-straight cells for the given colour. */
     public List<Cell> getHomeStraight(Colour colour) {
         return Collections.unmodifiableList(homeStraights.get(colour));
     }
 
-    /** Returns the approach cell for the given colour as defined by the board layout specification. */
     public Cell getApproachCell(Colour colour) {
         return switch (colour) {
             case YELLOW -> cells.get(GameConstants.YELLOW_APPROACH_CELL_ID);
@@ -41,7 +33,6 @@ public final class Board {
         };
     }
 
-    /** Returns the start cell for the given colour as defined by the board layout specification. */
     public Cell getStartCell(Colour colour) {
         return switch (colour) {
             case YELLOW -> cells.get(GameConstants.YELLOW_START_CELL_ID);
@@ -51,12 +42,10 @@ public final class Board {
         };
     }
 
-    /** Returns an unmodifiable view of the 52-cell standard circular path. */
     public List<Cell> getStandardPath() {
         return Collections.unmodifiableList(cells);
     }
 
-    /** Initialises the board with the standard path and home-straight cells; called once by CellFactory at startup. */
     public void initialize(List<Cell> cells, Map<Colour, List<Cell>> homeStraights) {
         this.cells = cells;
         this.homeStraights = homeStraights;

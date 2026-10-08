@@ -41,7 +41,6 @@ public class MoveFromBase implements Move {
         return piece;
     }
 
-    /** The lone opponent this arrival captures, or null. */
     public Piece getVictim() {
         return victim;
     }

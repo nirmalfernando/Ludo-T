@@ -15,7 +15,6 @@ public class MoveOnBoard implements Move {
         this(piece, steps, null);
     }
 
-    /** @param route the cells the piece passes through, the last being its destination */
     public MoveOnBoard(Piece piece, int steps, List<Cell> route) {
         this.piece = piece;
         this.steps = steps;
@@ -62,7 +61,6 @@ public class MoveOnBoard implements Move {
         return steps;
     }
 
-    /** The cells passed through, or null if this move was built without a route. */
     public List<Cell> getRoute() {
         return route;
     }

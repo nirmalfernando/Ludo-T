@@ -15,8 +15,6 @@ import com.ludot.model.state.InHomeStraightState;
 import java.util.List;
 import java.util.Optional;
 
-// Shared static helpers for all PlayerStrategy implementations.
-// Strategies implement PlayerStrategy directly and call these as needed — no shared base class.
 final class StrategyHelper {
 
     private StrategyHelper() {
@@ -54,8 +52,6 @@ final class StrategyHelper {
         return null;
     }
 
-    // Computes the destination cell for a piece moving the given steps in its current direction,
-    // without actually moving the piece. Returns null if position or direction is unset.
     static Cell computeDest(Piece piece, int steps) {
         if (piece.getPosition() == null || piece.getDirection() == null) {
             return null;
@@ -121,8 +117,6 @@ final class StrategyHelper {
         return piece.getCaptureCount() == 0;
     }
 
-    // Cells a piece still has to travel to reach Home: along the home straight, or round the ring to the approach cell
-    // in its direction of travel and then the whole straight.
     static int remainingToHome(Piece piece) {
         Cell position = piece.getPosition();
         if (position == null) return Integer.MAX_VALUE;

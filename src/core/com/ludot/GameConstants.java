@@ -1,7 +1,5 @@
 package com.ludot;
 
-// Single source of truth for all game-wide numeric constants.
-// Every magic number in the codebase should trace back to a declaration here.
 public final class GameConstants {
 
     private GameConstants() {
@@ -23,8 +21,7 @@ public final class GameConstants {
     public static final int RED_APPROACH_CELL_ID    = 24;
     public static final int GREEN_APPROACH_CELL_ID  = 37;
 
-    // Dice mechanics
-    // T-11: Alpha, Beta and Gamma are the 9th, 27th and 46th cells counted from yellow's approach cell (counted as 0)
+    // dice mechanics T-11: Alpha, Beta and Gamma are the 9th, 27th and 46th cells counted from yellow's approach cell (counted as 0)
     public static final int ALPHA_CELL_ID = (YELLOW_APPROACH_CELL_ID + 9) % BOARD_SIZE;
     public static final int BETA_CELL_ID  = (YELLOW_APPROACH_CELL_ID + 27) % BOARD_SIZE;
     public static final int GAMMA_CELL_ID = (YELLOW_APPROACH_CELL_ID + 46) % BOARD_SIZE;

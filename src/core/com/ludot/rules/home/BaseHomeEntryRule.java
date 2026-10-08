@@ -15,15 +15,11 @@ public class BaseHomeEntryRule {
         return true;
     }
 
-    /**
-     * Rule 9: whether a piece that lands on or passes its approach cell turns into the home straight.
-     * Classic always lets it; {@code approachPasses} is how many times the piece has reached the approach cell.
-     */
+    // rule 9: whether a piece that lands on or passes its approach cell turns into the home straight
     public boolean mayEnterHomeStraight(Piece piece, Direction direction, int approachPasses) {
         return meetsAdditionalRequirements(piece);
     }
 
-    /** How many more captures the piece needs before it may enter the home straight (0 in Classic). */
     public int capturesNeeded(Piece piece) {
         return 0;
     }

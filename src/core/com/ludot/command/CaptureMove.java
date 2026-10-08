@@ -33,8 +33,6 @@ public class CaptureMove implements Move {
             targetCell.addPiece(attacker);
             attacker.setPosition(targetCell);
         }
-        // victim reset (sendToBase, resetInfo, captureCount) handled by captureRule.capture()
-        // in MoveExecutor so the correct LudoT vs classic rule is applied
         return new MoveResult(true, victim, false, true, describe());
     }
 
@@ -59,7 +57,6 @@ public class CaptureMove implements Move {
         return steps;
     }
 
-    /** The cells passed through, or null if this move was built without a route. */
     public List<Cell> getRoute() {
         return route;
     }

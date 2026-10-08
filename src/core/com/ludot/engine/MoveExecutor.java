@@ -37,10 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Executes validated Command objects and coordinates board-state updates via the rule engine.
- * Implements the Command pattern as the invoker that dispatches each Move subtype to its handler.
- */
 public class MoveExecutor {
 
     private final Board board;
@@ -49,13 +45,11 @@ public class MoveExecutor {
     private final EventBus eventBus;
     private final List<Player> players;
 
-    /** Constructs a MoveExecutor without a player list, suitable for unit tests that do not need capture events. */
     public MoveExecutor(Board board, RuleEngine ruleEngine,
                         MysteryManager mysteryManager, EventBus eventBus) {
         this(board, ruleEngine, mysteryManager, eventBus, List.of());
     }
 
-    /** Constructs a fully wired MoveExecutor with player-lookup support for capture event publishing. */
     public MoveExecutor(Board board, RuleEngine ruleEngine,
                         MysteryManager mysteryManager, EventBus eventBus, List<Player> players) {
         this.board = board;
@@ -65,12 +59,10 @@ public class MoveExecutor {
         this.players = players;
     }
 
-    /** Executes a Move without a player context; provided for backward-compatibility with tests. */
     public MoveResult execute(Move move) {
         return execute(move, null);
     }
 
-    /** Dispatches the given Move to the appropriate handler and returns the resulting MoveResult. */
     public MoveResult execute(Move move, Player player) {
         if (move instanceof MoveFromBase mfb) {
             return executeFromBase(mfb, player);
@@ -179,8 +171,7 @@ public class MoveExecutor {
         return result;
     }
 
-    // T-8: block-vs-block capture — attacker movement done by the command; victim reset delegated
-    // to CaptureRule so rule-variant logic (T-9 full reset vs classic send-to-base) is respected.
+    // T-8: block-vs-block capture — attacker movement done by the command
     private MoveResult executeBlockCapture(BlockCaptureMove bcm, Player player) {
         Cell from = bcm.getAttackers().get(0).getPosition();
         Direction direction = ruleEngine.getBlockRule().calcBlockMoveDir(bcm.getAttackers());
@@ -267,7 +258,6 @@ public class MoveExecutor {
             eventBus.publish(new HomeEntryRejectedEvent(piece, capturesNeeded));
         }
     }
-
 
     private Optional<Player> findPlayer(Colour colour) {
         return players.stream().filter(p -> p.getColour() == colour).findFirst();

@@ -21,8 +21,6 @@ public class RedStrategy implements PlayerStrategy {
 
     @Override
     public Move decideMoves(GameState gameState, int roll, List<Piece> pieces, List<Move> validMoves) {
-        // 1. Capture takes absolute priority.
-        //    S-R2: among multiple captures, prefer the one targeting the opponent closest to its own home.
         List<Move> captures = validMoves.stream()
                 .filter(m -> m instanceof CaptureMove)
                 .collect(Collectors.toList());
@@ -32,8 +30,6 @@ public class RedStrategy implements PlayerStrategy {
                     .orElse(captures.get(0));
         }
 
-        // 2. S-R3: Red keeps one piece on the path and brings another out only when it cannot capture
-        //    by moving six cells, which is the case here because captures were handled above.
         Optional<Move> fromBase = StrategyHelper.findMoveFromBase(validMoves);
         if (fromBase.isPresent()) {
             return fromBase.get();

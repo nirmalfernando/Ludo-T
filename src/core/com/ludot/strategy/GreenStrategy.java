@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-// Blocking strategy (spec 2.1.2): empty the base on a six unless a move forms a block > move the block (T-4) >
-// capture only where the attacker needs a capture for the home straight > bring the other pieces home >
-// break a block only when nothing else can play the roll.
 public class GreenStrategy implements PlayerStrategy {
 
     @Override

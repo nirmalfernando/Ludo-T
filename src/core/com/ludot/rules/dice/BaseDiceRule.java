@@ -16,7 +16,7 @@ public class BaseDiceRule {
     }
 
     
-    /** Consecutive sixes count within one turn (Rule 4): a new turn starts from zero. */
+    // consecutive sixes count within one turn (Rule 4): a new turn starts from zero
     public final void startTurn(Player player) {
         consecutiveSixes.put(player.getColour(), 0);
     }

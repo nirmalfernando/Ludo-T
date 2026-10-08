@@ -10,26 +10,17 @@ import com.ludot.rules.home.BaseHomeEntryRule;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The cells a piece passes through when it moves a number of steps, one cell at a time. This is the single
- * definition of how a piece travels: around the 52-cell path in its direction, and (Rule 9) into its colour's
- * home straight when it lands on or passes the approach cell, if the home-entry rule allows it. Everything that
- * needs a destination (valid moves, blockades on the way, the moves themselves) reads it from here.
- */
 public final class PiecePath {
 
     private PiecePath() {
     }
 
-    /**
-     * The cells visited in order; the last one is where the piece ends up. Empty when the move is impossible
-     * (it would overshoot home: Rule 10 needs an exact roll).
-     */
+    // empty when the move is impossible (it would overshoot home: Rule 10 needs an exact roll)
     public static List<Cell> route(Piece piece, int steps, BaseHomeEntryRule homeEntry) {
         return route(piece, steps, homeEntry, piece.getDirection());
     }
 
-    /** The same, travelling in the given direction (a piece leaving a block goes back to its original direction, T-5). */
+    // the same, travelling in the given direction (a piece leaving a block goes back to its original direction, T-5)
     public static List<Cell> route(Piece piece, int steps, BaseHomeEntryRule homeEntry, Direction direction) {
         Board board = piece.getBoard();
         Colour colour = piece.getColour();
@@ -60,7 +51,6 @@ public final class PiecePath {
         return visited;
     }
 
-    /** The cell next to this one on the 52-cell path in the given direction. */
     public static Cell neighbour(Board board, Cell cell, Direction direction) {
         int size = GameConstants.BOARD_SIZE;
         int id = cell.getId();
