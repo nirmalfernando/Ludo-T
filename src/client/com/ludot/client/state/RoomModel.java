@@ -24,12 +24,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-/**
- * Everything the client shows about the room it is in, as JavaFX properties the views bind to. The
- * client never works game state out itself: each update carries the whole board, so a missed one is
- * repaired by the next. It only checks that room pushes arrive in sequence and asks for a fresh
- * snapshot if one is missing. Touch it only from the FX application thread.
- */
+// the client never works game state out itself: each update carries the whole board, so a missed one is repaired by the next
 public final class RoomModel {
 
     private static final int LOG_LIMIT = 400;
@@ -59,11 +54,6 @@ public final class RoomModel {
     private final ObservableList<LogLine> logLines = FXCollections.observableArrayList();
     private final ObservableList<ChatMessage> chat = FXCollections.observableArrayList();
 
-    /**
-     * @param roomId the room
-     * @param myId   this client's player id, to know which seat and which turn are ours
-     * @param onGap  called when a push is missing, so the owner can request a fresh snapshot
-     */
     public RoomModel(String roomId, String myId, Runnable onGap) {
         this.roomId = roomId;
         this.myId = myId;
@@ -74,7 +64,7 @@ public final class RoomModel {
         return roomId;
     }
 
-    /** Applies a message addressed to this room; pushes out of sequence trigger a resync instead. */
+    // pushes out of sequence trigger a resync instead
     public void apply(ServerMessage message) {
         if (message instanceof ServerMessage.RoomSnapshot snapshot) {
             applySnapshot(snapshot);
@@ -213,7 +203,6 @@ public final class RoomModel {
         return stateHash;
     }
 
-    /** The colours in playing order when {@code first} begins: clockwise, which is the order R, G, Y, B. */
     public static List<com.ludot.protocol.Colour> clockwiseFrom(com.ludot.protocol.Colour first) {
         com.ludot.protocol.Colour[] seats = com.ludot.protocol.Colour.values();
         List<com.ludot.protocol.Colour> order = new java.util.ArrayList<>();
@@ -223,7 +212,6 @@ public final class RoomModel {
         return List.copyOf(order);
     }
 
-    /** The colours in playing order: empty until the opening roll-off has decided it. */
     public ObjectProperty<List<com.ludot.protocol.Colour>> playOrderProperty() {
         return playOrder;
     }
@@ -240,7 +228,7 @@ public final class RoomModel {
         return members;
     }
 
-    /** The same lines as {@link #log()}, with each live event's type so the event log can be filtered. */
+    // the same lines as #log(), with each live event's type so the event log can be filtered
     public ObservableList<LogLine> logLines() {
         return logLines;
     }

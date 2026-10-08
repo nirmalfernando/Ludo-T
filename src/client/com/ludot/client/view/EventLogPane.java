@@ -11,7 +11,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-/** The narrated event log with filter pills on top; used in rooms and in replays. */
 final class EventLogPane extends VBox {
 
     EventLogPane(ObservableList<LogLine> lines) {

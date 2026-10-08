@@ -6,7 +6,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 
-/** Slow | Normal | Fast as one rounded segmented control. */
 final class SpeedPicker extends HBox {
 
     private static final Speed[] ORDER = {Speed.SLOW, Speed.NORMAL, Speed.FAST};
@@ -14,7 +13,6 @@ final class SpeedPicker extends HBox {
     private final ToggleGroup group = new ToggleGroup();
     private boolean selecting;
 
-    /** @param onPick called when the person picks a speed (not when {@link #select} sets one from outside) */
     SpeedPicker(Consumer<Speed> onPick) {
         for (int i = 0; i < ORDER.length; i++) {
             ToggleButton segment = new ToggleButton(label(ORDER[i]));
@@ -32,7 +30,6 @@ final class SpeedPicker extends HBox {
         });
     }
 
-    /** Shows this speed as the chosen one without reporting it as a pick. */
     void select(Speed speed) {
         selecting = true;
         group.getToggles().stream().filter(toggle -> toggle.getUserData() == speed)

@@ -14,15 +14,10 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.ClosePath;
 import javafx.util.Duration;
 
-/**
- * A friendly Ludo pawn drawn from shapes: a round head with a glossy highlight on a bell-shaped body and a flat
- * base. It is the mascot of the connect screen and the lobby, and shows who sits where on a room card.
- */
 final class PawnMascot extends Group {
 
     private static final double BOB_HEIGHT = 7;
 
-    /** @param size height in pixels; the pawn is about 0.75 times as wide */
     PawnMascot(Colour colour, double size) {
         this(Theme.strong(colour), size);
     }
@@ -60,7 +55,7 @@ final class PawnMascot extends Group {
                 new ClosePath());
     }
 
-    /** Makes the pawn bob up and down; {@code offsetMillis} staggers a row of pawns so they do not move in step. */
+    // offsetMillis staggers a row of pawns so they do not move in step
     PawnMascot bob(double offsetMillis) {
         TranslateTransition up = new TranslateTransition(Duration.millis(900), this);
         up.setFromY(0);

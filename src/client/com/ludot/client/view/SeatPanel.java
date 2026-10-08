@@ -19,7 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-/** Four seat cards: who plays each colour, whose turn it is, and buttons to take or leave a seat before the game starts. */
 public final class SeatPanel extends VBox {
 
     private final RoomModel model;

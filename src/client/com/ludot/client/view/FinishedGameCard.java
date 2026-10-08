@@ -11,7 +11,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-/** One finished game in the list: its id and rules, who won, how long it was, when, and a REPLAY button. */
 final class FinishedGameCard extends HBox {
 
     FinishedGameCard(FinishedGame game, Consumer<FinishedGame> onReplay) {

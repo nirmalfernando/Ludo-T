@@ -25,7 +25,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-/** Asks for the settings of a new game: who plays, which rules, and an optional seed for a repeatable game. */
 final class NewRoomDialog {
 
     private NewRoomDialog() {

@@ -8,7 +8,6 @@ import com.ludot.protocol.Phase;
 import com.ludot.protocol.ServerMessage;
 import javafx.collections.ListChangeListener;
 
-/** The sounds that are about the room rather than the board: "your turn to roll" and "someone joined". */
 final class RoomCues {
 
     private int lastCuedTurn = -1;

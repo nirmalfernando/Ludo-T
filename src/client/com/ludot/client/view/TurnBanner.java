@@ -5,7 +5,6 @@ import com.ludot.protocol.Controller;
 import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.RoomStatus;
 
-/** The sentence under the seats that says what the game is waiting for. */
 final class TurnBanner {
 
     private TurnBanner() {

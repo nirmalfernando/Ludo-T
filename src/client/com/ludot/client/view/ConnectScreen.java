@@ -13,14 +13,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-/** The first screen: who you are and, tucked away under "Server Settings", where the server is. */
 public final class ConnectScreen extends StackPane {
 
-    /** What the user asked for. */
     public record Request(String host, int port, String nickname) {
     }
 
-    /** Receives the user's request to connect. */
     public interface Handler {
         void connect(Request request);
     }

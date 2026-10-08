@@ -11,11 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 
-/**
- * The client's connection to the server. Everything the server pushes is handed to the FX thread
- * before it touches {@link ClientState}, and every answer to a request is delivered on the FX thread
- * too, so the UI never blocks on the network and never races with the reader thread.
- */
 public final class Session implements AutoCloseable {
 
     private static final long CONNECT_TIMEOUT_SECONDS = 8;
@@ -31,22 +26,11 @@ public final class Session implements AutoCloseable {
         this.pinger = pinger;
     }
 
-    /**
-     * Connects and says Hello (as a client that can reconnect). Blocking: call it from a background thread, never the
-     * FX thread.
-     *
-     * @throws IllegalStateException if the server refuses the nickname
-     */
+    // blocking: call it from a background thread, never the FX thread
     public static Session connect(String host, int port, String nickname, ClientState state) throws Exception {
         return open(host, port, state, new ClientMessage.Hello(UUID.randomUUID(), nickname, true));
     }
 
-    /**
-     * Connects again with the token from an earlier Welcome, to get the same identity back. Blocking, like
-     * {@link #connect}.
-     *
-     * @throws SessionExpiredException if the server no longer knows the token (retrying is pointless)
-     */
     public static Session reconnect(String host, int port, String token, ClientState state) throws Exception {
         return open(host, port, state, new ClientMessage.Reconnect(UUID.randomUUID(), token));
     }
@@ -80,14 +64,12 @@ public final class Session implements AutoCloseable {
         }
     }
 
-    /** Sends a request; {@code onResult} runs on the FX thread with the answer (or a synthetic error if none came). */
     public void request(ClientMessage.Request request, Consumer<Response> onResult) {
         link.request(request).whenComplete((response, error) -> Platform.runLater(() -> onResult.accept(
                 error == null ? response
                         : Response.error(request.requestId(), ErrorCode.INTERNAL_ERROR, "No answer from the server"))));
     }
 
-    /** Sends a request and ignores the answer, apart from reporting a refusal to {@code onError}. */
     public void request(ClientMessage.Request request, Runnable onOk, Consumer<String> onError) {
         request(request, response -> {
             if (response.isOk()) {
@@ -98,13 +80,11 @@ public final class Session implements AutoCloseable {
         });
     }
 
-    /** A short human message for a refused request. */
     public static String describe(Response response) {
         return response.message() != null && !response.message().isBlank()
                 ? response.message() : String.valueOf(response.errorCode());
     }
 
-    /** Signs out politely (the server frees the nickname at once) and closes; waits a moment for the answer. */
     @Override
     public void close() {
         try {
@@ -115,13 +95,11 @@ public final class Session implements AutoCloseable {
         drop();
     }
 
-    /** Signs out without waiting; the answer, or a short timeout, closes the connection. */
     public void signOut() {
         link.request(new ClientMessage.SignOut(UUID.randomUUID())).orTimeout(GOODBYE_MS, TimeUnit.MILLISECONDS)
                 .whenComplete((answer, error) -> drop());
     }
 
-    /** Closes abruptly, the way a network failure would: the server keeps the identity for a while so we can reconnect. */
     public void drop() {
         pinger.close();
         link.close();

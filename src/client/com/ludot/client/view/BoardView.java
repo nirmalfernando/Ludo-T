@@ -31,11 +31,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import javafx.util.Duration;
 
-/**
- * Draws the board and its sixteen pieces from a {@link BoardDto}. The view computes nothing about the
- * game: it places each piece where the server says it is, animates the move, highlights the pieces the
- * player may move and previews where a hovered piece would land.
- */
 public final class BoardView extends Pane {
 
     private static final double CELL = 40;
@@ -188,7 +183,6 @@ public final class BoardView extends Pane {
         return colour + "#" + index;
     }
 
-    /** Moves every piece to where the board says it is, animating pieces that changed place. */
     public void update(BoardDto board, boolean animate) {
         lastBoard = board;
         long now = System.nanoTime();
@@ -264,7 +258,6 @@ public final class BoardView extends Pane {
         slide.play();
     }
 
-    /** Tells the board which rules are played: LUDO-T pieces carry a direction marker, Classic pieces do not. */
     public void setVariant(com.ludot.protocol.Variant newVariant) {
         variant = newVariant;
         if (lastBoard != null) {
@@ -274,10 +267,6 @@ public final class BoardView extends Pane {
         }
     }
 
-    /**
-     * The coin toss that decides a piece's direction: a gold coin flips above the piece and lands showing the
-     * result (clockwise or counter-clockwise), then fades away. The piece keeps a small marker afterwards.
-     */
     public void coinFlip(Colour colour, int index, boolean clockwise) {
         Point at = positions.get(key(colour, index));
         if (at == null) {
@@ -324,7 +313,6 @@ public final class BoardView extends Pane {
         hold.play();
     }
 
-    /** A short sideways shake of the whole board: something dramatic happened (a capture, a triple six). */
     public void jolt() {
         if (Feedback.get().motionOn() && !hurried) {
             TranslateTransition shake = new TranslateTransition(Duration.millis(45), this);
@@ -337,7 +325,6 @@ public final class BoardView extends Pane {
         }
     }
 
-    /** Pops the piece that has just reached home. */
     public void celebrate(Colour colour, int index) {
         PieceNode node = pieces.get(key(colour, index));
         if (node != null) {
@@ -362,15 +349,10 @@ public final class BoardView extends Pane {
 
     // ------------------------------------------------------------------ turn highlighting and moves
 
-    /** Marks whose turn it is by glowing that colour's base. */
     public void setActiveColour(Colour active) {
         bases.forEach((colour, base) -> base.setEffect(colour == active ? new DropShadow(26, Theme.HIGHLIGHT) : null));
     }
 
-    /**
-     * Highlights the pieces the player can move and calls {@code onChoose} with the option for the piece clicked.
-     * Passing no options clears all highlighting.
-     */
     public void offerMoves(Colour mine, List<MoveOption> options, Consumer<MoveOption> onChoose) {
         offered = options;
         ghost.setVisible(false);
@@ -387,7 +369,6 @@ public final class BoardView extends Pane {
         }
     }
 
-    /** Removes every highlight and preview. */
     public void clearMoves() {
         for (Colour colour : Colour.values()) {
             offerMoves(colour, List.of(), option -> { });
@@ -410,7 +391,6 @@ public final class BoardView extends Pane {
         ghost.toFront();
     }
 
-    /** The options currently offered, for tests and tooling. */
     List<MoveOption> offeredOptions() {
         return offered;
     }

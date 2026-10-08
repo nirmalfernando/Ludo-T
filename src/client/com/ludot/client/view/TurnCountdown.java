@@ -9,11 +9,6 @@ import javafx.animation.Timeline;
 import javafx.scene.Node;
 import javafx.util.Duration;
 
-/**
- * Shows everyone how long the player whose turn it is has left. Deadlines are server times, so they are
- * converted with the clock offset learned from the server's Pongs and stay right even if this machine's
- * clock is off.
- */
 final class TurnCountdown {
 
     private static final long URGENT_MS = 5_000;
@@ -29,7 +24,6 @@ final class TurnCountdown {
         this.dice = dice;
     }
 
-    /** Starts ticking; stops by itself when the screen that owns it is taken off the scene. */
     void start(Node owner) {
         Timeline ticker = new Timeline(new KeyFrame(Duration.millis(TICK_MS), event -> update()));
         ticker.setCycleCount(Animation.INDEFINITE);

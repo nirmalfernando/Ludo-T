@@ -7,13 +7,11 @@ import com.ludot.protocol.Variant;
 import java.util.ArrayList;
 import java.util.List;
 
-/** How a room is described on its lobby card: labels, badge colours and the seat strip. No JavaFX, so it is easy to test. */
+// no JavaFX, so it is easy to test
 public final class RoomPresentation {
 
-    /** What the card's button does. */
     public enum Action { JOIN, WATCH }
 
-    /** One of the four seats on the strip. */
     public enum SeatState { PERSON, AI, FREE }
 
     private static final int SEATS = 4;
@@ -25,7 +23,6 @@ public final class RoomPresentation {
         return status.name();
     }
 
-    /** Badge colour: green while people can still join, orange while playing, yellow when paused, grey when over. */
     public static String statusColour(RoomStatus status) {
         return switch (status) {
             case WAITING -> "#2eb872";
@@ -43,7 +40,6 @@ public final class RoomPresentation {
         return variant == Variant.LUDO_T ? "LUDO-T" : "CLASSIC";
     }
 
-    /** People can take a seat only in a play room that has not started; everything else is for watching. */
     public static Action action(RoomSummary room) {
         boolean joinable = room.mode() == RoomMode.PLAY && room.status() == RoomStatus.WAITING;
         return joinable ? Action.JOIN : Action.WATCH;
@@ -53,7 +49,6 @@ public final class RoomPresentation {
         return action == Action.JOIN ? "JOIN" : "WATCH";
     }
 
-    /** The four seats in order: people first, then AI, then the free ones. */
     public static List<SeatState> seats(RoomSummary room) {
         List<SeatState> seats = new ArrayList<>(SEATS);
         for (int i = 0; i < SEATS; i++) {

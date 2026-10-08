@@ -12,7 +12,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
-/** Start, pause or resume, and AI speed: shown to the host only, and only the parts that make sense right now. */
 final class HostControls extends HBox {
 
     private final RoomModel model;
@@ -42,7 +41,6 @@ final class HostControls extends HBox {
         visibleProperty().bind(Bindings.createBooleanBinding(model::isHost, model.hostIdProperty()));
     }
 
-    /** Shows and labels the buttons for the room's current status. */
     void refresh() {
         RoomStatus status = model.statusProperty().get();
         boolean waiting = status == RoomStatus.WAITING;

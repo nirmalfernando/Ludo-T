@@ -18,12 +18,10 @@ import javafx.scene.layout.Priority;
 import javafx.util.Duration;
 import javafx.scene.shape.Circle;
 
-/** A chat list and input box, used for both the lobby and a room. */
 public final class ChatPane extends BorderPane {
 
     private static final int MAX_LENGTH = 200;
 
-    /** Sends one message; {@code onRejected} is called with a short reason if the server refuses it. */
     public interface Sender {
         void send(String text, Consumer<String> onRejected);
     }
@@ -50,9 +48,7 @@ public final class ChatPane extends BorderPane {
         bottom.setPadding(new Insets(6, 0, 0, 0));
         setCenter(list);
         setBottom(bottom);
-        // The cells wrap their text, so their heights are only known after layout. Scrolling at once can use stale
-        // estimates and land on older messages; wait a moment for the layout to settle, and scroll again whenever the
-        // list changes or is resized, so the newest message is always the one in view.
+        // scrolling at once can use stale estimates and land on older messages
         PauseTransition settle = new PauseTransition(Duration.millis(120));
         settle.setOnFinished(event -> list.scrollTo(items.size() - 1));
         items.addListener((ListChangeListener<ChatMessage>) change -> settle.playFromStart());

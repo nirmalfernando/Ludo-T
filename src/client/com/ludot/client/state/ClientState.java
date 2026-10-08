@@ -13,14 +13,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-/**
- * What the client knows about the server: connection status, who we are, the live room list, the
- * lobby chat and the room we are in. Every server push is applied here, on the FX thread, and the
- * views simply bind to these properties. Touch it only from the FX application thread.
- */
 public final class ClientState {
 
-    /** Connection status shown in the status bar. */
     public enum Connection {
         DISCONNECTED, RECONNECTING, CONNECTED
     }
@@ -39,12 +33,10 @@ public final class ClientState {
     private String myId = "";
     private String token = "";
 
-    /** @param requestSnapshot called with a room id when that room's pushes have a gap */
     public ClientState(Consumer<String> requestSnapshot) {
         this.requestSnapshot = requestSnapshot;
     }
 
-    /** Applies one message from the server. */
     public void apply(ServerMessage message) {
         if (message instanceof ServerMessage.Welcome welcome) {
             myId = welcome.playerId();
@@ -102,7 +94,6 @@ public final class ClientState {
         }
     }
 
-    /** A replay has been started: its steps will now be routed to the returned model. */
     public ReplayModel beginReplay(String replayId, com.ludot.protocol.FinishedGame game, com.ludot.protocol.Speed speed) {
         ReplayModel model = new ReplayModel(replayId, game, speed);
         replay.set(model);
@@ -117,23 +108,19 @@ public final class ClientState {
         return replay;
     }
 
-    /** Called after we leave a room. */
     public void leaveRoom() {
         room.set(null);
     }
 
-    /** Fills the lobby from the answer to ListRooms. */
     public void showLobby(java.util.List<RoomSummary> list, java.util.List<ChatMessage> recentChat) {
         rooms.setAll(list);
         lobbyChat.setAll(recentChat);
     }
 
-    /** Converts server-time deadlines into time left on this machine. */
     public ClockSync clock() {
         return clock;
     }
 
-    /** The token from Welcome: what a new connection shows to get this person's identity back. */
     public String token() {
         return token;
     }
@@ -142,7 +129,6 @@ public final class ClientState {
         return myId;
     }
 
-    /** Round trip to the server in milliseconds, or -1 until the first Pong has come back. */
     public LongProperty latencyProperty() {
         return latency;
     }

@@ -9,17 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * What the "Who goes first?" panel shows, built from the roll-off events as they arrive: each colour's rolls, who
- * dropped out after a tie, who rolls next and, once the server announces it, the winner and the playing order.
- * The contenders roll one at a time in seat order, and after every full round only those who tied for the highest
- * roll stay in (spec 1.1). No JavaFX in here, so it can be tested.
- */
+// no JavaFX in here, so it can be tested
 public final class RollOffTable {
 
     private static final List<Colour> SEATS = List.of(Colour.RED, Colour.GREEN, Colour.YELLOW, Colour.BLUE);
 
-    /** One colour's line: everything it rolled, whether it is out, and whether it won. */
     public record Row(Colour colour, List<Integer> rolls, boolean out, boolean winner) {
     }
 
@@ -32,7 +26,6 @@ public final class RollOffTable {
         reset();
     }
 
-    /** Forgets everything: a new game is starting. */
     public void reset() {
         rolls.clear();
         SEATS.forEach(colour -> rolls.put(colour, new ArrayList<>()));
@@ -41,7 +34,6 @@ public final class RollOffTable {
         winner = null;
     }
 
-    /** Takes in a ROLL_OFF or TURN_ORDER event; anything else is ignored. */
     public void accept(EventDto event) {
         if (event.type() == EventType.ROLL_OFF && event.colour() != null && event.value() != null) {
             addRoll(event.colour(), event.value());
@@ -68,7 +60,6 @@ public final class RollOffTable {
         return new Row(colour, List.copyOf(rolls.get(colour)), !contenders.contains(colour), colour == winner);
     }
 
-    /** Who has to roll next: the first contender that has not rolled in the current round; empty once one is left. */
     public Optional<Colour> nextRoller() {
         if (contenders.size() == 1) {
             return Optional.empty();
@@ -76,12 +67,10 @@ public final class RollOffTable {
         return contenders.stream().filter(colour -> !thisRound.containsKey(colour)).findFirst();
     }
 
-    /** The only contender left after a round, before the server has announced the order. */
     public Optional<Colour> leader() {
         return contenders.size() == 1 ? Optional.of(contenders.get(0)) : Optional.empty();
     }
 
-    /** True once anyone has rolled. */
     public boolean hasRolls() {
         return rolls.values().stream().anyMatch(list -> !list.isEmpty());
     }
@@ -94,12 +83,10 @@ public final class RollOffTable {
         return Optional.ofNullable(winner);
     }
 
-    /** Clockwise from the winner (the order of the colours R, G, Y, B); empty until it is announced. */
     public List<Colour> playOrder() {
         return winner == null ? List.of() : clockwiseFrom(winner);
     }
 
-    /** The colours in playing order when {@code first} begins. */
     public static List<Colour> clockwiseFrom(Colour first) {
         return com.ludot.client.state.RoomModel.clockwiseFrom(first);
     }

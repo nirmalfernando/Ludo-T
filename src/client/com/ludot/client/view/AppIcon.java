@@ -19,10 +19,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
-/**
- * The application icon, drawn in code (no image files to ship): a rounded tile in the four board colours with a
- * Ludo pawn on a white disc. It is used for the window, the taskbar and, where the system allows it, the Dock.
- */
 public final class AppIcon {
 
     private static final double DRAWN = 512;
@@ -35,7 +31,6 @@ public final class AppIcon {
     private AppIcon() {
     }
 
-    /** Gives the window its icon (and the Dock its icon on macOS, with the margin macOS expects). Must run on the FX thread. */
     public static void install(Stage stage) {
         Node tile = tile();
         List<Image> images = new ArrayList<>();
@@ -88,7 +83,6 @@ public final class AppIcon {
         return tile.snapshot(params, new WritableImage(size, size));
     }
 
-    // the tile shrunk into the middle of a transparent square, so it sits in the Dock at the same size as other apps;
     // pasted with AWT because a JavaFX snapshot places a translated node relative to its bounds, not to the image
     static BufferedImage dockImage(Node tile) {
         int art = (int) Math.round(DOCK_CANVAS * DOCK_FILL);

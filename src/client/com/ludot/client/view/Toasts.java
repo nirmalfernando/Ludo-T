@@ -11,11 +11,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-/**
- * Short-lived messages shown at the bottom of the window (errors, captures, teleports). They stack one above the
- * other instead of landing on top of each other; at most three are shown, the oldest giving way to a new one, and a
- * message that repeats the one already showing is not added again, so a fast game cannot bury the screen.
- */
+// they stack one above the other instead of landing on top of each other
 public final class Toasts {
 
     private static final int MAX_VISIBLE = 3;
@@ -25,7 +21,6 @@ public final class Toasts {
     private final StackPane host;
     private final VBox stack = new VBox(6);
 
-    /** @param host the window's root stack; toasts are layered on top of it */
     public Toasts(StackPane host) {
         this.host = host;
         stack.setAlignment(Pos.BOTTOM_CENTER);

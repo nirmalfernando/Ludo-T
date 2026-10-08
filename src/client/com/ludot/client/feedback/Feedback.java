@@ -6,10 +6,6 @@ import java.util.prefs.Preferences;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
-/**
- * Sound and motion effects in one place, with the two on/off switches the player controls. The choices are remembered
- * between runs. Use {@link #get()} from the UI; everything else just asks "play this" or "is motion on?".
- */
 public final class Feedback {
 
     private static final double VOLUME = 0.7;
@@ -22,7 +18,6 @@ public final class Feedback {
     private final BooleanProperty motion = new SimpleBooleanProperty(true);
     private final SoundPlayer player;
 
-    /** @param player null in tests, where nothing should reach a sound card */
     Feedback(Preferences preferences, SoundPlayer player) {
         this.player = player;
         sound.set(preferences.getBoolean(SOUND_KEY, true));
@@ -31,7 +26,6 @@ public final class Feedback {
         remember(motion, preferences, MOTION_KEY);
     }
 
-    /** The one instance the whole app shares. */
     public static Feedback get() {
         Feedback result = shared;
         if (result == null) {
@@ -63,14 +57,13 @@ public final class Feedback {
         return motion.get();
     }
 
-    /** Plays one sound, unless sound is switched off. */
+    // plays one sound, unless sound is switched off
     public void play(Cue cue) {
         if (sound.get() && player != null) {
             player.play(cue, VOLUME);
         }
     }
 
-    /** Plays the sounds that go with a batch of game events. */
     public void playEvents(List<EventDto> events) {
         for (Cue cue : SoundCues.forEvents(events.stream().map(EventDto::type).toList())) {
             play(cue);

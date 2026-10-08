@@ -2,7 +2,6 @@ package com.ludot.client.view;
 
 import javafx.scene.control.Label;
 
-/** The small coloured badges (status, mode, rules) used on lobby cards and in the room header. */
 final class Chips {
 
     static final String MODE = "#3d9bff";

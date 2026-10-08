@@ -2,10 +2,7 @@ package com.ludot.client;
 
 import javafx.application.Application;
 
-/**
- * Launcher for the JavaFX client: {@code ClientMain [--host H] [--port P] [--nickname N] [--connect]}.
- * It is a separate class from the Application subclass so the client also starts when run from a plain classpath.
- */
+// it is a separate class from the Application subclass so the client also starts when run from a plain classpath
 public final class ClientMain {
 
     private ClientMain() {

@@ -22,7 +22,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-/** Every finished game the server has stored, newest first, with a button to watch it again. */
 public final class FinishedGamesScreen extends StackPane {
 
     private final Session session;
@@ -34,10 +33,6 @@ public final class FinishedGamesScreen extends StackPane {
     private final Button more = new Button("Load More");
     private int nextPage;
 
-    /**
-     * @param onBack  returns to the lobby
-     * @param onReplay called with the replay id and the game once the server has started a replay
-     */
     public FinishedGamesScreen(Session session, Toasts toasts, Runnable onBack, BiConsumer<String, FinishedGame> onReplay) {
         this.session = session;
         this.toasts = toasts;

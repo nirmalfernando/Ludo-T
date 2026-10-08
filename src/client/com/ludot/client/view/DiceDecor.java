@@ -5,7 +5,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
-/** A rounded die with pips, used as decoration (the lobby background and the title). */
 final class DiceDecor extends Group {
 
     // pip centres on a 3x3 grid, as fractions of the die's side, for each face value

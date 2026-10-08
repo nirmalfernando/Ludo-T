@@ -5,15 +5,8 @@ import com.ludot.protocol.Colour;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Where everything sits on the classic 15x15 Ludo board, in cell units (a cell's centre is at column + 0.5,
- * row + 0.5). The 52 track cells run clockwise round the cross, ids increasing in the direction a
- * CLOCKWISE piece travels. Red is top-left, Green top-right, Yellow bottom-right, Blue bottom-left, which
- * puts each colour's start cell two steps after its approach cell, exactly as the game rules define them.
- */
 public final class BoardLayout {
 
-    /** A point in cell units. */
     public record Point(double x, double y) {
     }
 
@@ -26,8 +19,6 @@ public final class BoardLayout {
     private BoardLayout() {
     }
 
-    // the loop as twelve straight runs, clockwise from the left arm's outer end; the track cuts across the four
-    // inner corners of the cross, so some runs begin diagonally next to where the last one ended
     private static List<int[]> buildLoop() {
         List<int[]> cells = new ArrayList<>();
         addRun(cells, 0, 6, 5, 6);      // left arm, top row, heading in
@@ -55,20 +46,17 @@ public final class BoardLayout {
         }
     }
 
-    /** Column and row of a track cell (0 to 51). */
     public static int[] trackGridCell(int cellId) {
         int index = ((cellId - ID_TO_LOOP_OFFSET) % BoardGeometry.TRACK_SIZE + BoardGeometry.TRACK_SIZE)
                 % BoardGeometry.TRACK_SIZE;
         return LOOP.get(index);
     }
 
-    /** Centre of a track cell. */
     public static Point track(int cellId) {
         int[] cell = trackGridCell(cellId);
         return new Point(cell[0] + 0.5, cell[1] + 0.5);
     }
 
-    /** Column and row of a home-straight step: 0 is next to the approach cell, 4 is HOME. */
     public static int[] homeGridCell(Colour colour, int step) {
         return switch (colour) {
             case RED -> new int[]{1 + step, 7};
@@ -78,13 +66,11 @@ public final class BoardLayout {
         };
     }
 
-    /** Centre of a home-straight cell. */
     public static Point homeStraight(Colour colour, int step) {
         int[] cell = homeGridCell(colour, step);
         return new Point(cell[0] + 0.5, cell[1] + 0.5);
     }
 
-    /** Top-left corner (column, row) of a colour's 6x6 base. */
     public static int[] baseOrigin(Colour colour) {
         return switch (colour) {
             case RED -> new int[]{0, 0};
@@ -94,7 +80,6 @@ public final class BoardLayout {
         };
     }
 
-    /** Where a piece waits in its base (four slots in a 2x2 pattern). */
     public static Point base(Colour colour, int pieceIndex) {
         int[] origin = baseOrigin(colour);
         double dx = pieceIndex % 2 == 0 ? 2 : 4;
@@ -102,7 +87,6 @@ public final class BoardLayout {
         return new Point(origin[0] + dx, origin[1] + dy);
     }
 
-    /** Offsets that keep several pieces on one cell apart; the first piece sits in the middle. */
     public static Point stackOffset(int slot, int occupants) {
         if (occupants <= 1) {
             return new Point(0, 0);

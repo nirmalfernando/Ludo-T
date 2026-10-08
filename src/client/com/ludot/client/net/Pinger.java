@@ -7,14 +7,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 
-/**
- * Pings the server on a timer so it does not treat the connection as dead, and times how long each answer takes.
- * That round trip is what the "Connected" badge shows. Sending happens on the timer thread and the Pong arrives on
- * the reader thread, so the one shared field is volatile.
- */
+// pings the server on a timer so it does not treat the connection as dead, and times how long each answer takes
 public final class Pinger implements AutoCloseable {
 
-    /** Sends one Ping. */
     public interface Sender {
         void send() throws IOException;
     }
@@ -26,7 +21,6 @@ public final class Pinger implements AutoCloseable {
     private volatile long lastPongNanos;
     private volatile ScheduledExecutorService timer;
 
-    /** @param onRoundTrip receives the round trip in milliseconds each time a Pong answers a Ping */
     public Pinger(Sender sender, LongConsumer onRoundTrip) {
         this(sender, onRoundTrip, System::nanoTime);
     }
@@ -38,10 +32,6 @@ public final class Pinger implements AutoCloseable {
         this.lastPongNanos = nanoClock.getAsLong();
     }
 
-    /**
-     * Pings now and then every {@code intervalMs}. {@code onFailure} runs if a Ping cannot be sent, or if no Pong has
-     * come back for {@code staleAfterMs} (a network that died without closing the socket).
-     */
     public void start(long intervalMs, long staleAfterMs, Runnable onFailure) {
         lastPongNanos = nanoClock.getAsLong();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(task -> {
@@ -73,7 +63,6 @@ public final class Pinger implements AutoCloseable {
         sender.send();
     }
 
-    /** Call when a Pong arrives; only the first Pong after a Ping is timed. */
     public void pongReceived() {
         lastPongNanos = nanoClock.getAsLong();
         long sent = sentAtNanos;

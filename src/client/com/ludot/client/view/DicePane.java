@@ -11,7 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-/** The die, a banner saying what is expected, and the Roll button. */
 public final class DicePane extends VBox {
 
     private static final String[] FACES = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
@@ -48,7 +47,6 @@ public final class DicePane extends VBox {
         banner.setText(text);
     }
 
-    /** Shows the time left for whoever must act; an empty text hides it, urgent turns it red. */
     public void setCountdown(String text, boolean urgent) {
         countdown.setText(text);
         countdown.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: " + (urgent ? "#c62828" : "#546e7a") + ";");
@@ -58,7 +56,6 @@ public final class DicePane extends VBox {
         roll.setDisable(!enabled);
     }
 
-    /** Tumbles through random faces and settles on the rolled value. */
     public void showRoll(int value) {
         if (tumble != null) {
             tumble.stop();

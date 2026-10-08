@@ -4,16 +4,10 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * Makes every sound from maths: tones, sweeps and bursts of noise shaped by a fading envelope, so the client ships no
- * audio files (and no licences to worry about). Pure and deterministic: the same cue always renders the same samples,
- * which is what lets it be tested without a sound card.
- */
 public final class SoundSynth {
 
     public static final float SAMPLE_RATE = 22_050f;
 
-    /** Loudest sample as a fraction of full scale, so nothing ever clips. */
     static final double PEAK = 0.8;
 
     private static final double TWO_PI = 2 * Math.PI;
@@ -21,7 +15,6 @@ public final class SoundSynth {
     private SoundSynth() {
     }
 
-    /** The cue as 16-bit mono samples at {@link #SAMPLE_RATE}. */
     public static short[] render(Cue cue) {
         return toPcm(RECIPES.get(cue).get());
     }
@@ -74,7 +67,6 @@ public final class SoundSynth {
 
     // ------------------------------------------------------------------ building blocks
 
-    /** A tone with a little second harmonic and a fast attack, fading as exp(-decay * t). */
     static double[] tone(double hz, int ms, double gain, double decay) {
         double[] out = new double[samples(ms)];
         for (int i = 0; i < out.length; i++) {
@@ -85,7 +77,6 @@ public final class SoundSynth {
         return out;
     }
 
-    /** A tone whose pitch glides linearly from {@code fromHz} to {@code toHz}. */
     static double[] sweep(double fromHz, double toHz, int ms, double gain, double decay) {
         double[] out = new double[samples(ms)];
         double phase = 0;
@@ -98,7 +89,6 @@ public final class SoundSynth {
         return out;
     }
 
-    /** Soft, repeatable noise (a fixed-seed generator, gently smoothed) for rattles and thumps. */
     static double[] noise(int ms, double gain, double decay, long seed) {
         double[] out = new double[samples(ms)];
         long state = seed * 6_364_136_223_846_793_005L + 1_442_695_040_888_963_407L;
@@ -130,7 +120,6 @@ public final class SoundSynth {
         return out;
     }
 
-    /** Plays the parts at the same time; the result is as long as the longest. */
     static double[] mix(double[]... parts) {
         int length = 0;
         for (double[] part : parts) {

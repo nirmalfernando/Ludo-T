@@ -10,10 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
-/**
- * "● Connected · 12 ms": a softly pulsing green dot while the connection to the server is open, amber when the round
- * trip is slow, red when it is gone. It follows the live connection state, so it needs no refreshing.
- */
+// it follows the live connection state, so it needs no refreshing
 public final class ConnectionBadge extends HBox {
 
     private final ClientState state;

@@ -7,10 +7,7 @@ import javafx.collections.ListChangeListener;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-/**
- * "What Just Happened": the last few narrated lines, always visible beside the board. A fast game scrolls the
- * event log and toasts away quickly, but this stays put, with the newest line in bold, so it is easy to follow.
- */
+// A fast game scrolls the event log and toasts away quickly, but this stays put, with the newest line in bold, so it is easy to follow
 final class NarrationPane extends VBox {
 
     private static final int LINES = 4;

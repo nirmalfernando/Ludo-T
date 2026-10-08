@@ -2,10 +2,7 @@ package com.ludot.client.feedback;
 
 import java.util.Random;
 
-/**
- * The physics of a confetti burst: pieces start above the top edge, fall with gravity, drift sideways and spin.
- * Pure maths with a seeded generator, so it can be tested; the drawing lives in the view.
- */
+// pure maths with a seeded generator, so it can be tested
 public final class ConfettiField {
 
     private static final double GRAVITY = 520;
@@ -21,7 +18,6 @@ public final class ConfettiField {
     private final double[] size;
     private final int[] colour;
 
-    /** @param width how wide the area is; pieces start at random places along the top, staggered in height */
     public ConfettiField(int count, double width, long seed) {
         Random random = new Random(seed);
         x = new double[count];
@@ -44,7 +40,6 @@ public final class ConfettiField {
         }
     }
 
-    /** Advances the simulation by {@code seconds}. */
     public void step(double seconds) {
         for (int i = 0; i < x.length; i++) {
             vy[i] += GRAVITY * seconds;
@@ -55,7 +50,6 @@ public final class ConfettiField {
         }
     }
 
-    /** True once every piece has fallen past the bottom edge. */
     public boolean finished(double height) {
         for (double top : y) {
             if (top < height + 30) {
@@ -85,7 +79,6 @@ public final class ConfettiField {
         return size[i];
     }
 
-    /** Which of the six palette colours piece {@code i} uses. */
     public int colour(int i) {
         return colour[i];
     }

@@ -12,7 +12,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineCap;
 
-/** Two round buttons: sound on or off, and motion effects on or off. Both are remembered between runs. */
 public final class FeedbackToggles extends HBox {
 
     private static final Color ON = Color.web("#3d6fe0");

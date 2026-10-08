@@ -10,7 +10,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-/** The card shown over the board when a game ends: the winner's pawn and the final order. */
 final class GameOverPanel extends VBox {
 
     private final Runnable onBack;
@@ -25,7 +24,6 @@ final class GameOverPanel extends VBox {
         setVisible(false);
     }
 
-    /** Shows the standings, or hides the panel when there are none (a new game). */
     void show(List<Colour> standings) {
         getChildren().clear();
         if (standings == null) {

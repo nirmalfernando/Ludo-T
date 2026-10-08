@@ -19,7 +19,6 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-/** One piece on the board: a coloured disc with its number, an effect badge and, when movable, a pulsing ring. */
 final class PieceNode extends Group {
 
     private static final double FLASH_MILLIS = 1600;
@@ -81,7 +80,6 @@ final class PieceNode extends Group {
         direction.setVisible(false);
     }
 
-    /** Shows effect and briefing state as a small badge above the piece, and, if asked, its travel direction. */
     void showState(PieceDto dto, boolean showDirection) {
         direction.setVisible(showDirection && dto.direction() != null);
         if (showDirection && dto.direction() != null) {
@@ -99,7 +97,6 @@ final class PieceNode extends Group {
         badge.setVisible(!text.isEmpty());
     }
 
-    /** A small squash-and-settle when the piece lands, like a counter being put down on the board. */
     void land() {
         if (Feedback.get().motionOn()) {
             ScaleTransition squash = new ScaleTransition(Duration.millis(110), this);
@@ -113,7 +110,6 @@ final class PieceNode extends Group {
         }
     }
 
-    /** A captured piece spins and shrinks on its way back to its base. */
     void sendHome() {
         if (Feedback.get().motionOn()) {
             RotateTransition spin = new RotateTransition(Duration.millis(260), this);
@@ -130,7 +126,6 @@ final class PieceNode extends Group {
         }
     }
 
-    /** A bigger pop with a halo: the piece has reached home. */
     void celebrate() {
         flash();
         if (Feedback.get().motionOn()) {
@@ -162,7 +157,7 @@ final class PieceNode extends Group {
         setRotate(0);
     }
 
-    /** Shows a gold halo that fades away, so the eye finds the piece that just moved. */
+    // shows a gold halo that fades away, so the eye finds the piece that just moved
     void flash() {
         halo.setOpacity(1);
         javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(Duration.millis(FLASH_MILLIS), halo);

@@ -40,10 +40,6 @@ import javafx.util.Duration;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-/**
- * The JavaFX application: owns the window, the connection and the client state, and decides which
- * screen is showing. Everything it shows comes from {@link ClientState}; nothing here knows the rules.
- */
 public final class ClientApp extends Application {
 
     private static final long[] RECONNECT_BACKOFF_MS = {1_000, 2_000, 4_000, 8_000};
@@ -198,8 +194,6 @@ public final class ClientApp extends Application {
         resumeScreen();
     }
 
-    // every screen holds the dead session, so rebuild: the lobby subscribes again, a room is joined again (the server
-    // gives a dropped player their seat back and sends a fresh snapshot, which opens the room screen)
     private void resumeScreen() {
         if (state.replayProperty().get() != null) { // the server ended the replay when the connection dropped
             state.endReplay();

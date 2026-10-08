@@ -23,7 +23,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineCap;
 
-/** The lobby: the live list of games as cards (no refreshing needed), a button to create one, and the lobby chat. */
 public final class LobbyScreen extends StackPane {
 
     private static final double CHAT_WIDTH = 330;
@@ -35,10 +34,6 @@ public final class LobbyScreen extends StackPane {
     private final Runnable onFinishedGames;
     private final ListView<RoomSummary> rooms = new ListView<>();
 
-    /**
-     * @param onSignOut called when the user wants to leave the lobby and go back to the connect screen
-     * @param onFinishedGames called when the user wants to see the finished games
-     */
     public LobbyScreen(ClientState state, Session session, Toasts toasts, Runnable onSignOut, Runnable onFinishedGames) {
         this.state = state;
         this.session = session;

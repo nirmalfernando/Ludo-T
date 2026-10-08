@@ -9,7 +9,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-/** A transparent layer over the board where confetti rains down when a game is won. Never takes a click. */
 final class ConfettiLayer extends Pane {
 
     private static final int PIECES = 170;
@@ -33,7 +32,7 @@ final class ConfettiLayer extends Pane {
         });
     }
 
-    /** Starts a burst (unless motion effects are switched off); a new burst replaces one still falling. */
+    // starts a burst (unless motion effects are switched off)
     void burst() {
         if (!Feedback.get().motionOn() || getWidth() <= 0) {
             return;

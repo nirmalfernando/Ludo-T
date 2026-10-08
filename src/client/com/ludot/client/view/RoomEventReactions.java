@@ -11,10 +11,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.scene.Node;
 
-/**
- * What the screen does when game events arrive: tumble the die to the rolled number, toast the dramatic ones, make
- * their sounds, shake the board on a capture and pop a piece that reaches home.
- */
 final class RoomEventReactions {
 
     private static final Pattern ROLLED = Pattern.compile("rolled (\\d)");
@@ -45,12 +41,10 @@ final class RoomEventReactions {
         }
     }
 
-    /** The roll-off panel, to be placed over the board. */
     Node rollOffPanel() {
         return rollOffPanel;
     }
 
-    /** Re-reads whose turn it is for the roll-off panel. */
     void refreshTurn() {
         rollOffPanel.refresh();
     }

@@ -19,11 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
-/**
- * "Who goes first?": the opening roll-off made visible. Every colour has a row showing what it rolled (a tie shows
- * the re-roll next to the first), whose roll it is, who dropped out, and finally the winner and the playing order.
- * It floats over the board while the roll-off is going on and for a few seconds after the order is announced.
- */
 final class RollOffPanel extends VBox {
 
     private static final double RESULT_SECONDS = 4.5;
@@ -36,10 +31,6 @@ final class RollOffPanel extends VBox {
     private final PauseTransition hideLater = new PauseTransition(Duration.seconds(RESULT_SECONDS));
     private boolean showingResult;
 
-    /**
-     * @param turn whose turn it is and in which phase (a replay has none and passes a supplier of null)
-     * @param mine the colour this person plays, if any, so the panel can say "your turn"
-     */
     RollOffPanel(Supplier<TurnInfo> turn, Supplier<Optional<Colour>> mine) {
         super(10);
         this.turn = turn;
@@ -65,7 +56,6 @@ final class RollOffPanel extends VBox {
         setManaged(false);
     }
 
-    /** Takes in the events of one update: a new game clears the table, roll-off events fill it. */
     void react(List<EventDto> events) {
         boolean changed = false;
         for (EventDto event : events) {
@@ -88,7 +78,6 @@ final class RollOffPanel extends VBox {
         }
     }
 
-    /** Re-reads whose turn it is; called whenever the turn changes. */
     void refresh() {
         TurnInfo now = turn.get();
         boolean rollingOff = (now != null && now.phase() == Phase.ROLL_OFF) || (table.hasRolls() && !table.isDecided());

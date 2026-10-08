@@ -10,11 +10,7 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 
-/**
- * Plays the synthesised cues. Every audio call happens on one background thread, so opening a sound line (which can
- * take a moment) never stalls the UI. If the machine has no usable audio output the player turns itself off and the
- * game carries on silently.
- */
+// every audio call happens on one background thread, so opening a sound line (which can take a moment) never stalls the UI
 final class SoundPlayer {
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor(task -> {
@@ -25,7 +21,7 @@ final class SoundPlayer {
     private final Map<Cue, Clip> clips = new EnumMap<>(Cue.class);
     private volatile boolean unavailable;
 
-    /** Opens every sound ahead of time so the first real cue is not late. */
+    // opens every sound ahead of time so the first real cue is not late
     void warmUp() {
         worker.execute(() -> {
             for (Cue cue : Cue.values()) {
@@ -36,7 +32,6 @@ final class SoundPlayer {
         });
     }
 
-    /** Plays a cue without blocking; {@code volume} is 0 to 1. */
     void play(Cue cue, double volume) {
         if (!unavailable) {
             worker.execute(() -> playNow(cue, volume));

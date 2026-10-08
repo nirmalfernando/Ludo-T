@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.VBox;
 
-/** The left-hand cards of the replay screen: who won, pause or resume, the speed, and how far through it is. */
 final class ReplayControls extends VBox {
 
     private final ReplayModel model;

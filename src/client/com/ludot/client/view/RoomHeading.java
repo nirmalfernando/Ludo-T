@@ -8,7 +8,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 
-/** The room id with its status, mode and rules badges: the same ones the lobby cards use. */
 final class RoomHeading extends HBox {
 
     private final RoomModel model;
@@ -19,7 +18,6 @@ final class RoomHeading extends HBox {
         setAlignment(Pos.CENTER_LEFT);
     }
 
-    /** Rebuilds the badges from the model's current status. */
     void refresh() {
         Label id = new Label(model.roomId());
         id.getStyleClass().add("room-id");

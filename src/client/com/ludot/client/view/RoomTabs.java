@@ -9,7 +9,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
-/** The right-hand side of the room screen: room chat and the narrated event log. */
 final class RoomTabs extends TabPane {
 
     private static final double WIDTH = 310;

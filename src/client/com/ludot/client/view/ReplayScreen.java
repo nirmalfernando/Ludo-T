@@ -19,7 +19,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-/** A finished game played again: the board moves on its own, with the narration, a filtered log and playback controls. */
 public final class ReplayScreen extends StackPane {
 
     private static final double LEFT_WIDTH = 245;
@@ -32,7 +31,6 @@ public final class ReplayScreen extends StackPane {
     private final Label endText = new Label();
     private final RollOffPanel rollOffPanel = new RollOffPanel(() -> null, java.util.Optional::empty);
 
-    /** @param onClose leaves the replay (the replay is stopped on the server first) */
     public ReplayScreen(ReplayModel model, Session session, Toasts toasts, Runnable onClose) {
         this.model = model;
         this.session = session;

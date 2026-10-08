@@ -11,11 +11,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-/**
- * The backdrop of the connect screen and the lobby: a soft gradient, the four board-base colours as huge pale
- * blocks in the corners, and a few faint dice and pawns drifting about. It reads as "Ludo" without competing
- * with the content on top.
- */
 final class PlayfulBackground extends Pane {
 
     private static final double FAINT = 0.16;

@@ -3,7 +3,7 @@ package com.ludot.client.view;
 import com.ludot.protocol.EventType;
 import java.util.Set;
 
-/** The groups the event log can be filtered by. Every event type belongs to exactly one. */
+// every event type belongs to exactly one
 public enum EventCategory {
     DICE("Dice"),
     MOVES("Moves"),
@@ -21,7 +21,7 @@ public enum EventCategory {
         return label;
     }
 
-    /** The category of an event type; the switch has no default, so a new event type will not compile until it is placed. */
+    // the switch has no default, so a new event type will not compile until it is placed
     public static EventCategory of(EventType type) {
         return switch (type) {
             case ROLL_OFF, DICE_ROLL, COIN_TOSS, TRIPLE_SIX -> DICE;
@@ -33,10 +33,6 @@ public enum EventCategory {
         };
     }
 
-    /**
-     * Whether a line passes the filter. With nothing selected everything passes (that is "All"), including old history
-     * that has no type; with categories selected only typed lines of those categories pass.
-     */
     public static boolean matches(Set<EventCategory> selected, EventType type) {
         if (selected.isEmpty()) {
             return true;

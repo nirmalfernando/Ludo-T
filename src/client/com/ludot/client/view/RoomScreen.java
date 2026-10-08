@@ -23,10 +23,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-/**
- * The game screen. It lays out the board, seats, dice, host controls, log and chat, wires them to the room's
- * model, and turns clicks into requests. It only shows what the server reports and decides nothing itself.
- */
 public final class RoomScreen extends StackPane {
 
     private final RoomModel model;
@@ -46,7 +42,6 @@ public final class RoomScreen extends StackPane {
     private final RoomEventReactions reactions;
     private final TurnCountdown countdown;
 
-    /** @param connection the connection indicator, shown beside the Leave button */
     public RoomScreen(RoomModel model, Session session, Toasts toasts, Runnable onLeft, String myId,
                       ClockSync clock, Node connection) {
         this.model = model;

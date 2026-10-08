@@ -8,10 +8,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.FlowPane;
 
-/**
- * "All, Dice, Moves, ...": pill buttons above the event log. Several categories can be on at once; none on means All.
- * The chosen set is published as a property so the log can re-filter itself.
- */
+// the chosen set is published as a property so the log can re-filter itself
 final class EventFilterBar extends FlowPane {
 
     private final Set<EventCategory> selected = EnumSet.noneOf(EventCategory.class);

@@ -16,7 +16,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-/** What the replay screen shows: the board at the current step, the narration so far, the progress and how it ended. */
 public final class ReplayModel {
 
     private static final int LOG_LIMIT = 400;
@@ -40,7 +39,6 @@ public final class ReplayModel {
         this.total.set(Math.max(game.turns(), 0));
     }
 
-    /** One step of the replay arrived; steps of any other replay are ignored. */
     public void apply(ServerMessage.ReplayEvent step) {
         if (!replayId.equals(step.replayId())) {
             return;
@@ -95,7 +93,6 @@ public final class ReplayModel {
         return total;
     }
 
-    /** Null while the replay is running. */
     public ObjectProperty<ReplayEndReason> endedProperty() {
         return ended;
     }

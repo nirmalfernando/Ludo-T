@@ -2,24 +2,18 @@ package com.ludot.client.net;
 
 import java.util.function.LongSupplier;
 
-/**
- * Tries to get a dropped connection back, waiting a little longer between each try (1 s, 2 s, 4 s, then 8 s) until it
- * works, the server says the session is gone for good, or the time runs out. It blocks, so run it on a background
- * thread. Generic so the retry rules can be tested without a network.
- */
+// generic so the retry rules can be tested without a network
 public final class Reconnector<T> {
 
-    /** One try at reconnecting; throws if it did not work. */
     public interface Attempt<T> {
         T open() throws Exception;
     }
 
-    /** Pauses between tries. */
     public interface Sleeper {
         void sleep(long millis) throws InterruptedException;
     }
 
-    /** What came of it: the new connection, or why it was given up. */
+    // what came of it: the new connection, or why it was given up
     public record Result<T>(T value, String failure) {
         public boolean succeeded() {
             return value != null;
@@ -43,7 +37,6 @@ public final class Reconnector<T> {
         this.clock = clock;
     }
 
-    /** Stops trying (the user signed out, or the window is closing). */
     public void cancel() {
         cancelled = true;
     }

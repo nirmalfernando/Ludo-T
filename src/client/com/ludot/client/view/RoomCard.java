@@ -13,7 +13,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-/** One room in the lobby: its id, badges, who sits where, and a button to join or watch. */
 final class RoomCard extends HBox {
 
     private static final Colour[] SEAT_COLOURS = {Colour.RED, Colour.GREEN, Colour.YELLOW, Colour.BLUE};
