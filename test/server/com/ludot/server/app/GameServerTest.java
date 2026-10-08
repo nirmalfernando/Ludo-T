@@ -85,13 +85,16 @@ class GameServerTest {
                 other.call(new ClientMessage.Hello(id(), "alice")).errorCode());
     }
 
+    // generous: a slow, busy machine must not turn "closed eventually" into a failure; a passing test returns at once
+    private static final long DISCONNECT_WAIT_MS = 10_000;
+
     // repeated: the reply and the close race on the server, which showed up once in a few hundred runs
     @RepeatedTest(100) @DisplayName("a request before Hello gets PROTOCOL_ERROR and the connection is closed")
     void requestBeforeHelloClosesConnection() throws IOException {
         TestClient rude = client(null);
         Response response = rude.call(new ClientMessage.ListRooms(id()));
         assertEquals(ErrorCode.PROTOCOL_ERROR, response.errorCode());
-        assertTrue(rude.awaitDisconnected(2000));
+        assertTrue(rude.awaitDisconnected(DISCONNECT_WAIT_MS));
     }
 
     @Test @DisplayName("garbage bytes close that connection only; the server keeps serving others")
@@ -99,7 +102,7 @@ class GameServerTest {
         TestClient good = client("good");
         TestClient bad = client(null);
         bad.sendRaw(new byte[]{0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8});
-        assertTrue(bad.awaitDisconnected(2000));
+        assertTrue(bad.awaitDisconnected(DISCONNECT_WAIT_MS));
         assertTrue(good.call(new ClientMessage.ListRooms(id())).isOk());
     }
 
@@ -107,7 +110,7 @@ class GameServerTest {
     void oversizedFrameClosesConnection() throws IOException {
         TestClient bad = client(null);
         bad.sendRaw(new byte[]{0x7f, (byte) 0xff, (byte) 0xff, (byte) 0xff});
-        assertTrue(bad.awaitDisconnected(2000));
+        assertTrue(bad.awaitDisconnected(DISCONNECT_WAIT_MS));
     }
 
     @Test @DisplayName("a client that goes silent is dropped after the read timeout, freeing its nickname, while a pinging one stays")
@@ -121,7 +124,7 @@ class GameServerTest {
             alive.send(new ClientMessage.Ping());
             Kit.sleep(100);
         }
-        assertTrue(silent.awaitDisconnected(2000));
+        assertTrue(silent.awaitDisconnected(DISCONNECT_WAIT_MS));
         assertFalse(alive.awaitDisconnected(10));
         assertTrue(client(null).call(new ClientMessage.Hello(id(), "silent")).isOk(), "nickname should be free again");
     }

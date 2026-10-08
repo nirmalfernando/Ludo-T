@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 final class ConnectionHandler implements ClientSink {
 
     private static final Logger LOG = Logger.getLogger(ConnectionHandler.class.getName());
-    private static final long FLUSH_BEFORE_CLOSE_MS = 200;
+    private static final long FLUSH_BEFORE_CLOSE_MS = 2000;
     private static final long WINDOW_WAIT_SECONDS = 5;
 
     private final Socket socket;

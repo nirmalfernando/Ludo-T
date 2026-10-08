@@ -80,8 +80,8 @@ for m in $TEST_MODULES; do
     echo
 done
 if [ "$FAILED" = "1" ]; then
-    echo "SOME TESTS FAILED: see reports/tests-<module>.txt"
-    exit 1
+    # keep going so one failing test does not cost the whole run; the exit status at the end still says it failed
+    echo "SOME TESTS FAILED: see reports/tests-<module>.txt (the metrics below are still produced)"
 fi
 
 CLASSFILES=(); for d in $(class_dirs); do CLASSFILES+=(--classfiles "$d"); done
@@ -223,3 +223,7 @@ echo "   reports/spotbugs/spotbugs-result.xml      (bug patterns)"
 echo "   reports/complexity/complexity-result.xml  (cyclomatic complexity)"
 echo "   reports/tests-<module>.txt                (test results per module)"
 echo "============================================================"
+if [ "$FAILED" = "1" ]; then
+    echo " WARNING: some tests failed, so this is not a clean run. Failing tests are listed in reports/tests-<module>.txt"
+    exit 1
+fi
