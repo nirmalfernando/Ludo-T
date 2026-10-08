@@ -25,6 +25,8 @@ LUDO-T is a modified Ludo with extra rules (below). It started as a single-machi
 ### What you can do
 
 - Create a room, take a seat (red, green, yellow or blue), and let AI fill the empty seats.
+- Start with a **roll-off**: everyone rolls once for the playing order (you press Roll for your own seat, the AI rolls
+  by itself), the highest roll goes first, a tie rolls again, and a "Who Goes First?" panel shows it all.
 - Play with people on other computers, or watch a game as a spectator, with room chat and a lobby chat.
 - Watch **bot matches** at three speeds, with a "what just happened" panel and a filterable event log
   (Dice, Moves, Captures, Specials, Turns).
@@ -52,6 +54,7 @@ pieces each, and a 52-cell loop with a five-cell home straight per colour.
 
 | | |
 |---|---|
+| Who starts | Every player rolls once; the **highest roller starts** and play goes clockwise (red, green, yellow, blue). Players who tie for the highest roll roll again. |
 | Direction | Everyone moves **clockwise**. |
 | Leaving base | Roll a **6** to bring a piece out onto your start cell. |
 | Bonus rolls | A 6 gives you another roll. **Three 6s in a row** are penalised (no further bonus). Capturing also gives another roll. |
@@ -65,7 +68,7 @@ Everything in Classic (except that you *may* land on your own piece: that is how
 
 | Rule | What it does |
 |---|---|
-| **T-1** Direction | When a piece leaves base a **coin toss** decides if it travels clockwise or counter-clockwise. A counter-clockwise piece must pass its approach cell **twice** before it may turn into the home straight. |
+| **T-1** Direction | When a piece leaves base a **coin toss** decides if it travels clockwise or counter-clockwise. A counter-clockwise piece must pass its approach cell **twice** before it may turn into the home straight. The client shows the toss as a coin that flips over the piece, and marks the piece with ↻ (clockwise) or ↺ (counter-clockwise). |
 | **T-2** Bonus on capture | A capture earns another roll. |
 | **T-3** Blockades | Two or more pieces of one colour on the same cell form a **blockade**; opponents cannot land on it **or jump over it**: a piece stops on the cell before it. |
 | **T-4** Moving a blockade | A blockade moves as one: it advances **roll ÷ size** cells (rounded down), so a block of 3 needs a roll of at least 3 to move. |
