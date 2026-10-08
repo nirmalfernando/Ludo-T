@@ -30,6 +30,7 @@ public final class ReplayScreen extends StackPane {
     private final BoardView board = new BoardView();
     private final VBox endCard = new VBox(12);
     private final Label endText = new Label();
+    private final RollOffPanel rollOffPanel = new RollOffPanel(() -> null, java.util.Optional::empty);
 
     /** @param onClose leaves the replay (the replay is stopped on the server first) */
     public ReplayScreen(ReplayModel model, Session session, Toasts toasts, Runnable onClose) {
@@ -93,13 +94,14 @@ public final class ReplayScreen extends StackPane {
         back.getStyleClass().add("big-button");
         back.setOnAction(event -> close(onClose));
         endCard.getChildren().addAll(endText, back);
-        StackPane area = new StackPane(board, endCard);
+        StackPane area = new StackPane(board, rollOffPanel, endCard);
         area.getStyleClass().add("board-frame");
         area.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         return area;
     }
 
     private void wire() {
+        board.setVariant(model.game().variant());
         model.boardProperty().addListener((obs, old, now) -> {
             if (now != null) {
                 board.update(now, true);
@@ -117,6 +119,10 @@ public final class ReplayScreen extends StackPane {
     // the same sounds and shake as live play, so a replay feels like the real thing
     private void react(java.util.List<EventDto> events) {
         Feedback.get().playEvents(events);
+        rollOffPanel.react(events);
+        events.stream().filter(event -> event.type() == EventType.COIN_TOSS && event.colour() != null
+                && event.pieceIndex() != null && event.value() != null)
+                .forEach(event -> board.coinFlip(event.colour(), event.pieceIndex(), event.value() == 1));
         if (events.stream().anyMatch(event -> event.type() == EventType.CAPTURE || event.type() == EventType.TRIPLE_SIX)) {
             board.jolt();
         }

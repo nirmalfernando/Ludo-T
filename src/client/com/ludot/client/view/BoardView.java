@@ -5,6 +5,7 @@ import com.ludot.client.feedback.Feedback;
 import com.ludot.protocol.BoardDto;
 import com.ludot.protocol.BoardGeometry;
 import com.ludot.protocol.Colour;
+import com.ludot.protocol.Direction;
 import com.ludot.protocol.Location;
 import com.ludot.protocol.MoveOption;
 import com.ludot.protocol.MysteryCellDto;
@@ -43,6 +44,8 @@ public final class BoardView extends Pane {
     private static final long HURRY_MILLIS = 450;
 
     private final Map<String, PieceNode> pieces = new HashMap<>();
+    private com.ludot.protocol.Variant variant;   // decides whether direction markers are drawn (LUDO-T only)
+    private BoardDto lastBoard;
     private final Map<String, Point> positions = new HashMap<>();
     private final Map<Colour, Rectangle> bases = new EnumMap<>(Colour.class);
     private final Circle ghost = new Circle(PIECE_RADIUS, Color.TRANSPARENT);
@@ -187,6 +190,7 @@ public final class BoardView extends Pane {
 
     /** Moves every piece to where the board says it is, animating pieces that changed place. */
     public void update(BoardDto board, boolean animate) {
+        lastBoard = board;
         long now = System.nanoTime();
         hurried = lastUpdateNanos != 0 && (now - lastUpdateNanos) / 1_000_000 < HURRY_MILLIS;
         lastUpdateNanos = now;
@@ -202,7 +206,7 @@ public final class BoardView extends Pane {
             moveTo(key(piece.colour(), piece.index()), new Point(base.x() + offset.x(), base.y() + offset.y()),
                     animate && !firstUpdate, piece.location() == Location.BASE);
             PieceNode node = pieces.get(key(piece.colour(), piece.index()));
-            node.showState(piece);
+            node.showState(piece, DirectionMark.shown(variant, piece));
             node.toFront();
         }
         showMystery(board.mysteryCells());
@@ -258,6 +262,66 @@ public final class BoardView extends Pane {
             });
         }
         slide.play();
+    }
+
+    /** Tells the board which rules are played: LUDO-T pieces carry a direction marker, Classic pieces do not. */
+    public void setVariant(com.ludot.protocol.Variant newVariant) {
+        variant = newVariant;
+        if (lastBoard != null) {
+            for (PieceDto piece : lastBoard.pieces()) {
+                pieces.get(key(piece.colour(), piece.index())).showState(piece, DirectionMark.shown(variant, piece));
+            }
+        }
+    }
+
+    /**
+     * The coin toss that decides a piece's direction: a gold coin flips above the piece and lands showing the
+     * result (clockwise or counter-clockwise), then fades away. The piece keeps a small marker afterwards.
+     */
+    public void coinFlip(Colour colour, int index, boolean clockwise) {
+        Point at = positions.get(key(colour, index));
+        if (at == null) {
+            return;
+        }
+        Label face = new Label("?");
+        face.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #5d4037;");
+        StackPane coin = newCoin(face);
+        coin.setTranslateX(at.x() * CELL - 20);
+        coin.setTranslateY(at.y() * CELL - CELL * 1.5 - 20);
+        getChildren().add(coin);
+        coin.toFront();
+        Runnable land = () -> {
+            face.setText(DirectionMark.glyph(clockwise ? Direction.CLOCKWISE : Direction.COUNTER_CLOCKWISE));
+            fadeAfterHolding(coin);
+        };
+        if (Feedback.get().motionOn()) {
+            javafx.animation.RotateTransition flip = new javafx.animation.RotateTransition(Duration.millis(900), coin);
+            flip.setAxis(javafx.scene.transform.Rotate.X_AXIS);
+            flip.setByAngle(1440);
+            flip.setOnFinished(event -> land.run());
+            flip.play();
+        } else {
+            land.run();
+        }
+    }
+
+    private static StackPane newCoin(Label face) {
+        Circle disc = new Circle(20, Color.web("#ffca28"));
+        disc.setStroke(Color.web("#f57f17"));
+        disc.setStrokeWidth(3);
+        StackPane coin = new StackPane(disc, face);
+        coin.setMouseTransparent(true);
+        return coin;
+    }
+
+    // the landed coin stays for a moment so the result can be read, then fades and is removed
+    private void fadeAfterHolding(StackPane coin) {
+        javafx.animation.PauseTransition hold = new javafx.animation.PauseTransition(Duration.millis(1300));
+        javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(Duration.millis(400), coin);
+        fade.setToValue(0);
+        fade.setOnFinished(event -> getChildren().remove(coin));
+        hold.setOnFinished(event -> fade.play());
+        hold.play();
     }
 
     /** A short sideways shake of the whole board: something dramatic happened (a capture, a triple six). */

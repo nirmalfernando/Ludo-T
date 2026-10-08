@@ -2,6 +2,7 @@ package com.ludot.client.state;
 
 import com.ludot.protocol.BoardDto;
 import com.ludot.protocol.EventDto;
+import com.ludot.protocol.EventType;
 import com.ludot.protocol.MemberDto;
 import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.RoomStatus;
@@ -48,6 +49,7 @@ public final class RoomModel {
     private final ObjectProperty<ServerMessage.YourTurn> myTurn = new SimpleObjectProperty<>();
     private final ObjectProperty<List<EventDto>> latestEvents = new SimpleObjectProperty<>(List.of());
     private final ObjectProperty<List<com.ludot.protocol.Colour>> standings = new SimpleObjectProperty<>();
+    private final ObjectProperty<List<com.ludot.protocol.Colour>> playOrder = new SimpleObjectProperty<>(List.of());
     private final LongProperty stateHash = new SimpleLongProperty();
     private final LongProperty seq = new SimpleLongProperty();
     private final BooleanProperty seeded = new SimpleBooleanProperty();
@@ -91,6 +93,7 @@ public final class RoomModel {
         hostId.set(s.hostId());
         board.set(s.board());
         turn.set(s.turn());
+        playOrder.set(s.playOrder());
         stateHash.set(s.stateHash());
         seats.setAll(s.seats());
         members.setAll(s.members());
@@ -134,6 +137,9 @@ public final class RoomModel {
         stateHash.set(update.stateHash());
         latestEvents.set(update.events());
         for (EventDto event : update.events()) {
+            if (event.type() == EventType.TURN_ORDER && event.colour() != null) {
+                playOrder.set(clockwiseFrom(event.colour())); // the roll-off is over: play goes clockwise from the winner
+            }
             if (!event.text().isBlank()) {
                 log.add(event.text());
                 logLines.add(new LogLine(event.type(), event.text()));
@@ -205,6 +211,21 @@ public final class RoomModel {
 
     public LongProperty stateHashProperty() {
         return stateHash;
+    }
+
+    /** The colours in playing order when {@code first} begins: clockwise, which is the order R, G, Y, B. */
+    public static List<com.ludot.protocol.Colour> clockwiseFrom(com.ludot.protocol.Colour first) {
+        com.ludot.protocol.Colour[] seats = com.ludot.protocol.Colour.values();
+        List<com.ludot.protocol.Colour> order = new java.util.ArrayList<>();
+        for (int i = 0; i < seats.length; i++) {
+            order.add(seats[(first.ordinal() + i) % seats.length]);
+        }
+        return List.copyOf(order);
+    }
+
+    /** The colours in playing order: empty until the opening roll-off has decided it. */
+    public ObjectProperty<List<com.ludot.protocol.Colour>> playOrderProperty() {
+        return playOrder;
     }
 
     public LongProperty seqProperty() {

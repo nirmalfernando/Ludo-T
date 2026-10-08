@@ -26,6 +26,9 @@ final class TurnBanner {
         }
         String controller = model.seats().stream().filter(s -> s.colour() == turn.colour()).findFirst()
                 .map(s -> s.controller() == Controller.HUMAN ? s.nickname() : "AI").orElse("");
+        if (turn.phase() == com.ludot.protocol.Phase.ROLL_OFF) {
+            return "Deciding who goes first: waiting for " + Theme.display(turn.colour()) + " (" + controller + ") to roll";
+        }
         return "Waiting for " + Theme.display(turn.colour()) + " (" + controller + ")";
     }
 }

@@ -22,7 +22,7 @@ final class RoomCues {
 
     // once per turn: refreshing the screen for the same offer must not ping again
     private void yourTurn(ServerMessage.YourTurn offer) {
-        if (offer != null && offer.phase() == Phase.AWAITING_ROLL && offer.turnNumber() != lastCuedTurn) {
+        if (offer != null && offer.phase() != Phase.AWAITING_MOVE && offer.turnNumber() != lastCuedTurn) {
             lastCuedTurn = offer.turnNumber();
             Feedback.get().play(Cue.YOUR_TURN);
         }

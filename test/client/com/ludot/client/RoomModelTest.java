@@ -196,4 +196,25 @@ class RoomModelTest {
         assertEquals("secret-token", state.token());
         assertEquals("player-1", state.myId());
     }
+
+    @Test @DisplayName("the play order is unknown until the roll-off is over; a snapshot taken afterwards carries it")
+    void playOrderFromASnapshot() {
+        RoomModel model = new RoomModel(ROOM, ME, () -> { });
+        model.apply(snapshot(10));
+        assertTrue(model.playOrderProperty().get().isEmpty());
+        model.apply(new ServerMessage.RoomSnapshot(ROOM, 20, RoomMode.PLAY, Variant.LUDO_T, 1L, RoomStatus.RUNNING, ME,
+                false, Speed.NORMAL, List.of(), board(), turn(0), List.of(), List.of(), List.of(), 7L,
+                List.of(Colour.GREEN, Colour.YELLOW, Colour.BLUE, Colour.RED)));
+        assertEquals(List.of(Colour.GREEN, Colour.YELLOW, Colour.BLUE, Colour.RED), model.playOrderProperty().get());
+    }
+
+    @Test @DisplayName("the order announcement sets the play order: clockwise from the player who won the roll-off")
+    void playOrderFromTheAnnouncement() {
+        RoomModel model = new RoomModel(ROOM, ME, () -> { });
+        model.apply(snapshot(10));
+        model.apply(new ServerMessage.StateUpdate(ROOM, 11, turn(4),
+                List.of(new EventDto(EventType.TURN_ORDER, Colour.YELLOW, null, null, null, "Yellow begins", null)),
+                board(), 8L));
+        assertEquals(List.of(Colour.YELLOW, Colour.BLUE, Colour.RED, Colour.GREEN), model.playOrderProperty().get());
+    }
 }

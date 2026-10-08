@@ -36,6 +36,7 @@ public final class SeatPanel extends VBox {
         model.seats().addListener((javafx.collections.ListChangeListener<SeatDto>) change -> rebuild());
         model.turnProperty().addListener((obs, old, now) -> rebuild());
         model.statusProperty().addListener((obs, old, now) -> rebuild());
+        model.playOrderProperty().addListener((obs, old, now) -> rebuild());
         rebuild();
     }
 
@@ -57,7 +58,7 @@ public final class SeatPanel extends VBox {
         }
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox row = new HBox(10, new PawnMascot(seat.colour(), 40), text, spacer, turnMark(active));
+        HBox row = new HBox(10, new PawnMascot(seat.colour(), 40), text, spacer, orderChip(seat), turnMark(active));
         row.setAlignment(Pos.CENTER_LEFT);
         seatAction(seat, mine, joinable).ifPresent(button -> row.getChildren().add(button));
         row.getStyleClass().add("seat-card");
@@ -96,6 +97,27 @@ public final class SeatPanel extends VBox {
         });
         row.getChildren().add(who);
         return row;
+    }
+
+    // "1st" to "4th": where this colour plays in the round, once the opening roll-off has decided it
+    private Label orderChip(SeatDto seat) {
+        int place = model.playOrderProperty().get().indexOf(seat.colour());
+        Label chip = new Label(place < 0 ? "" : ordinal(place + 1));
+        chip.setVisible(place >= 0);
+        chip.setManaged(place >= 0);
+        chip.setStyle("-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #ef6c00; -fx-background-color: #fff3e0;"
+                + "-fx-background-radius: 10; -fx-padding: 1 7;");
+        Tooltip.install(chip, new Tooltip("Playing order, decided by the opening roll-off"));
+        return chip;
+    }
+
+    static String ordinal(int place) {
+        return switch (place) {
+            case 1 -> "1st";
+            case 2 -> "2nd";
+            case 3 -> "3rd";
+            default -> place + "th";
+        };
     }
 
     private static Label turnMark(boolean active) {

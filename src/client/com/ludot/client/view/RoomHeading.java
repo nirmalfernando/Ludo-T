@@ -5,6 +5,7 @@ import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.RoomStatus;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 
 /** The room id with its status, mode and rules badges: the same ones the lobby cards use. */
@@ -33,6 +34,12 @@ final class RoomHeading extends HBox {
         }
         if (model.variantProperty().get() != null) {
             getChildren().add(Chips.chip(RoomPresentation.rulesLabel(model.variantProperty().get()), Chips.RULES));
+            if (model.variantProperty().get() == com.ludot.protocol.Variant.LUDO_T) {
+                Label legend = new Label(DirectionMark.LEGEND);
+                legend.setStyle("-fx-text-fill: #546e7a; -fx-font-size: 12;");
+                Tooltip.install(legend, new Tooltip("A coin toss decides each piece's direction when it leaves base"));
+                getChildren().add(legend);
+            }
         }
     }
 }

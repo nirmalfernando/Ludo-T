@@ -28,6 +28,7 @@ final class PieceNode extends Group {
     private final Circle ring;
     private final Circle halo;
     private final Label badge = new Label();
+    private final Label direction = new Label(); // the coin toss result: which way this piece travels
     private final ScaleTransition pulse;
     private Animation motion; // the squash, spin or pop currently playing
 
@@ -49,12 +50,9 @@ final class PieceNode extends Group {
         halo.setStrokeWidth(4);
         halo.setOpacity(0);
         halo.setMouseTransparent(true);
-        badge.setStyle("-fx-font-size: 11; -fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 6;"
-                + "-fx-padding: 0 2;");
-        badge.setTranslateX(radius * 0.2);
-        badge.setTranslateY(-radius * 2.0);
-        badge.setMouseTransparent(true);
-        getChildren().addAll(halo, ring, body, number, badge);
+        styleBadge(radius);
+        styleDirectionMarker(radius);
+        getChildren().addAll(halo, ring, body, number, badge, direction);
         pulse = new ScaleTransition(Duration.millis(520), ring);
         pulse.setFromX(1);
         pulse.setFromY(1);
@@ -64,8 +62,31 @@ final class PieceNode extends Group {
         pulse.setCycleCount(Animation.INDEFINITE);
     }
 
-    /** Shows effect and briefing state as a small badge above the piece. */
-    void showState(PieceDto dto) {
+    // the effect and briefing badge above the disc
+    private void styleBadge(double radius) {
+        badge.setStyle("-fx-font-size: 11; -fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 6;"
+                + "-fx-padding: 0 2;");
+        badge.setTranslateX(radius * 0.2);
+        badge.setTranslateY(-radius * 2.0);
+        badge.setMouseTransparent(true);
+    }
+
+    // the little label on the lower right of the disc that shows which way this piece travels
+    private void styleDirectionMarker(double radius) {
+        direction.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #263238;"
+                + "-fx-background-color: rgba(255,255,255,0.92); -fx-background-radius: 8; -fx-padding: 0 3;");
+        direction.setTranslateX(radius * 0.3);
+        direction.setTranslateY(radius * 0.1);
+        direction.setMouseTransparent(true);
+        direction.setVisible(false);
+    }
+
+    /** Shows effect and briefing state as a small badge above the piece, and, if asked, its travel direction. */
+    void showState(PieceDto dto, boolean showDirection) {
+        direction.setVisible(showDirection && dto.direction() != null);
+        if (showDirection && dto.direction() != null) {
+            direction.setText(DirectionMark.glyph(dto.direction()));
+        }
         String text = "";
         if (dto.location() == Location.BRIEFING) {
             text = "⛔" + dto.briefingRoundsLeft();

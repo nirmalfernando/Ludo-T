@@ -58,6 +58,7 @@ public final class RoomScreen extends StackPane {
         this.hostControls = new HostControls(model, this::send);
         this.reactions = new RoomEventReactions(dice, toasts, board, model);
         this.countdown = new TurnCountdown(model, clock, dice);
+        board.setVariant(model.variantProperty().get());
         layout.setPadding(new Insets(14, 12, 10, 12));
         layout.setTop(topBar());
         layout.setLeft(leftColumn());
@@ -110,7 +111,7 @@ public final class RoomScreen extends StackPane {
         pausedOverlay.getStyleClass().add("paused-banner");
         pausedOverlay.setVisible(false);
         pausedOverlay.setMouseTransparent(true);
-        StackPane area = new StackPane(board, pausedOverlay, ending);
+        StackPane area = new StackPane(board, reactions.rollOffPanel(), pausedOverlay, ending);
         area.getStyleClass().add("board-frame");
         area.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         area.setAlignment(Pos.CENTER);
@@ -126,6 +127,7 @@ public final class RoomScreen extends StackPane {
             }
         });
         model.latestEventsProperty().addListener((obs, old, events) -> reactions.react(events));
+        model.variantProperty().addListener((obs, old, now) -> board.setVariant(now));
         model.turnProperty().addListener((obs, old, now) -> refreshAll());
         model.statusProperty().addListener((obs, old, now) -> refreshAll());
         model.speedProperty().addListener((obs, old, now) -> refreshAll());
@@ -142,6 +144,7 @@ public final class RoomScreen extends StackPane {
         pausedOverlay.setVisible(model.statusProperty().get() == RoomStatus.PAUSED);
         var turn = model.turnProperty().get();
         board.setActiveColour(turn != null && model.statusProperty().get() == RoomStatus.RUNNING ? turn.colour() : null);
+        reactions.refreshTurn();
         refreshMyTurn();
         refreshStatusBar();
     }
@@ -152,6 +155,11 @@ public final class RoomScreen extends StackPane {
         dice.setRollEnabled(false);
         if (offer == null || model.statusProperty().get() != RoomStatus.RUNNING) {
             dice.setBanner(TurnBanner.describe(model));
+            return;
+        }
+        if (offer.phase() == Phase.ROLL_OFF) {
+            dice.setBanner("Roll for the playing order: the highest roll goes first");
+            dice.setRollEnabled(true);
             return;
         }
         if (offer.phase() == Phase.AWAITING_ROLL) {
