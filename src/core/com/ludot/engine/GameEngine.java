@@ -41,7 +41,14 @@ public class GameEngine {
 
     private GamePhase phase = GamePhase.NOT_STARTED;
     private int currentIndex;   // seat in play order whose turn it is
-    private int stepNumber;     // rolls + moves applied so far
+    private int stepNumber;     // roll-off rolls + rolls + moves applied so far
+
+    // the opening roll-off: who is still rolling, whose turn it is, and what was rolled so far
+    private final List<Player> rollOffContenders = new ArrayList<>();
+    private final Map<Colour, Integer> rollOffResults = new HashMap<>();
+    private int rollOffCursor;
+    private int rollOffHighest;
+    private int rollOffRounds;
 
     /** Constructs a GameEngine with all collaborators wired in by the caller (GameBuilder). */
     public GameEngine(Board board, List<Player> players, TurnManager turnManager,
@@ -70,11 +77,68 @@ public class GameEngine {
         }
     }
 
-    /** Publishes the start event, runs the roll-off and opens the first player's turn. */
+    /** Publishes the start event, runs the whole roll-off automatically and opens the first player's turn. */
     public void start() {
+        beginRollOff();
+        determineFirstPlayer();
+    }
+
+    /**
+     * Publishes the start event and opens the roll-off without rolling anything: the contenders then roll one at a
+     * time, in seat order, with {@link #rollOff}. This is how a person gets to press Roll for their own roll-off.
+     */
+    public void beginRollOff() {
         requirePhase(GamePhase.NOT_STARTED);
         eventBus.publish(new GameStartEvent(List.copyOf(players)));
-        determineFirstPlayer();
+        rollOffContenders.clear();
+        rollOffContenders.addAll(players);
+        rollOffResults.clear();
+        rollOffCursor = 0;
+        rollOffHighest = 0;
+        rollOffRounds = 0;
+        phase = GamePhase.ROLL_OFF;
+    }
+
+    /**
+     * Roll-off phase: the contender whose turn it is rolls one die. When every contender of the round has rolled, those
+     * who tied for the highest roll roll again; when one is left, the order is announced and the first turn opens.
+     * The dice are drawn in exactly the order the automatic roll-off draws them, so a seed gives the same game either way.
+     */
+    public int rollOff(Colour colour) {
+        requirePhase(GamePhase.ROLL_OFF);
+        requireCurrentPlayer(colour);
+        Player player = rollOffContenders.get(rollOffCursor);
+        int roll = random.rollDice();
+        eventBus.publish(new RollOffEvent(player, roll));
+        rollOffResults.put(player.getColour(), roll);
+        rollOffHighest = Math.max(rollOffHighest, roll);
+        stepNumber++;
+        rollOffCursor++;
+        if (rollOffCursor == rollOffContenders.size()) {
+            endRollOffRound();
+        }
+        return roll;
+    }
+
+    private void endRollOffRound() {
+        final int best = rollOffHighest;
+        rollOffContenders.removeIf(player -> rollOffResults.get(player.getColour()) != best);
+        rollOffRounds++;
+        rollOffCursor = 0;
+        rollOffHighest = 0;
+        if (rollOffContenders.size() == 1 || rollOffRounds >= MAX_ROLL_OFFS) {
+            announceFirstPlayer(rollOffContenders.get(0));
+        }
+    }
+
+    // play passes clockwise from the winner, which is the order of the colours R, G, Y, B
+    private void announceFirstPlayer(Player first) {
+        int at = players.indexOf(first);
+        List<Player> clockwise = new ArrayList<>(players.subList(at, players.size()));
+        clockwise.addAll(players.subList(0, at));
+        players.clear();
+        players.addAll(clockwise);
+        eventBus.publish(new TurnOrderEvent(first, List.copyOf(players), Map.copyOf(rollOffResults)));
         currentIndex = 0;
         beginTurn();
     }
@@ -116,9 +180,9 @@ public class GameEngine {
         return phase;
     }
 
-    /** The player who must act now (roll or choose a move). */
+    /** The player who must act now: roll, choose a move, or (in the roll-off) roll for the first turn. */
     public Player getCurrentPlayer() {
-        return players.get(currentIndex);
+        return phase == GamePhase.ROLL_OFF ? rollOffContenders.get(rollOffCursor) : players.get(currentIndex);
     }
 
     /** The board this game is played on. */
@@ -217,31 +281,19 @@ public class GameEngine {
     }
 
     /**
-     * Conducts the roll-off (PDF, section 1.1): everyone rolls and the highest roller plays first; players who tie for
-     * the highest roll roll again. Play then passes clockwise, which is the order of the colours R, G, Y, B.
+     * Conducts the whole roll-off at once (PDF, section 1.1): everyone rolls and the highest roller plays first; players
+     * who tie for the highest roll roll again. Play then passes clockwise, which is the order of the colours R, G, Y, B.
+     * Opens the roll-off first if the game has not begun it. Returns the player who starts.
      */
     public Player determineFirstPlayer() {
-        Map<Colour, Integer> rollResults = new HashMap<>();
-        List<Player> contenders = new ArrayList<>(players);
-        for (int attempt = 0; contenders.size() > 1 && attempt < MAX_ROLL_OFFS; attempt++) {
-            int highest = 0;
-            for (Player player : contenders) {
-                int roll = random.rollDice();
-                eventBus.publish(new RollOffEvent(player, roll));
-                rollResults.put(player.getColour(), roll);
-                highest = Math.max(highest, roll);
-            }
-            final int best = highest;
-            contenders.removeIf(player -> rollResults.get(player.getColour()) != best);
+        if (phase == GamePhase.NOT_STARTED) {
+            beginRollOff();
         }
-        Player first = contenders.get(0);
-        int at = players.indexOf(first);
-        List<Player> clockwise = new ArrayList<>(players.subList(at, players.size()));
-        clockwise.addAll(players.subList(0, at));
-        players.clear();
-        players.addAll(clockwise);
-        eventBus.publish(new TurnOrderEvent(first, List.copyOf(players), Map.copyOf(rollResults)));
-        return first;
+        requirePhase(GamePhase.ROLL_OFF);
+        while (phase == GamePhase.ROLL_OFF) {
+            rollOff(getCurrentPlayer().getColour());
+        }
+        return players.get(0);
     }
 
     private void endRound() {

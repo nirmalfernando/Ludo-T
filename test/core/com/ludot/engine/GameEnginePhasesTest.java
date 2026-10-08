@@ -48,12 +48,16 @@ class GameEnginePhasesTest {
         assertThrows(IllegalStateException.class, () -> engine.roll(Colour.RED));
     }
 
+    private int rollOffRolls() {
+        return (int) events.stream().filter(e -> e instanceof com.ludot.events.flow.RollOffEvent).count();
+    }
+
     @Test @DisplayName("start opens the first player's turn awaiting a roll")
     void startAwaitsRoll() {
         GameEngine engine = build(1);
         engine.start();
         assertEquals(GamePhase.AWAITING_ROLL, engine.getPhase());
-        assertEquals(0, engine.getTurnNumber());
+        assertEquals(rollOffRolls(), engine.getTurnNumber(), "only the roll-off rolls have been counted");
         assertThrows(IllegalStateException.class, engine::start);
     }
 
@@ -67,7 +71,7 @@ class GameEnginePhasesTest {
         assertThrows(IllegalStateException.class, () -> engine.roll(other));
         assertEquals(before, events.size());
         assertEquals(GamePhase.AWAITING_ROLL, engine.getPhase());
-        assertEquals(0, engine.getTurnNumber());
+        assertEquals(rollOffRolls(), engine.getTurnNumber());
     }
 
     @Test @DisplayName("a move cannot be applied before rolling")
@@ -105,7 +109,7 @@ class GameEnginePhasesTest {
     void turnNumberCountsSteps() {
         GameEngine engine = build(3);
         engine.start();
-        int expected = 0;
+        int expected = rollOffRolls(); // the roll-off rolls are steps too, so a stale request can be told from a current one
         for (int i = 0; i < 20 && engine.getPhase() != GamePhase.FINISHED; i++) {
             Colour colour = engine.getCurrentPlayer().getColour();
             RollResult rolled = engine.roll(colour);
