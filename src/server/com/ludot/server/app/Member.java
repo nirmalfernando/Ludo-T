@@ -1,6 +1,5 @@
 package com.ludot.server.app;
 
-/** Someone in a room: who they are and the connection they are using right now (replaced if they rejoin). */
 final class Member {
 
     private final PlayerIdentity identity;

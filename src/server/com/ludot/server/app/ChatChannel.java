@@ -10,11 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.LongSupplier;
 
-/**
- * One chat channel's text rules, history and rate limiter. Confined to the owning thread (a room's or
- * the lobby's), so none of it needs locks: that is what keeps the sliding window exact and the history
- * in the same order every member sees.
- */
 public final class ChatChannel {
 
     private final int maxLength;
@@ -33,7 +28,6 @@ public final class ChatChannel {
         this.clock = clock;
     }
 
-    /** Strips control characters and surrounding blanks; throws CHAT_INVALID if nothing usable is left or it is too long. */
     public String clean(String raw) {
         String text = raw.replaceAll("\\p{Cntrl}", " ").trim();
         if (text.isEmpty() || text.length() > maxLength) {
@@ -43,7 +37,6 @@ public final class ChatChannel {
         return text;
     }
 
-    /** Sliding window: at most N messages from one player in any window; throws CHAT_RATE_LIMITED beyond that. */
     public void admit(String playerId) {
         long now = clock.getAsLong();
         Deque<Long> times = sendTimes.computeIfAbsent(playerId, id -> new ArrayDeque<>());
@@ -63,7 +56,6 @@ public final class ChatChannel {
         }
     }
 
-    /** The last few messages, oldest first. */
     public List<ChatMessage> recent() {
         return new ArrayList<>(history);
     }

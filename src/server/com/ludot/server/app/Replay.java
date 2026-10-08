@@ -11,14 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * One replay of one finished game for one viewer. It plays the game again from its seed with the stored decisions and
- * sends each step to the viewer, one every {@code delay} milliseconds. If the engine ever disagrees with the record (a
- * roll that comes out differently, a move that is refused) the replay ends as DIVERGED instead of showing a wrong game.
- *
- * <p>The scheduler may run successive steps on different threads, so every method takes the replay's lock; the engine
- * is only ever touched while holding it.
- */
 final class Replay {
 
     private final String id;
@@ -50,7 +42,6 @@ final class Replay {
         return id;
     }
 
-    /** Sends the opening position at once, then starts stepping. */
     synchronized void begin() {
         if (ended) {
             return;
@@ -73,7 +64,6 @@ final class Replay {
         }
     }
 
-    /** Changes the pace; takes effect from the next step. */
     synchronized void setSpeed(Speed newSpeed) {
         speed = newSpeed;
         if (!ended && !paused) {

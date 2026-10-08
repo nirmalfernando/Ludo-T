@@ -2,7 +2,6 @@ package com.ludot.server.app;
 
 import com.ludot.protocol.ErrorCode;
 
-/** The checks several kinds of request share, each refusing with the error code the protocol specifies. */
 final class RoomGuards {
 
     private final RoomState state;
@@ -31,7 +30,6 @@ final class RoomGuards {
         return member;
     }
 
-    /** Gameplay is only allowed while the room is RUNNING; every other status has its own error. */
     void requireRunning() {
         switch (state.status) {
             case RUNNING -> { }

@@ -35,12 +35,6 @@ import com.ludot.protocol.EventDto;
 import com.ludot.protocol.EventType;
 import java.util.List;
 
-/**
- * Observer + Visitor: listens to one game's EventBus and records every event as an {@link EventDto}
- * (type, who, where, and the Phase 1 narration). {@link #drain()} hands over what happened since the last call.
- * Dispatch to the right kind of event is the visitor's job; building and keeping the DTOs is the
- * {@link EventRecorder}'s.
- */
 final class EventDtoVisitor implements GameEventListener, EventVisitor {
 
     private final OutputFormatter formatter = new OutputFormatter();
@@ -51,7 +45,6 @@ final class EventDtoVisitor implements GameEventListener, EventVisitor {
         event.accept(this);
     }
 
-    /** Returns the events recorded since the previous call and clears the buffer. */
     List<EventDto> drain() {
         return recorder.drain();
     }

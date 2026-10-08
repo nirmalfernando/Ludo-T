@@ -12,10 +12,6 @@ import com.ludot.protocol.Speed;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Starts and controls replays of finished games. Each person has at most one replay at a time; it belongs to their
- * connection and ends when that connection does.
- */
 public final class ReplayService {
 
     private final GameHistory history;
@@ -24,7 +20,6 @@ public final class ReplayService {
     private final Map<String, Replay> byPlayer = new ConcurrentHashMap<>();
     private final AtomicInteger numbers = new AtomicInteger();
 
-    /** Pause between replayed steps: much quicker than live play, since the point is to skim a whole game. */
     public static long defaultDelayMs(Speed speed) {
         return switch (speed) {
             case FAST -> 25;
@@ -37,17 +32,12 @@ public final class ReplayService {
         this(history, scheduler, ReplayService::defaultDelayMs);
     }
 
-    /** @param delays the pause between steps at each speed (tests make it tiny) */
     public ReplayService(GameHistory history, ScheduledExecutorService scheduler, Function<Speed, Long> delays) {
         this.history = history;
         this.scheduler = scheduler;
         this.delays = delays;
     }
 
-    /**
-     * Answers the request through {@code respond} and only then starts sending steps, so the viewer always sees the
-     * answer (with the replay id) before the first step.
-     */
     public void start(Participant who, ClientMessage.StartReplay request, Consumer<Response> respond) {
         Optional<ReplayData> data;
         try {
@@ -86,7 +76,6 @@ public final class ReplayService {
         return Response.ok(request.requestId());
     }
 
-    /** Ends the person's replay, if any (their connection closed, or they started another). */
     public void stop(String playerId) {
         Replay replay = byPlayer.remove(playerId);
         if (replay != null) {
@@ -94,7 +83,6 @@ public final class ReplayService {
         }
     }
 
-    /** Replays running right now (for tests and the queue log). */
     public int running() {
         return byPlayer.size();
     }

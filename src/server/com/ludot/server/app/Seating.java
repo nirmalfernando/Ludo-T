@@ -7,7 +7,6 @@ import com.ludot.protocol.RoomMode;
 import com.ludot.protocol.RoomStatus;
 import java.util.Map;
 
-/** Taking, leaving and taking back a seat. */
 final class Seating {
 
     private final RoomState state;

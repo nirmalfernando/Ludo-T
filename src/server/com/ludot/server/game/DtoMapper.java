@@ -22,7 +22,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/** Translates the core's mutable game objects into the protocol's immutable DTOs. */
 final class DtoMapper {
 
     private static final int NO_CELL = -1;
@@ -38,7 +37,7 @@ final class DtoMapper {
         return com.ludot.model.Colour.valueOf(colour.name());
     }
 
-    /** Pieces are named after their colour's initial plus 1-4 ("R3"), so the index is the trailing digit minus one. */
+    // pieces are named after their colour's initial plus 1-4 ("R3"), so the index is the trailing digit minus one
     static int pieceIndex(Piece piece) {
         String name = piece.getName();
         return Character.getNumericValue(name.charAt(name.length() - 1)) - 1;

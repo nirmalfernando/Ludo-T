@@ -20,14 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * One connected client. A reader thread blocks on the socket and hands each message to the router; a
- * writer thread drains a bounded outbound queue to the socket. Everything else offers messages with
- * {@link #offer}, which never blocks: if the queue is full the client is too slow and is disconnected,
- * so one stalled client can never hold up a room or another client.
- *
- * <p>The socket has a read timeout; clients ping regularly, so silence means the connection is dead.
- */
 final class ConnectionHandler implements ClientSink {
 
     private static final Logger LOG = Logger.getLogger(ConnectionHandler.class.getName());
@@ -96,7 +88,6 @@ final class ConnectionHandler implements ClientSink {
         onClosed.run();
     }
 
-    /** Reader thread body: read, route, repeat until the client goes away or breaks the protocol. */
     void readLoop() {
         boolean protocolViolation = false;
         try {
@@ -129,7 +120,6 @@ final class ConnectionHandler implements ClientSink {
         }
     }
 
-    /** Writer thread body: send queued messages in order until closed. */
     void writeLoop() {
         writerThread = Thread.currentThread();
         try {
@@ -153,12 +143,7 @@ final class ConnectionHandler implements ClientSink {
         }
     }
 
-    /**
-     * Backpressure on a client that pipelines faster than it can take answers: at most maxInFlight requests may be
-     * unanswered (or answered but not yet sent). Past that the reader stops reading, the socket buffer fills and
-     * TCP slows the sender, instead of the answers piling up until the client is dropped as too slow. If answers
-     * somehow stop (they should not), the wait is capped so the connection cannot stall for good.
-     */
+    // if answers somehow stop (they should not), the wait is capped so the connection cannot stall for good
     private void awaitWindow() throws InterruptedException {
         if (!window.tryAcquire(WINDOW_WAIT_SECONDS, TimeUnit.SECONDS)) {
             LOG.warning(remoteAddress() + " has had no answers for " + WINDOW_WAIT_SECONDS + " s; reading on regardless");

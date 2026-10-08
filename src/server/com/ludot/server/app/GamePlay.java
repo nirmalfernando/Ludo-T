@@ -10,7 +10,6 @@ import com.ludot.protocol.RoomStatus;
 import com.ludot.server.game.RoomGame;
 import java.util.Map;
 
-/** The game commands: start, roll, choose a move, and the host's pause, resume and speed controls. */
 final class GamePlay {
 
     private final RoomState state;
@@ -55,7 +54,6 @@ final class GamePlay {
         });
     }
 
-    /** Hands empty seats to the AI and opens the game with its roll-off; the first turn follows once the order is decided. */
     void beginGame() {
         state.seats.fillFreeSeatsWithAi();
         state.status = RoomStatus.RUNNING;

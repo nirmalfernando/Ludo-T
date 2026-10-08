@@ -10,7 +10,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 
-/** All live rooms, by id. Creation and lookup are safe from any connection thread. */
 public final class RoomRegistry {
 
     private final Map<String, GameSession> rooms = new ConcurrentHashMap<>();
@@ -40,7 +39,6 @@ public final class RoomRegistry {
         this(config, scheduler, lobby, repository, clock, 0);
     }
 
-    /** @param lastRoomNumber the highest room number already used (for example by games stored in the database) */
     public RoomRegistry(SessionConfig config, ScheduledExecutorService scheduler, LobbyService lobby,
                         GameRepository repository, LongSupplier clock, long lastRoomNumber) {
         this.counter.set(lastRoomNumber);
@@ -51,7 +49,6 @@ public final class RoomRegistry {
         this.clock = clock;
     }
 
-    /** Creates a room with the next id (R-0001, R-0002, ...) and lists it in the lobby. */
     public GameSession create(RoomMode mode, Variant variant, Long seed) {
         String id = String.format("R-%04d", counter.incrementAndGet());
         GameSession session = new GameSession(id, mode, variant, seed, config, scheduler, roomEvents,
@@ -61,7 +58,6 @@ public final class RoomRegistry {
         return session;
     }
 
-    /** The room, or null if there is no such room (or it has closed). */
     public GameSession find(String roomId) {
         return rooms.get(roomId);
     }

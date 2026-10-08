@@ -17,10 +17,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-/**
- * Composition root: builds the lobby, the room registry and the router, then listens for connections.
- * It is the only class that knows every concrete piece; everything else depends on small interfaces.
- */
 public final class GameServer implements AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(GameServer.class.getName());
@@ -38,12 +34,10 @@ public final class GameServer implements AutoCloseable {
         this(config, repository, 0);
     }
 
-    /** @param lastRoomNumber the highest room number already stored, so new rooms never reuse an id */
     public GameServer(ServerConfig config, GameRepository repository, long lastRoomNumber) {
         this(config, repository, lastRoomNumber, repository instanceof GameHistory history ? history : GameHistory.NONE);
     }
 
-    /** @param history where finished games are read from for the list and for replays */
     public GameServer(ServerConfig config, GameRepository repository, long lastRoomNumber, GameHistory history) {
         this.config = config;
         scheduler.setRemoveOnCancelPolicy(true);
@@ -56,7 +50,6 @@ public final class GameServer implements AutoCloseable {
                 config.maxInFlight());
     }
 
-    /** Binds the port and starts accepting connections. */
     public void start() throws IOException {
         acceptor.start();
         scheduler.scheduleAtFixedRate(this::logQueueDepths, config.queueLogIntervalMs(),
@@ -64,7 +57,6 @@ public final class GameServer implements AutoCloseable {
         LOG.info("LUDO-T server listening on port " + port());
     }
 
-    /** The port actually bound (useful when the configured port is 0). */
     public int port() {
         return acceptor.port();
     }
@@ -77,7 +69,6 @@ public final class GameServer implements AutoCloseable {
         return lobby;
     }
 
-    /** Blocks until the server is closed. */
     public void awaitClose() throws InterruptedException {
         stopped.await();
     }

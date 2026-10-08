@@ -4,11 +4,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Everything the server knows about one connection: who it is (after Hello), the rooms it has entered
- * and the responses it has already given. Requests on one connection are handled by that connection's
- * single reader thread, which is what keeps the request log safe without locks.
- */
 public final class ClientSession {
 
     private final ClientSink sink;
@@ -25,7 +20,6 @@ public final class ClientSession {
         return sink;
     }
 
-    /** Null until the client has said Hello. */
     public Participant participant() {
         return participant;
     }
@@ -46,7 +40,7 @@ public final class ClientSession {
         return requests;
     }
 
-    /** True exactly once, for whichever thread notices the disconnect first. */
+    // true exactly once, for whichever thread notices the disconnect first
     boolean markDisconnected() {
         return disconnected.compareAndSet(false, true);
     }

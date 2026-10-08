@@ -19,14 +19,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
-/**
- * The lobby as a second actor: one thread ("lobby") owns the room list, the subscribers and the lobby
- * chat, so room changes and chat messages share a single order (the lobby sequence number). Rooms
- * publish their summaries here; whoever is subscribed sees them live.
- *
- * <p>Updates from rooms are never dropped. Requests from clients (subscribe, chat) are refused with
- * SERVER_BUSY when the lobby is already far behind, so a flood cannot starve the room updates.
- */
+// updates from rooms are never dropped
 public final class LobbyService implements LobbyPublisher, AutoCloseable {
 
     private static final int CLIENT_BACKLOG_LIMIT = 10_000;
@@ -69,14 +62,12 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
         });
     }
 
-    /** Posts a system line to lobby chat, e.g. "alice created room R-0007". */
     public void announce(String text) {
         post(() -> publishChat(null, "system", text, true));
     }
 
     // ------------------------------------------------------------------ from clients (bounded)
 
-    /** Subscribes the person to live lobby updates and answers with the current room list and recent chat. */
     public boolean subscribe(Participant who, ClientMessage.ListRooms request) {
         return postFromClient(() -> {
             subscribers.put(who.id(), who);
@@ -89,7 +80,6 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
         post(() -> subscribers.remove(playerId));
     }
 
-    /** Lobby chat; the sender must be subscribed (that is, viewing the lobby). */
     public boolean sendChat(Participant who, ClientMessage.SendChat request) {
         return postFromClient(() -> {
             Response earlier = requests.find(who.id(), request.requestId());
@@ -164,7 +154,6 @@ public final class LobbyService implements LobbyPublisher, AutoCloseable {
         return true;
     }
 
-    /** Waits until everything posted so far has run; for tests that need a stable view. */
     public void awaitIdle() throws InterruptedException {
         java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
         post(done::countDown);

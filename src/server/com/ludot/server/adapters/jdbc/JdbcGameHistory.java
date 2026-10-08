@@ -18,10 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Reads finished games from the database. One connection is kept and reused (opening one to a hosted database is
- * slow), and reopened if it breaks. The SQL is plain and portable, so the same queries run on PostgreSQL and H2.
- */
+// the SQL is plain and portable, so the same queries run on PostgreSQL and H2
 public final class JdbcGameHistory implements GameHistory, AutoCloseable {
 
     private static final String FINISHED = "SELECT id, mode, variant, seed, winner_colour, finished_at, total_turns "

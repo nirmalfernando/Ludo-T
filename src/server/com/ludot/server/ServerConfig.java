@@ -8,15 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-/** Everything configurable about a server process; defaults match the design document. */
 public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, long queueLogIntervalMs,
                            SessionConfig session, DatabaseConfig database, int maxInFlight,
                            long reconnectGraceMs) {
 
-    /** Unanswered requests a single connection may have at once; further reading waits (TCP then slows the sender). */
     public static final int DEFAULT_MAX_IN_FLIGHT = 256;
 
-    /** How long a dropped client that can reconnect keeps its nickname, seat and identity. */
     public static final long DEFAULT_RECONNECT_GRACE_MS = 30_000;
 
     public static ServerConfig defaults() {
@@ -52,7 +49,6 @@ public record ServerConfig(int port, int outboundCapacity, int readTimeoutMs, lo
         return new ServerConfig(port, outboundCapacity, readTimeoutMs, queueLogIntervalMs, session, database, maxInFlight, millis);
     }
 
-    /** Reads a properties file; a missing file or key falls back to the default. */
     public static ServerConfig load(Path file) throws IOException {
         Properties props = new Properties();
         if (Files.exists(file)) {

@@ -2,27 +2,16 @@ package com.ludot.server.app;
 
 import com.ludot.protocol.Speed;
 
-/**
- * Tunable limits and pacing for a room. Production values are the defaults; tests shrink the delays.
- * A turnTimeoutMs of 0 or less switches turn timers off.
- */
 public record SessionConfig(int queueCapacity, long fastMs, long normalMs, long slowMs,
                             int chatMaxLength, int chatHistorySize,
                             int chatRateLimitMessages, long chatRateLimitWindowMs,
                             long emptyRoomCloseMs, int recentLogSize, int requestMemory,
                             long turnTimeoutMs, int afkAfterTimeouts) {
 
-    /**
-     * How many recent answers a room remembers per player to replay on a repeated request id. It must be
-     * larger than the number of requests that can be queued between a request and its retry, or a retry
-     * under a flood is evaluated again instead of answered from memory.
-     */
     public static final int DEFAULT_REQUEST_MEMORY = 1_024;
 
-    /** How long a person has to roll or to choose a move before the AI does it for them. */
     public static final long DEFAULT_TURN_TIMEOUT_MS = 30_000;
 
-    /** Consecutive missed turns after which a person's seat is handed to the AI until they take it back. */
     public static final int DEFAULT_AFK_AFTER_TIMEOUTS = 2;
 
     public static SessionConfig defaults() {
@@ -67,7 +56,6 @@ public record SessionConfig(int queueCapacity, long fastMs, long normalMs, long 
                 turnTimeoutMs, timeouts);
     }
 
-    /** Delay between AI actions at the given speed. */
     public long delayMs(Speed speed) {
         return switch (speed) {
             case FAST -> fastMs;

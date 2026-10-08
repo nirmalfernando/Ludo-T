@@ -20,20 +20,13 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Writes batches to a relational database over one long-lived connection, all as plain prepared statements.
- * Consecutive operations of the same kind go out as a single JDBC batch, so a burst of moves or chat costs a
- * few round trips rather than one per row, and the whole list is one transaction. Inserts that could be
- * repeated after an unconfirmed commit are written "unless already there", which makes a retry harmless.
- */
+// inserts that could be repeated after an unconfirmed commit are written "unless already there", which makes a retry harmless
 public final class JdbcBatchWriter implements BatchWriter, AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(JdbcBatchWriter.class.getName());
     private static final int VALIDITY_CHECK_SECONDS = 2;
 
-    // "insert unless already there" in standard SQL, so it runs unchanged on PostgreSQL and H2. The explicit
-    // CASTs let PostgreSQL type the parameters of a SELECT (plain VARCHAR, so an over-long value is refused by the
-    // column rather than silently truncated); the key is bound a second time for the NOT EXISTS test.
+    // "insert unless already there" in standard SQL, so it runs unchanged on PostgreSQL and H2
     private static final Map<Class<? extends WriteOp>, String> SQL = Map.of(
             PlayerRecord.class, "INSERT INTO players (id, nickname) "
                     + "SELECT CAST(? AS VARCHAR), CAST(? AS VARCHAR) "

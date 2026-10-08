@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** Keeps everything in memory; used by tests and as the stand-in until the database is wired in. */
 public final class InMemoryGameRepository implements GameRepository, GameHistory {
 
     private final List<WriteOp> operations = new CopyOnWriteArrayList<>();
@@ -30,7 +29,6 @@ public final class InMemoryGameRepository implements GameRepository, GameHistory
         operations.add(operation);
     }
 
-    /** Everything recorded, in order. */
     public List<WriteOp> operations() {
         return List.copyOf(operations);
     }
@@ -57,7 +55,6 @@ public final class InMemoryGameRepository implements GameRepository, GameHistory
 
     // ------------------------------------------------------------------ GameHistory
 
-    /** Finished games, most recently finished first (the order they were recorded in). */
     @Override
     public FinishedGameList finished(int page) {
         List<FinishedGame> all = new ArrayList<>();

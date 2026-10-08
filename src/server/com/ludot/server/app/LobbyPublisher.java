@@ -2,7 +2,6 @@ package com.ludot.server.app;
 
 import com.ludot.protocol.RoomSummary;
 
-/** Port through which a room tells the lobby about itself; the lobby decides who hears about it. */
 public interface LobbyPublisher {
 
     LobbyPublisher NONE = new LobbyPublisher() {

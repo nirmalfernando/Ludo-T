@@ -9,16 +9,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Runs {@code .sql} files over JDBC, so setting up the database needs neither psql nor a web console.
- * Statements end with a semicolon and {@code --} starts a comment; a semicolon inside a string literal is not supported.
- */
 public final class SqlScripts {
 
     private SqlScripts() {
     }
 
-    /** Splits a script into its statements, dropping comments and blanks. */
     public static List<String> split(String script) {
         StringBuilder withoutComments = new StringBuilder();
         for (String line : script.split("\\R")) {
@@ -35,7 +30,6 @@ public final class SqlScripts {
         return statements;
     }
 
-    /** Executes every statement of the file, in order, each in its own transaction. */
     public static int run(Connection connection, Path file) throws IOException, SQLException {
         List<String> statements = split(Files.readString(file));
         connection.setAutoCommit(true);

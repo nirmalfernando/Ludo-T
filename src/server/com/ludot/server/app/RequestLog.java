@@ -6,11 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Remembers the most recent responses per player so a repeated request id gets the original answer
- * again instead of being applied twice. Bounded per player (least recently used entries go first).
- * Confined to the room thread.
- */
+// remembers the most recent responses per player so a repeated request id gets the original answer again instead of being applied twice
 final class RequestLog {
 
     private final int perPlayer;
@@ -20,7 +16,6 @@ final class RequestLog {
         this.perPlayer = perPlayer;
     }
 
-    /** The earlier response to this request id, or null if it is new. */
     Response find(String playerId, UUID requestId) {
         Map<UUID, Response> responses = byPlayer.get(playerId);
         return responses == null ? null : responses.get(requestId);

@@ -4,10 +4,6 @@ import com.ludot.protocol.ClientMessage;
 import com.ludot.protocol.ServerMessage.Response;
 import java.io.Serializable;
 
-/**
- * What a request handler returns: the response to send, then the work to do once it has been sent. Keeping
- * the follow-up separate is what lets a room send every response before the pushes it caused.
- */
 record Reply(Response response, Runnable followUp) {
 
     static Reply ok(ClientMessage.Request request) {

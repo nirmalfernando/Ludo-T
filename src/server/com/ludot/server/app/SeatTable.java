@@ -10,13 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * The four seats of a room. Confined to the room thread, so it needs no locking; the room's command
- * queue is what makes claims atomic.
- */
+// confined to the room thread, so it needs no locking
 final class SeatTable {
 
-    /** One seat; playerId and nickname stay set while the seat is AFK or DISCONNECTED so it can be reclaimed. */
+    // playerId and nickname stay set while the seat is AFK or DISCONNECTED so it can be reclaimed
     record Seat(Colour colour, Controller controller, String playerId, String nickname) {
 
         boolean heldBy(String id) {
@@ -40,7 +37,6 @@ final class SeatTable {
         return seats.values().stream().filter(seat -> seat.heldBy(playerId)).findFirst();
     }
 
-    /** Gives the seat to the player (moving them off any seat they already hold) or throws SEAT_TAKEN. */
     void claim(PlayerIdentity player, Colour colour) {
         Seat wanted = seats.get(colour);
         if (wanted.controller() != Controller.FREE) {
@@ -50,7 +46,6 @@ final class SeatTable {
         seats.put(colour, new Seat(colour, Controller.HUMAN, player.id(), player.nickname()));
     }
 
-    /** Frees whatever seat the player holds; returns true if there was one. */
     boolean releaseHeldBy(String playerId) {
         Optional<Seat> held = seatOf(playerId);
         held.ifPresent(seat -> seats.put(seat.colour(), new Seat(seat.colour(), Controller.FREE, null, null)));
@@ -74,12 +69,10 @@ final class SeatTable {
         return (int) seats.values().stream().filter(seat -> seat.controller() == controller).count();
     }
 
-    /** Seats occupied by a person, whether currently attached or not. */
     int humanSeats() {
         return (int) seats.values().stream().filter(seat -> seat.playerId() != null).count();
     }
 
-    /** The seats as persisted when a game starts. */
     List<SeatsRecord.SeatRow> rows() {
         List<SeatsRecord.SeatRow> rows = new ArrayList<>();
         for (Seat seat : seats.values()) {

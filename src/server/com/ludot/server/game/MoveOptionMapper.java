@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-/** Describes the engine's legal {@link Move}s as protocol {@link MoveOption}s; index is the move's position in the list. */
 final class MoveOptionMapper {
 
     private static final int NONE = -1;

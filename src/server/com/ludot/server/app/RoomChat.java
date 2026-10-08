@@ -6,11 +6,6 @@ import com.ludot.protocol.Role;
 import com.ludot.protocol.ServerMessage.ChatMessage;
 import java.util.Map;
 
-/**
- * Room chat. A message is a command on the room's queue like any other, so it gets a sequence number in the
- * same order as the game updates around it, and every member sees the identical interleaving. The server's
- * own announcements ("alice took RED", "The host paused the game") go through the same path.
- */
 final class RoomChat {
 
     private final RoomState state;
@@ -38,7 +33,6 @@ final class RoomChat {
         return Reply.ok(request).then(() -> publish(member.id(), member.nickname(), role, colour, text, false));
     }
 
-    /** A line from the server itself. */
     void postSystem(String text) {
         publish(null, "system", null, null, text, true);
     }

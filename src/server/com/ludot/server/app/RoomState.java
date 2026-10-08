@@ -13,12 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.LongSupplier;
 
-/**
- * Everything the parts of a room share. It is plain data with no behaviour of its own: the room's
- * components (membership, seating, game commands, turn timing, chat, broadcasting) each own one job and
- * read or change this state. All of it is confined to the room's single thread, so it needs no locks;
- * only {@code summary}, which other threads read, is volatile.
- */
+// only summary, which other threads read, is volatile
 final class RoomState {
 
     final String roomId;
@@ -56,7 +51,6 @@ final class RoomState {
         return seats.seatOf(playerId).isPresent() ? Role.PLAYER : Role.SPECTATOR;
     }
 
-    /** The host, or null when the room is empty. */
     Member host() {
         return hostId == null ? null : members.get(hostId);
     }

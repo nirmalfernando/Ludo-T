@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/** Finds the highest room number already stored, so a restarted server carries on counting instead of reusing ids. */
+// finds the highest room number already stored, so a restarted server carries on counting instead of reusing ids
 public final class RoomNumbers {
 
     private static final String PREFIX = "R-";

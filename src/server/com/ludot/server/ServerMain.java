@@ -14,10 +14,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-/**
- * Starts the server: {@code ServerMain [path/to/server.properties]}. With a database configured, every game
- * is stored through an asynchronous writer; without one, games live only in memory.
- */
 public final class ServerMain {
 
     private static final Logger LOG = Logger.getLogger(ServerMain.class.getName());
@@ -26,7 +22,6 @@ public final class ServerMain {
     private ServerMain() {
     }
 
-    /** What the server stores into and reads from, and how to close it. */
     private record Storage(GameRepository repository, GameHistory history, long lastRoomNumber, Runnable close) {
     }
 

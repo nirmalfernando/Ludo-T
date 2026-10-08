@@ -11,12 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
-/**
- * Decides, after every step of the game, what happens next and sets the clocks: a person gets a deadline, a
- * seat played by the AI gets an AI action after the pacing delay, and the game ends when it is over. Every
- * timer only submits a command to the room's queue carrying the turn it was set for, so a late timer finds a
- * different turn and does nothing; no timer ever touches room state itself.
- */
 final class TurnDriver {
 
     private final RoomState state;
@@ -38,7 +32,6 @@ final class TurnDriver {
 
     // ------------------------------------------------------------------ after a step
 
-    /** Called after every roll or move: arms the next clock, tells everyone, then announces the next turn or the end. */
     void afterStep(RoomGame.Step step) {
         arm(); // decides the next deadline first, so the update can carry it to every client
         broadcaster.stateUpdate(step);
@@ -71,17 +64,11 @@ final class TurnDriver {
 
     // ------------------------------------------------------------------ arming the clocks
 
-    /** Arms the clocks for whoever acts next and tells a person it is their turn. */
     void scheduleNext() {
         arm();
         announce();
     }
 
-    /**
-     * Sets the clocks. A person gets a deadline; a seat played by the AI gets an AI action after the pacing
-     * delay. Nothing is sent here: the caller announces the turn once it has broadcast the update that
-     * carries the deadline.
-     */
     void arm() {
         cancelTimers();
         if (state.status != RoomStatus.RUNNING || state.game.isFinished()) {
@@ -105,7 +92,6 @@ final class TurnDriver {
         }
     }
 
-    /** Tells the person whose turn it is, privately, what they may do. */
     void announce() {
         if (state.status != RoomStatus.RUNNING || state.game.isFinished()) {
             return;
@@ -125,7 +111,6 @@ final class TurnDriver {
         return state.game.phase() == Phase.AWAITING_MOVE && state.game.onlySkipAvailable();
     }
 
-    /** Stops every clock and forgets the deadline (the game is paused, finished or being shut down). */
     void cancelTimers() {
         RoomActor.cancel(pendingAi);
         RoomActor.cancel(pendingDeadline);
@@ -137,14 +122,12 @@ final class TurnDriver {
         return pending != null && !pending.isDone();
     }
 
-    /** After a speed change: re-times a pending AI action at the new speed; a person's deadline is untouched. */
     void retimeAi() {
         if (aiPending()) {
             arm();
         }
     }
 
-    /** After a seat was handed to the AI: if that seat is the one to act and nothing is pending, the AI takes over. */
     void takeOverIfNeeded() {
         if (state.game.isStarted()
                 && state.seats.seat(state.game.currentColour()).controller() != Controller.HUMAN && !aiPending()) {
@@ -154,7 +137,6 @@ final class TurnDriver {
 
     // ------------------------------------------------------------------ acting for a seat
 
-    /** A person acted (or took their seat back): their run of missed turns is over. */
     void resetMisses(Colour colour) {
         missedTurns.remove(colour);
     }
@@ -163,12 +145,7 @@ final class TurnDriver {
         repository.record(new DecisionRecord(state.roomId, turnNumber, colour, roll, optionIndex, source));
     }
 
-    /**
-     * The deadline passed. Like every other action this is a queued command carrying the turn it was set
-     * for, so if the person acted first (or the game moved on for any reason) it finds a different turn and
-     * does nothing. Otherwise the seat's own strategy completes the phase, and a second miss in a row hands
-     * the seat to the AI until the person takes it back.
-     */
+    // otherwise the seat's own strategy completes the phase, and a second miss in a row hands the seat to the AI until the person takes it back
     void onTurnTimeout(int expectedTurn) {
         if (!stillWaitingFor(expectedTurn)) {
             return;
@@ -189,7 +166,6 @@ final class TurnDriver {
         afterStep(step);
     }
 
-    /** The pacing delay passed for a seat the AI plays (or for a person with nothing to decide). */
     private void aiAct(int expectedTurn) {
         if (!stillWaitingFor(expectedTurn)) {
             return;

@@ -8,10 +8,6 @@ import com.ludot.protocol.RoomStatus;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
-/**
- * Who is in the room: joining (a snapshot and the membership change happen in one queued step, so later pushes
- * always carry a higher sequence number), leaving, host hand-over, and what happens when the room empties.
- */
 final class Membership {
 
     private final RoomState state;
@@ -24,7 +20,6 @@ final class Membership {
     private final Runnable closeRoom;
     private volatile ScheduledFuture<?> closeTimer;
 
-    /** @param closeRoom stops the room's mailbox once an empty room has stayed empty long enough */
     Membership(RoomState state, RoomGuards guards, Broadcaster broadcaster, RoomChat chat, TurnDriver turns,
                RoomActor actor, GameRepository repository, Runnable closeRoom) {
         this.state = state;
@@ -49,7 +44,6 @@ final class Membership {
 
     // ------------------------------------------------------------------ joining
 
-    /** The creator becomes the first member and the host; they are sent the room's snapshot. */
     void addCreator(Participant creator) {
         state.members.put(creator.id(), new Member(creator.identity(), creator.sink()));
         state.hostId = creator.id();
@@ -117,7 +111,6 @@ final class Membership {
         return Reply.ok(request).then(() -> remove(member));
     }
 
-    /** The connection dropped (not a polite leave); a seat held by that person is handed to the AI. */
     void connectionLost(String playerId, ClientSink sink) {
         Member member = state.members.get(playerId);
         if (member != null && member.sink() == sink) {

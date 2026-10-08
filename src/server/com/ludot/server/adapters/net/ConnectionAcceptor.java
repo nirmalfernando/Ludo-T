@@ -12,11 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Listens on the server port. One thread ("acceptor") does nothing but accept; each connection then
- * gets its own reader thread and writer thread from two cached pools (blocking I/O, thread per
- * connection: simple, and every thread's job is visible by name in a thread dump).
- */
 public final class ConnectionAcceptor implements AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(ConnectionAcceptor.class.getName());

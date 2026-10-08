@@ -14,12 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * The room's mailbox: a private single-thread executor with a bounded queue. Every request, timer and AI
- * action for the room is a command in this queue and runs on this one thread, one at a time, in arrival
- * order. That confinement is why the rest of the room needs no locks, and the bound is why a flood gets
- * SERVER_BUSY instead of unbounded memory growth.
- */
 final class RoomActor {
 
     private static final Logger LOG = Logger.getLogger(RoomActor.class.getName());
@@ -43,7 +37,6 @@ final class RoomActor {
                 new NamedThreadFactory("room-" + roomId, false), new ThreadPoolExecutor.AbortPolicy());
     }
 
-    /** Work to do on the room thread after every command, however it ended (the room drops slow clients here). */
     void afterEachCommand(Runnable work) {
         this.afterEachCommand = work;
     }
@@ -52,10 +45,7 @@ final class RoomActor {
         return executor.getQueue().size();
     }
 
-    /**
-     * Queues a request from a connection thread. If the queue is full the sender is told SERVER_BUSY at once
-     * instead of letting memory grow without limit.
-     */
+    // if the queue is full the sender is told SERVER_BUSY at once instead of letting memory grow without limit
     void submit(Participant from, ClientMessage.Request request) {
         try {
             executor.execute(() -> run(() -> handle(from, request)));
@@ -65,7 +55,6 @@ final class RoomActor {
         }
     }
 
-    /** Queues work from a timer or the room itself; if the queue is full it tries again shortly rather than stall the game. */
     void submitInternal(Runnable command) {
         try {
             executor.execute(() -> run(command));
@@ -76,7 +65,6 @@ final class RoomActor {
         }
     }
 
-    /** Runs the task after the delay. Returns null when the scheduler has stopped, which means the server is shutting down. */
     ScheduledFuture<?> schedule(Runnable task, long delayMs) {
         try {
             return scheduler.schedule(task, delayMs, TimeUnit.MILLISECONDS);
@@ -91,12 +79,10 @@ final class RoomActor {
         }
     }
 
-    /** Stops accepting commands but lets the ones already queued finish. */
     void shutdown() {
         executor.shutdown();
     }
 
-    /** Stops now, discarding queued commands. */
     void shutdownNow() {
         executor.shutdownNow();
     }

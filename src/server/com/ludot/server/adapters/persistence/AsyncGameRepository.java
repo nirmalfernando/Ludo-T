@@ -14,18 +14,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Decorator that makes persistence asynchronous. {@link #record} only puts the operation on a queue, so
- * a room thread never waits for the network; a single "db-writer" thread drains the queue into batches
- * and writes each as one transaction. One writer and a FIFO queue keep every room's writes in order.
- *
- * <p>A failed batch is retried with backoff; if it still fails, its operations are tried one by one so a
- * single bad row cannot take good rows down with it. Whatever still fails is logged and counted:
- * durability is traded for availability, because a game must never stall on its log.
- */
+// if it still fails, its operations are tried one by one so a single bad row cannot take good rows down with it
 public final class AsyncGameRepository implements GameRepository, AutoCloseable {
 
-    /** Counters for logging and tests. */
     public record Stats(long written, long dropped, long batches, long retries, int queueDepth, int maxQueueDepth) {
     }
 
@@ -61,7 +52,6 @@ public final class AsyncGameRepository implements GameRepository, AutoCloseable 
         this.thread.start();
     }
 
-    /** Queues the operation and returns at once. After {@link #close} new operations are refused and counted as dropped. */
     @Override
     public void record(WriteOp operation) {
         if (closing) {
@@ -83,7 +73,6 @@ public final class AsyncGameRepository implements GameRepository, AutoCloseable 
         return new Stats(written.get(), dropped.get(), batches.get(), retries.get(), queue.size(), maxQueueDepth);
     }
 
-    /** Waits until everything queued so far has been written (or given up on). For tests and tools. */
     public boolean awaitDrained(long timeoutMs) throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMs;
         while (System.currentTimeMillis() < deadline) {
@@ -94,7 +83,6 @@ public final class AsyncGameRepository implements GameRepository, AutoCloseable 
         }
         return queue.isEmpty() && inFlight.get() == 0;
     }
-
 
     private void writeLoop() {
         try {
@@ -154,7 +142,6 @@ public final class AsyncGameRepository implements GameRepository, AutoCloseable 
         }
     }
 
-    /** Stops accepting operations, writes whatever is queued (up to ten seconds) and stops the writer thread. */
     @Override
     public void close() {
         closing = true;

@@ -8,11 +8,7 @@ import com.ludot.protocol.ServerMessage.Response;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Sends each request from a connection where it belongs: identity requests to the directory, lobby
- * requests to the lobby, room requests to that room's queue. It runs on the connection's reader
- * thread, does almost no work itself and never blocks, so one slow request cannot hold up others.
- */
+// it runs on the connection's reader thread, does almost no work itself and never blocks, so one slow request cannot hold up others
 public final class RequestRouter {
 
     private interface Handler {
@@ -32,7 +28,6 @@ public final class RequestRouter {
         this(directory, registry, lobby, repository, GameHistory.NONE, null);
     }
 
-    /** @param replays null when replays are not offered (for instance in small tests) */
     public RequestRouter(PlayerDirectory directory, RoomRegistry registry, LobbyService lobby,
                          GameRepository repository, GameHistory history, ReplayService replays) {
         this.history = history;
@@ -53,11 +48,6 @@ public final class RequestRouter {
         handlers.put(ClientMessage.ControlReplay.class, (s, m) -> controlReplay(s, (ClientMessage.ControlReplay) m));
     }
 
-    /**
-     * Routes one message from a connection.
-     *
-     * @return false if the connection broke the protocol and should be closed
-     */
     public boolean route(ClientSession session, ClientMessage message) {
         if (!session.isIdentified() && !isAllowedBeforeHello(message)) {
             reject(session, message, ErrorCode.PROTOCOL_ERROR, "Say Hello first");
@@ -82,7 +72,6 @@ public final class RequestRouter {
         return true;
     }
 
-    /** Cleans up after a connection ends for any reason. Safe to call from any thread, any number of times. */
     public void disconnected(ClientSession session) {
         if (!session.markDisconnected()) {
             return;

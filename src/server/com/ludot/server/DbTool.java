@@ -14,11 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
-/**
- * Sets up and inspects the database: {@code DbTool [--config file] reset|schema|seed|demo|drop|status|verify [room]}.
- * It runs the .sql files in db/ over JDBC, so it needs neither psql nor the Supabase web console.
- * "reset" restores the initial state in one go: drop, create, seed, then play the demo game.
- */
+// it runs the .sql files in db/ over JDBC, so it needs neither psql nor the Supabase web console
 public final class DbTool {
 
     private static final Path SQL_DIR = Path.of("db");
@@ -62,7 +58,6 @@ public final class DbTool {
         }
     }
 
-    /** @return false only when a check (verify) failed */
     static boolean run(String command, Database database) throws Exception {
         switch (command) {
             case "drop" -> script(database, "reset.sql");
@@ -89,7 +84,6 @@ public final class DbTool {
         }
     }
 
-    /** Plays the demo game through the real room and the asynchronous writer, then waits for it to be stored. */
     static void playDemo(Database database) throws Exception {
         long previous;
         try (Connection connection = database.open()) {
@@ -107,7 +101,7 @@ public final class DbTool {
         }
     }
 
-    /** Prints how long a round trip to the database takes (evidence for why writes are asynchronous) and the row counts. */
+    // prints how long a round trip to the database takes (evidence for why writes are asynchronous) and the row counts
     static void status(Database database) throws SQLException {
         long start = System.nanoTime();
         try (Connection connection = database.open()) {
@@ -135,11 +129,6 @@ public final class DbTool {
         }
     }
 
-    /**
-     * Checks that the database holds exactly what a finished game played: the room is FINISHED with a winner,
-     * and it has one stored step for every step the game took, numbered 0 to N-1 with no gap. With no room id the
-     * most recent finished room is checked.
-     */
     static boolean verify(Database database, String roomId) throws SQLException {
         try (Connection connection = database.open(); Statement statement = connection.createStatement()) {
             String id = roomId;

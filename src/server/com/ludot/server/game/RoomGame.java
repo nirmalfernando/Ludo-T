@@ -23,16 +23,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * One room's game, seen only in protocol terms. Wraps a private {@link GameEngine} (its own board,
- * event bus and dice) so the room actor never touches core types, and turns each roll or move into a
- * {@link Step} carrying the narrated events it produced.
- *
- * <p>Not thread-safe: it is confined to the owning room's thread.
- */
 public final class RoomGame {
 
-    /** What one engine call did: the events it produced and, for a roll, the number rolled. */
     public record Step(List<EventDto> events, Integer rolled) {
     }
 
@@ -56,25 +48,21 @@ public final class RoomGame {
         return variant == Variant.CLASSIC ? new ClassicRuleEngineFactory() : new LudoTRuleEngineFactory();
     }
 
-    /** Runs the whole roll-off at once and opens the first turn (a replay uses this: it draws the same dice). */
     public Step start() {
         engine.start();
         return step(null);
     }
 
-    /** Announces the game and waits for the roll-off: the contenders then roll one at a time with {@link #rollOff}. */
     public Step open() {
         engine.beginRollOff();
         return step(null);
     }
 
-    /** One contender's roll for the order; the last roll of the roll-off announces it and opens the first turn. */
     public Step rollOff(Colour colour) {
         int roll = engine.rollOff(DtoMapper.coreColour(colour));
         return step(roll);
     }
 
-    /** The colours in playing order, once the roll-off has decided it; empty before. */
     public List<Colour> playOrder() {
         GamePhase now = engine.getPhase();
         if (now == GamePhase.NOT_STARTED || now == GamePhase.ROLL_OFF) {
@@ -115,7 +103,6 @@ public final class RoomGame {
         return engine.getPhase() == GamePhase.FINISHED;
     }
 
-    /** The colour that must act now; only meaningful once started. */
     public Colour currentColour() {
         return DtoMapper.colour(engine.getCurrentPlayer().getColour());
     }
@@ -129,7 +116,7 @@ public final class RoomGame {
         };
     }
 
-    /** Counts every roll and move; requests quote it so stale ones can be rejected. */
+    // requests quote it so stale ones can be rejected
     public int turnNumber() {
         return engine.getTurnNumber();
     }
@@ -138,17 +125,15 @@ public final class RoomGame {
         return lastRoll;
     }
 
-    /** The legal moves for the current roll; empty unless a move is awaited. */
+    // the legal moves for the current roll; empty unless a move is awaited
     public List<MoveOption> options() {
         return options;
     }
 
-    /** True when the only legal move is to skip (nothing for a human to decide). */
     public boolean onlySkipAvailable() {
         return options.size() == 1 && options.get(0).kind() == MoveKind.SKIP;
     }
 
-    /** Null before the game starts. */
     public TurnInfo turnInfo(Long deadlineEpochMs) {
         if (!isStarted()) {
             return null;
@@ -156,7 +141,6 @@ public final class RoomGame {
         return new TurnInfo(turnNumber(), currentColour(), phase(), lastRoll, deadlineEpochMs);
     }
 
-    /** The option index that the current seat's own strategy picks for the pending roll. */
     public int strategyChoice() {
         Player player = engine.getCurrentPlayer();
         List<Move> offered = engine.getPendingMoves();
@@ -173,7 +157,6 @@ public final class RoomGame {
         return StateHash.of(board(), turnNumber());
     }
 
-    /** Winner first, then the rest by pieces home (most first), ties in play order. */
     public List<Colour> standings() {
         List<Player> ranked = new ArrayList<>(engine.getPlayers());
         ranked.sort(Comparator.comparing((Player p) -> !p.hasWon())

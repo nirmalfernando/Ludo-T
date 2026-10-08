@@ -11,14 +11,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-/**
- * Hands out identities and keeps nicknames unique. Safe to call from any connection thread.
- *
- * <p>When a connection that can reconnect drops, its identity is kept ("detached") for a grace period so the same
- * person can come back with their token; only then is the nickname freed. Each identity has one lock that covers
- * its small state machine (attached, detached, removed), so a reconnect racing with the expiry or with the old
- * connection's clean-up always ends in one consistent state.
- */
 public final class PlayerDirectory {
 
     private static final Pattern NICKNAME = Pattern.compile("[A-Za-z0-9_]{3,16}");
@@ -42,18 +34,15 @@ public final class PlayerDirectory {
     private final ScheduledExecutorService scheduler;
     private final long graceMs;
 
-    /** No grace period: an identity is freed the moment its connection ends. */
     public PlayerDirectory() {
         this(null, 0);
     }
 
-    /** @param graceMs how long a dropped, reconnectable identity is kept; 0 turns the feature off */
     public PlayerDirectory(ScheduledExecutorService scheduler, long graceMs) {
         this.scheduler = scheduler;
         this.graceMs = graceMs;
     }
 
-    /** Registers a nickname (case-insensitively unique) or throws INVALID_NICKNAME / NICKNAME_IN_USE. */
     public PlayerIdentity register(String nickname) {
         return register(nickname, false);
     }
@@ -72,7 +61,6 @@ public final class PlayerDirectory {
         return identity;
     }
 
-    /** Records which connection is using the identity. */
     void attach(PlayerIdentity identity, ClientSession session) {
         Entry entry = entryOf(identity);
         if (entry != null) {
@@ -82,12 +70,7 @@ public final class PlayerDirectory {
         }
     }
 
-    /**
-     * A connection ended. If it was the identity's current connection and the identity may reconnect, keep it for the
-     * grace period; otherwise free it. A connection that was already replaced by a reconnect changes nothing.
-     *
-     * @return true if the identity is still reserved afterwards
-     */
+    // if it was the identity's current connection and the identity may reconnect, keep it for the grace period; otherwise free it
     boolean detach(PlayerIdentity identity, ClientSession session) {
         Entry entry = entryOf(identity);
         if (entry == null) {
@@ -108,10 +91,7 @@ public final class PlayerDirectory {
         }
     }
 
-    /**
-     * Gives the identity behind a token to a new connection. If the old connection is still attached (a half-open
-     * socket the server has not noticed is dead) it is closed. Empty if the token is unknown, expired or not reconnectable.
-     */
+    // if the old connection is still attached (a half-open socket the server has not noticed is dead) it is closed
     Optional<PlayerIdentity> reattach(String token, ClientSession session) {
         Entry entry = byToken.get(token);
         if (entry == null || !entry.reconnectable) {
@@ -133,7 +113,7 @@ public final class PlayerDirectory {
         return Optional.of(entry.identity);
     }
 
-    /** Frees the identity now (a polite sign-out, or a client that cannot reconnect). */
+    // frees the identity now (a polite sign-out, or a client that cannot reconnect)
     public void release(PlayerIdentity identity) {
         Entry entry = entryOf(identity);
         if (entry != null) {
@@ -143,12 +123,10 @@ public final class PlayerDirectory {
         }
     }
 
-    /** People who are connected right now (identities waiting out a grace period are not counted). */
     public int connectedCount() {
         return (int) byNickname.values().stream().filter(entry -> !entry.detached).count();
     }
 
-    /** Identities waiting for their owner to reconnect. */
     public int detachedCount() {
         return (int) byNickname.values().stream().filter(entry -> entry.detached).count();
     }

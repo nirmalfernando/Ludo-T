@@ -16,13 +16,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Plays one complete Bot match at full speed through the real room and repository, so the database holds a
- * genuine finished game (valid moves, because the real engine made them) that replay can use straight away.
- */
 public final class DemoGameSeeder {
 
-    /** The id of the seeded demo person; matches db/seed.sql. */
     public static final String DEMO_PLAYER_ID = "00000000-0000-0000-0000-000000000001";
 
     private static final long TIME_LIMIT_SECONDS = 180;
@@ -30,7 +25,6 @@ public final class DemoGameSeeder {
     private DemoGameSeeder() {
     }
 
-    /** Plays the game as {@code roomId} and returns once its GameOver has been produced. */
     public static void play(GameRepository repository, String roomId, long seed) throws InterruptedException {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         CountDownLatch finished = new CountDownLatch(1);
