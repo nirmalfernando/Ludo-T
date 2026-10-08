@@ -1,0 +1,32 @@
+# Copy to config/server.properties (git-ignored) and fill in the details.
+server.port=5555
+
+# --- Database -------------------------------------------------------------
+# Supabase (hosted PostgreSQL): use the SESSION POOLER details (Connect -> Session pooler -> JDBC).
+db.mode=postgres
+db.url=jdbc:postgresql://<pooler-host>:5432/postgres?sslmode=require
+db.user=postgres.<project-ref>
+db.password=<your-password>
+
+# Offline fallback (a separate H2 process started with ./run-h2.sh):
+#   db.mode=h2
+#   db.url=jdbc:h2:tcp://localhost:9092/./ludot;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+#   db.user=sa
+#   db.password=
+# Leave db.url out (or set db.mode=none) to run without storage: games then live only in memory.
+
+# --- Tuning (all optional; these are the defaults) --------------------------
+# turn.timeoutSeconds=30        seconds a person has to roll or move before the AI does it (0 = no timer)
+# afk.timeoutsBeforeAfk=2       consecutive missed turns before the seat is played by the AI until taken back
+# connection.outboundCapacity=1000
+# connection.maxInFlight=256     unanswered requests one connection may have at once (backpressure on fast senders)
+# connection.readTimeoutMs=15000
+# room.queueCapacity=10000
+# room.requestMemory=1024
+# speed.fastMs=150
+# speed.normalMs=700
+# speed.slowMs=1500
+
+# How long (ms) a client that can reconnect keeps its nickname, seat and identity after its connection drops.
+# 0 turns reconnecting off. Automatic test clients never use it.
+connection.reconnectGraceMs=30000

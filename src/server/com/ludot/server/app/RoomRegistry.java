@@ -1,0 +1,77 @@
+package com.ludot.server.app;
+
+import com.ludot.protocol.RoomMode;
+import com.ludot.protocol.RoomSummary;
+import com.ludot.protocol.Variant;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
+
+public final class RoomRegistry {
+
+    private final Map<String, GameSession> rooms = new ConcurrentHashMap<>();
+    private final AtomicLong counter = new AtomicLong();
+    private final SessionConfig config;
+    private final ScheduledExecutorService scheduler;
+    private final LobbyService lobby;
+    private final GameRepository repository;
+    private final LongSupplier clock;
+
+    // what each room reports to: the registry forgets a closed room, then the lobby is told
+    private final LobbyPublisher roomEvents = new LobbyPublisher() {
+        @Override
+        public void roomChanged(RoomSummary summary) {
+            lobby.roomChanged(summary);
+        }
+
+        @Override
+        public void roomClosed(String roomId) {
+            rooms.remove(roomId);
+            lobby.roomClosed(roomId);
+        }
+    };
+
+    public RoomRegistry(SessionConfig config, ScheduledExecutorService scheduler, LobbyService lobby,
+                        GameRepository repository, LongSupplier clock) {
+        this(config, scheduler, lobby, repository, clock, 0);
+    }
+
+    public RoomRegistry(SessionConfig config, ScheduledExecutorService scheduler, LobbyService lobby,
+                        GameRepository repository, LongSupplier clock, long lastRoomNumber) {
+        this.counter.set(lastRoomNumber);
+        this.config = config;
+        this.scheduler = scheduler;
+        this.lobby = lobby;
+        this.repository = repository;
+        this.clock = clock;
+    }
+
+    public GameSession create(RoomMode mode, Variant variant, Long seed) {
+        String id = String.format("R-%04d", counter.incrementAndGet());
+        GameSession session = new GameSession(id, mode, variant, seed, config, scheduler, roomEvents,
+                repository, clock);
+        rooms.put(id, session);
+        lobby.roomChanged(session.summary());
+        return session;
+    }
+
+    public GameSession find(String roomId) {
+        return rooms.get(roomId);
+    }
+
+    public Collection<GameSession> all() {
+        return rooms.values();
+    }
+
+    public int size() {
+        return rooms.size();
+    }
+
+    public void shutdown() {
+        rooms.values().forEach(GameSession::shutdown);
+        rooms.clear();
+    }
+}

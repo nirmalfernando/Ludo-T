@@ -1,4 +1,6 @@
 @echo off
+rem NOTE: this Windows version analyses the core module only (src\core, test\core) and is untested.
+rem ./run-metrics.sh covers all five modules and prints a per-module summary.
 setlocal EnableDelayedExpansion
 :: ============================================================
 ::  LUDO-T  --  Software Metrics Runner
@@ -7,8 +9,8 @@ setlocal EnableDelayedExpansion
 :: ============================================================
 
 set ROOT=%~dp0
-set SRC=%ROOT%src
-set TEST_SRC=%ROOT%test
+set SRC=%ROOT%src\core
+set TEST_SRC=%ROOT%test\core
 set LIB=%ROOT%lib
 set TOOLS=%ROOT%tools
 set OUT=%ROOT%out

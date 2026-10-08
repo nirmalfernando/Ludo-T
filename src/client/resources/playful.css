@@ -1,0 +1,465 @@
+/*
+ * The friendly look of the connect screen, the lobby and the New room dialog: chunky rounded panels, big
+ * "3D" buttons, a rounded display font. Every rule is scoped to .playful, so screens that do not carry that
+ * style class (the game screen) look exactly as before.
+ */
+
+.playful {
+    -fx-font-family: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+    -fx-font-size: 15px;
+    -fx-text-fill: #2b3366;
+}
+
+.playful .label {
+    -fx-font-family: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+    -fx-text-fill: #2b3366;
+}
+
+/* ---- panels --------------------------------------------------------------------------------------------- */
+
+.playful .panel {
+    -fx-background-color: white;
+    -fx-background-radius: 24;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 24;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.16), 20, 0.1, 0, 7);
+}
+
+.playful .panel-title {
+    -fx-font-size: 20px;
+    -fx-text-fill: #2b3366;
+}
+
+.playful .muted {
+    -fx-text-fill: #7d86b8;
+}
+
+/* any plain button on a playful screen (for example the chat's Send) gets the friendly blue look */
+.playful .button {
+    -fx-background-color: #1d63c4, #3d9bff;
+    -fx-background-insets: 0 0 -3 0, 0;
+    -fx-background-radius: 18, 18;
+    -fx-padding: 6 16 6 16;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+.playful .button:hover {
+    -fx-background-color: #1d63c4, #66b1ff;
+}
+.playful .button:pressed {
+    -fx-background-insets: 0 0 -1 0, 0;
+    -fx-translate-y: 2;
+}
+
+/* ---- big chunky buttons ----------------------------------------------------------------------------------- */
+
+.playful .big-button {
+    -fx-background-color: #1e9a52, #3ddc84;
+    -fx-background-insets: 0 0 -5 0, 0;
+    -fx-background-radius: 30, 30;
+    -fx-padding: 12 36 12 36;
+    -fx-font-size: 22px;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(30, 154, 82, 0.35), 12, 0.1, 0, 5);
+}
+.playful .big-button:hover {
+    -fx-background-color: #1e9a52, #5cf09c;
+    -fx-translate-y: -1;
+}
+.playful .big-button:pressed {
+    -fx-background-insets: 0 0 -1 0, 0;
+    -fx-translate-y: 4;
+}
+.playful .big-button:disabled {
+    -fx-background-color: #9aa3c7, #c3cae6;
+    -fx-opacity: 1;
+    -fx-effect: null;
+}
+
+.playful .blue-button {
+    -fx-background-color: #1d63c4, #3d9bff;
+    -fx-background-insets: 0 0 -4 0, 0;
+    -fx-background-radius: 22, 22;
+    -fx-padding: 7 22 7 22;
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+.playful .blue-button:hover {
+    -fx-background-color: #1d63c4, #66b1ff;
+    -fx-translate-y: -1;
+}
+.playful .blue-button:pressed {
+    -fx-background-insets: 0 0 -1 0, 0;
+    -fx-translate-y: 3;
+}
+
+.playful .ghost-button {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 22;
+    -fx-border-color: #c3cae6;
+    -fx-border-width: 3;
+    -fx-border-radius: 22;
+    -fx-padding: 7 22 7 22;
+    -fx-font-size: 16px;
+    -fx-text-fill: #5a639a;
+    -fx-cursor: hand;
+}
+.playful .ghost-button:hover {
+    -fx-background-color: #f1f4ff;
+}
+
+.playful .link-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-text-fill: #7d86b8;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 4 8 4 8;
+}
+.playful .link-button:hover {
+    -fx-text-fill: #3d6fe0;
+}
+
+/* Sign Out sits inside the account card, with a divider before it */
+.playful .signout-button {
+    -fx-background-color: #fff1f1;
+    -fx-background-radius: 18;
+    -fx-border-color: #ffc2c2;
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
+    -fx-padding: 4 12 4 6;
+    -fx-graphic-text-gap: 2;
+    -fx-font-size: 14px;
+    -fx-text-fill: #c94545;
+    -fx-cursor: hand;
+}
+.playful .signout-button:hover {
+    -fx-background-color: #ffdede;
+}
+.playful .divider {
+    -fx-background-color: #e3e7fb;
+    -fx-min-width: 2;
+    -fx-max-width: 2;
+    -fx-pref-height: 30;
+}
+
+/* ---- text fields -------------------------------------------------------------------------------------------- */
+
+.playful .text-field {
+    -fx-background-color: #f1f4ff;
+    -fx-background-radius: 18;
+    -fx-border-color: #cfd6f5;
+    -fx-border-width: 3;
+    -fx-border-radius: 18;
+    -fx-padding: 10 16 10 16;
+    -fx-font-size: 20px;
+    -fx-text-fill: #2b3366;
+    -fx-prompt-text-fill: #a3abd8;
+    -fx-highlight-fill: #b7d4ff;
+    -fx-highlight-text-fill: #2b3366;
+}
+.playful .text-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #3d9bff;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.playful .chat-input {
+    -fx-font-size: 15px;
+    -fx-padding: 6 12 6 12;
+}
+
+/* ---- chips (status, mode, rules) ----------------------------------------------------------------------------- */
+
+.playful .chip {
+    -fx-background-radius: 12;
+    -fx-padding: 3 11 3 11;
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+}
+
+/* ---- room cards and the list that holds them ------------------------------------------------------------------- */
+
+.playful .room-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 20;
+    -fx-padding: 12 16 12 16;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.12), 12, 0.1, 0, 4);
+}
+.playful .room-card:hover {
+    -fx-border-color: #8fb8ff;
+}
+
+.playful .room-id {
+    -fx-font-size: 24px;
+    -fx-text-fill: #2b3366;
+}
+
+.playful .list-view {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 4 6 4 4;
+}
+.playful .list-view:focused {
+    -fx-background-insets: 0;
+}
+.playful .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 3 6 3 6;
+}
+.playful .room-list .list-cell {
+    -fx-padding: 0 0 12 0;
+}
+.playful .list-cell:filled:selected,
+.playful .list-cell:filled:hover {
+    -fx-background-color: transparent;
+}
+
+.playful .scroll-bar {
+    -fx-background-color: transparent;
+}
+.playful .scroll-bar .track {
+    -fx-background-color: transparent;
+}
+.playful .scroll-bar .thumb {
+    -fx-background-color: #c3cbf0;
+    -fx-background-radius: 8;
+}
+.playful .scroll-bar .increment-button,
+.playful .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    visibility: hidden;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+}
+.playful .scroll-bar .increment-arrow,
+.playful .scroll-bar .decrement-arrow {
+    -fx-padding: 0;
+}
+
+/* ---- error banner ------------------------------------------------------------------------------------------------- */
+
+.playful .error-banner {
+    -fx-background-color: #ffe9e9;
+    -fx-background-radius: 16;
+    -fx-border-color: #ffb3b3;
+    -fx-border-width: 2;
+    -fx-border-radius: 16;
+    -fx-padding: 8 14 8 14;
+    -fx-text-fill: #c62828;
+}
+
+/* ---- choice cards (New room dialog) ------------------------------------------------------------------------------------ */
+
+.playful .choice-card {
+    -fx-background-insets: 0;
+    -fx-text-fill: #2b3366;
+    -fx-background-color: #f4f6ff;
+    -fx-background-radius: 18;
+    -fx-border-color: #d3daf7;
+    -fx-border-width: 3;
+    -fx-border-radius: 18;
+    -fx-padding: 12 16 12 16;
+    -fx-cursor: hand;
+    -fx-alignment: center-left;
+}
+.playful .choice-card:hover {
+    -fx-border-color: #8fb8ff;
+}
+.playful .choice-card:selected {
+    -fx-background-color: #e5f0ff;
+    -fx-border-color: #3d9bff;
+}
+
+.playful.dialog-pane {
+    -fx-background-color: white;
+}
+.playful.dialog-pane > .button-bar > .container {
+    -fx-background-color: white;
+    -fx-padding: 4 20 18 20;
+}
+
+/* ---- the game room ---------------------------------------------------------------------------------------------- */
+
+.playful .small-button {
+    -fx-padding: 4 14 4 14;
+    -fx-font-size: 13px;
+}
+
+.playful .amber-button {
+    -fx-background-color: #c98a00, #ffc233;
+    -fx-background-insets: 0 0 -3 0, 0;
+    -fx-background-radius: 18, 18;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+.playful .amber-button:hover {
+    -fx-background-color: #c98a00, #ffd24d;
+}
+
+.playful .seat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 20;
+    -fx-padding: 6 14 6 12;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.10), 10, 0.1, 0, 3);
+}
+.playful .seat-active {
+    -fx-border-color: #ffb300;
+    -fx-effect: dropshadow(gaussian, rgba(255, 179, 0, 0.55), 16, 0.3, 0, 0);
+}
+.playful .seat-name {
+    -fx-font-size: 17px;
+}
+
+.playful .board-frame {
+    -fx-background-color: white;
+    -fx-background-radius: 28;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 28;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.18), 24, 0.1, 0, 8);
+}
+
+.playful .label.paused-banner {
+    -fx-background-color: rgba(43, 51, 102, 0.88);
+    -fx-background-radius: 24;
+    -fx-padding: 14 32 14 32;
+    -fx-text-fill: white;
+    -fx-font-size: 30px;
+}
+
+/* Slow | Normal | Fast */
+.playful .segment {
+    -fx-background-color: #eaeefc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5 14 5 14;
+    -fx-font-size: 13px;
+    -fx-text-fill: #5a639a;
+    -fx-cursor: hand;
+}
+.playful .segment:hover {
+    -fx-background-color: #dde3fa;
+}
+.playful .segment:selected {
+    -fx-background-color: #3d9bff;
+    -fx-text-fill: white;
+}
+.playful .segment-first {
+    -fx-background-radius: 16 0 0 16;
+}
+.playful .segment-last {
+    -fx-background-radius: 0 16 16 0;
+}
+
+/* tabs (Chat, Event Log) */
+.playful .tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+.playful .tab-pane > .tab-header-area {
+    -fx-padding: 0 0 6 0;
+}
+.playful .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #e4e9fb;
+    -fx-background-insets: 0;
+    -fx-background-radius: 16;
+    -fx-padding: 3 18 3 18;
+    -fx-cursor: hand;
+}
+.playful .tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #3d9bff;
+}
+.playful .tab .tab-label {
+    -fx-text-fill: #5a639a;
+    -fx-font-size: 15px;
+}
+.playful .tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+.playful .tab-pane > .tab-content-area {
+    -fx-background-color: white;
+    -fx-background-radius: 22;
+    -fx-border-color: #d9def5;
+    -fx-border-width: 3;
+    -fx-border-radius: 22;
+    -fx-padding: 8;
+    -fx-effect: dropshadow(gaussian, rgba(43, 51, 102, 0.10), 12, 0.1, 0, 4);
+}
+.playful .event-log .list-cell {
+    -fx-text-fill: #4a5380;
+    -fx-font-size: 13px;
+}
+.playful .tab-pane {
+    -fx-tab-min-height: 30px;
+    -fx-tab-max-height: 30px;
+}
+
+/* filter pills above the event log */
+.playful .filter-chip {
+    -fx-background-color: #eaeefc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 14;
+    -fx-padding: 2 12 2 12;
+    -fx-font-size: 12px;
+    -fx-text-fill: #5a639a;
+    -fx-cursor: hand;
+}
+.playful .filter-chip:hover {
+    -fx-background-color: #dde3fa;
+}
+.playful .filter-chip:selected {
+    -fx-background-color: #3d9bff;
+    -fx-text-fill: white;
+}
+
+/* round sound / motion switches */
+.playful .icon-toggle {
+    -fx-background-color: #eaeefc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 20;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 20;
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-pref-width: 38;
+    -fx-pref-height: 38;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+.playful .icon-toggle:hover {
+    -fx-background-color: #dde3fa;
+}
+.playful .icon-toggle:selected {
+    -fx-background-color: #e5f0ff;
+    -fx-border-color: #8fb8ff;
+}
+
+/* replay progress */
+.playful .progress-bar > .track {
+    -fx-background-color: #e4e9fb;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-pref-height: 12;
+}
+.playful .progress-bar > .bar {
+    -fx-background-color: #3d9bff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+}
+
