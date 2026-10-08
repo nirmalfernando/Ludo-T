@@ -23,3 +23,46 @@ out/
 
 # Game log file
 game_log.txt
+
+# Assignment 2: secrets and downloaded runtime libraries
+config/server.properties
+lib/postgresql-*.jar
+lib/h2-*.jar
+lib/javafx-sdk/
+lib/javafx.zip
+
+# Secrets and credentials (never commit)
+config/*.properties
+!config/*.properties.example
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+secrets/
+supabase/.temp/
+supabase/.branches/
+
+# Local database files (H2 fallback) and dumps
+*.mv.db
+*.trace.db
+*.sql.bak
+*.dump
+
+# Session tokens / local settings
+.claude/settings.local.json
+
+# Build output: runnable module JARs
+dist/
+
+# Offline H2 database files
+h2data/
+
+# Output of run-evidence.sh (regenerate it; copy the run you cite into the report)
+evidence/
+
+# Working notes (kept on disk, not in git)
+docs/DESIGN_DECISIONS.md
+docs/DEVELOPER_GUIDE.md
+docs/RULES_INTERPRETATION.md

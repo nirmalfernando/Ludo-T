@@ -12,6 +12,8 @@
         <exclude name="JUnitTestsShouldIncludeAssert"/>
         <!-- Console output is intentional in this console game -->
         <exclude name="SystemPrintln"/>
+        <!-- False positive: PMD does not see private methods that are used as method references (this::name) -->
+        <exclude name="UnusedPrivateMethod"/>
     </rule>
 
     <!-- Code style -->
