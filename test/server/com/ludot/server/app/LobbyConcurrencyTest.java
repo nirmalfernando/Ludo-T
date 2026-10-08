@@ -26,7 +26,6 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The lobby and registry under simultaneous load. */
 @DisplayName("Lobby concurrency")
 class LobbyConcurrencyTest {
 

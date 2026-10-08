@@ -33,7 +33,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The automatic clients against a real server on a random port, all over TCP. */
 @DisplayName("Bot and stress clients against a live server")
 class AutomaticClientsTest {
 

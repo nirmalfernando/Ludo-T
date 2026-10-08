@@ -8,10 +8,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 
-/** The lobby, registry and router wired together without any sockets, plus helpers to play fake clients. */
 final class RouterKit implements AutoCloseable {
 
-    /** A fake connected client. */
     static final class Client {
         final ClientSession session;
         final RecordingSink inbox;
@@ -63,7 +61,6 @@ final class RouterKit implements AutoCloseable {
         this(config, 0);
     }
 
-    /** @param reconnectGraceMs how long a dropped reconnectable client keeps its identity (0 = no reconnecting) */
     RouterKit(SessionConfig config, long reconnectGraceMs) {
         this.config = config;
         this.directory = new PlayerDirectory(scheduler, reconnectGraceMs);
@@ -81,7 +78,6 @@ final class RouterKit implements AutoCloseable {
         return new Client(router, sink);
     }
 
-    /** A client that has already said Hello. */
     Client hello(String nickname) {
         Client client = connect();
         Response response = client.call(new ClientMessage.Hello(UUID.randomUUID(), nickname));
@@ -91,7 +87,6 @@ final class RouterKit implements AutoCloseable {
         return client;
     }
 
-    /** A client that said Hello as a reconnectable client (the GUI does). */
     Client helloReconnectable(String nickname) {
         Client client = connect();
         Response response = client.call(new ClientMessage.Hello(UUID.randomUUID(), nickname, true));
@@ -101,7 +96,7 @@ final class RouterKit implements AutoCloseable {
         return client;
     }
 
-    /** True if a brand new connection can take the nickname (so it was free). */
+    // true if a brand new connection can take the nickname (so it was free)
     boolean connectAndHello(String nickname) {
         return connect().call(new ClientMessage.Hello(UUID.randomUUID(), nickname)).isOk();
     }

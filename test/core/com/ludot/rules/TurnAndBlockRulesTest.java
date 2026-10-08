@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Rules 4 and 7 (an ignored roll passes the dice), Rule 6 on leaving base, T-5 (leaving a block) and T-6 (triple six). */
+// rules 4 and 7 (an ignored roll passes the dice), Rule 6 on leaving base, T-5 (leaving a block) and T-6 (triple six)
 @DisplayName("Turn rules and block breaking (Rules 4, 6, 7, T-5, T-6)")
 class TurnAndBlockRulesTest {
 

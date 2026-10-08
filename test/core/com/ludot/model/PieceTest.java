@@ -56,8 +56,6 @@ class PieceTest {
     @Test @DisplayName("T-1: CCW piece increments approachPassCount when passing THROUGH approach cell mid-move")
     void ccwPassThroughApproachCellIncrementsCount() {
 
-        // RED approach cell is at id 24. Place piece at cell 27 moving CCW.
-        // 5 CCW steps: 27→26→25→24(approach!)→23→22 — passes through 24 without landing.
         Cell cell27 = board.getCell(27);
         piece.setState(new OnBoardState());
         piece.setDirection(Direction.COUNTER_CLOCKWISE);

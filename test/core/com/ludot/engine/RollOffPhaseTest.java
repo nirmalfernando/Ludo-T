@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/** The opening roll-off as a phase: contenders roll one at a time, in seat order, so a person can press Roll. */
+// the opening roll-off as a phase: contenders roll one at a time, in seat order, so a person can press Roll
 @DisplayName("Opening roll-off as a phase (spec 1.1)")
 class RollOffPhaseTest {
 

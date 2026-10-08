@@ -18,7 +18,6 @@ import com.ludot.model.state.OnBoardState;
 import java.util.ArrayList;
 import java.util.List;
 
-/** A small board with hand-placed pieces, a rule engine and an executor, for the rule scenario tests. */
 final class RuleScenario {
 
     final Board board = TestBoard.create();
@@ -43,7 +42,6 @@ final class RuleScenario {
         return new RuleScenario(false);
     }
 
-    /** A piece on the standard path. */
     Piece piece(String name, Colour colour, int cellId, Direction direction) {
         Piece piece = new Piece(name, colour, board);
         Cell cell = board.getCell(cellId);
@@ -55,7 +53,6 @@ final class RuleScenario {
         return piece;
     }
 
-    /** A piece in its colour's home straight (index 0 is the cell after the approach cell, 4 is Home). */
     Piece inStraight(String name, Colour colour, int index) {
         Piece piece = new Piece(name, colour, board);
         Cell cell = board.getHomeStraight(colour).get(index);
@@ -67,7 +64,6 @@ final class RuleScenario {
         return piece;
     }
 
-    /** A piece that has already reached Home. */
     Piece atHome(String name, Colour colour) {
         Piece piece = new Piece(name, colour, board);
         Cell cell = board.getHomeStraight(colour).get(4);
@@ -78,7 +74,6 @@ final class RuleScenario {
         return piece;
     }
 
-    /** A piece waiting in its base. */
     Piece inBase(String name, Colour colour) {
         Piece piece = new Piece(name, colour, board);
         piece.setState(new com.ludot.model.state.AtBaseState());
@@ -86,7 +81,6 @@ final class RuleScenario {
         return piece;
     }
 
-    /** The valid moves for a colour: all the pieces of that colour created so far. */
     List<Move> movesFor(Colour colour, int roll) {
         return engine.getValidMoves(playerOf(colour), roll);
     }

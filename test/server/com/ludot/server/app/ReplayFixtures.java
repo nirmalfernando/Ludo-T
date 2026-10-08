@@ -11,17 +11,14 @@ import com.ludot.server.game.RoomGame;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Plays real games with the real engine, so replays are checked against what the engine genuinely did. */
 final class ReplayFixtures {
 
-    /** A finished game: what a database would hold, plus what the engine ended with. */
     record Played(ReplayData data, BoardDto finalBoard, Colour winner) {
     }
 
     private ReplayFixtures() {
     }
 
-    /** Plays a whole game, always choosing the first offered option (deterministic for a seed). */
     static Played play(String gameId, Variant variant, long seed) {
         RoomGame game = new RoomGame(variant, seed);
         game.open();
@@ -45,7 +42,6 @@ final class ReplayFixtures {
         return new Played(new ReplayData(gameId, variant, seed, winner, steps), game.board(), winner);
     }
 
-    /** Writes the game into a repository the way the server would have while it was played. */
     static void store(InMemoryGameRepository repository, Played played) {
         ReplayData data = played.data();
         repository.record(new RoomRecord(data.gameId(), RoomMode.BOT_MATCH, data.variant(), data.seed(), "host"));

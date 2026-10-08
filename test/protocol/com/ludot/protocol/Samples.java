@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** One valid instance of every message type, shared by the protocol tests. */
 final class Samples {
 
     static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000001");

@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 
-/** Test fixture: a scheduler, a controllable clock, a recording lobby and an in-memory repository. */
 final class Kit implements AutoCloseable {
 
     static final class RecordingLobby implements LobbyPublisher {
@@ -61,13 +60,12 @@ final class Kit implements AutoCloseable {
         return (RecordingSink) participant.sink();
     }
 
-    /** Sends a request and waits for its response. */
     static Response call(GameSession room, Participant from, ClientMessage.Request request) {
         room.submit(from, request);
         return sink(from).responseTo(request.requestId());
     }
 
-    /** Because the room processes commands in order, once this returns everything submitted before it has been handled. */
+    // because the room processes commands in order, once this returns everything submitted before it has been handled
     static void settle(GameSession room, Participant from) {
         call(room, from, new ClientMessage.RequestSnapshot(UUID.randomUUID(), room.roomId()));
     }
@@ -97,7 +95,6 @@ final class Kit implements AutoCloseable {
         throw new AssertionError("Condition not met within " + timeoutMs + " ms");
     }
 
-    /** Creates a room with the participant as host and waits for the creator's snapshot. */
     GameSession roomWith(RoomMode mode, long seed, Participant creator) {
         GameSession room = room(mode, seed);
         room.attachCreator(creator);

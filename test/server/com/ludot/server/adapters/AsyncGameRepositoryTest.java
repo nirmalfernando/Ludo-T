@@ -23,7 +23,6 @@ class AsyncGameRepositoryTest {
 
     private static final long[] FAST_RETRIES = {5, 5, 5};
 
-    /** A writer that remembers each batch, and can be made slow or to fail on demand. */
     private static final class FakeWriter implements BatchWriter {
         final List<List<WriteOp>> batches = Collections.synchronizedList(new ArrayList<>());
         volatile long delayMs;

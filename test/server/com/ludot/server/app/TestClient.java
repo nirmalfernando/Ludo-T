@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.UUID;
 
-/** A real TCP client for integration tests: a reader thread records everything the server sends. */
 final class TestClient implements AutoCloseable {
 
     final RecordingSink inbox = new RecordingSink();
@@ -75,7 +74,6 @@ final class TestClient implements AutoCloseable {
         return disconnected;
     }
 
-    /** Answers every YourTurn by rolling, or by choosing the first move, until GameOver arrives. */
     boolean playUntilGameOver(String roomId, long timeoutMs) throws IOException {
         int cursor = 0;
         long deadline = System.currentTimeMillis() + timeoutMs;

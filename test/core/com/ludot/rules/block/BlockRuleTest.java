@@ -48,9 +48,7 @@ class BlockRuleTest {
     }
     @Test @DisplayName("calcBlockMoveDir returns direction of furthest-from-home piece (T-4)")
     void blockDirFromFurthest() {
-        // RED approach cell is at 24. A CW piece at cell 10 is (24-10)=14 steps away.
-        // A CCW piece at cell 10 is (10-24+52)=38 steps away — further from home CCW.
-        // So the block should move CCW (the furthest-from-home direction).
+        // so the block should move CCW (the furthest-from-home direction)
         Cell cell10 = board.getCell(10);
         Piece p1 = new Piece("R1", Colour.RED, board);
         Piece p2 = new Piece("R2", Colour.RED, board);

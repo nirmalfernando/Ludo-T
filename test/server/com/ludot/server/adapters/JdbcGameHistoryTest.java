@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The finished-games queries, run as real SQL on an in-memory H2 database speaking PostgreSQL. */
 @DisplayName("JdbcGameHistory (finished games from the database)")
 class JdbcGameHistoryTest {
 

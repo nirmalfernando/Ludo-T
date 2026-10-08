@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The whole chain: a played game is stored as SQL rows, read back by JdbcGameHistory and replayed to the same end. */
 @DisplayName("A game stored in the database replays to the same result")
 class ReplayFromDatabaseTest {
 

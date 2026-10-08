@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** The client's copy of the board layout must never drift from the core's constants. */
+// the client's copy of the board layout must never drift from the core's constants
 @DisplayName("BoardGeometry agrees with GameConstants")
 class BoardGeometryAgreementTest {
 

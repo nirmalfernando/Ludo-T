@@ -32,7 +32,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The SQL scripts and the batch writer, against an in-memory H2 database speaking PostgreSQL. */
 @DisplayName("JdbcBatchWriter and the SQL scripts")
 class JdbcBatchWriterTest {
 

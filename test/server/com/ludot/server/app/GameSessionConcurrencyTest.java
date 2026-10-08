@@ -26,7 +26,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The race conditions of the room actor, each fired from many threads at once behind a start gate. */
+// the race conditions of the room actor, each fired from many threads at once behind a start gate
 @DisplayName("GameSession concurrency")
 class GameSessionConcurrencyTest {
 
@@ -47,7 +47,6 @@ class GameSessionConcurrencyTest {
         return UUID.randomUUID();
     }
 
-    /** Runs every task at the same moment and returns their results. */
     private <T> List<T> fireTogether(List<Callable<T>> tasks) throws Exception {
         CountDownLatch ready = new CountDownLatch(tasks.size());
         CountDownLatch go = new CountDownLatch(1);
@@ -91,8 +90,6 @@ class GameSessionConcurrencyTest {
 
         Participant winner = contenders.get(responses.indexOf(responses.stream().filter(Response::isOk).findFirst().get()));
         Kit.call(room, host, new ClientMessage.RequestSnapshot(id(), room.roomId()));
-        // the response comes before the snapshot push it caused; the room handles one command at a time, so once a
-        // second request is answered the first one's push has certainly been delivered
         Kit.settle(room, host);
         ServerMessage.RoomSnapshot snapshot = Kit.sink(host).of(ServerMessage.RoomSnapshot.class).stream()
                 .reduce((a, b) -> b).get();

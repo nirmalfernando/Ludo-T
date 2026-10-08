@@ -27,12 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A real connection is cut and a new one takes over the same person, all over TCP. */
 @DisplayName("Reconnect over real sockets")
 class ReconnectOverTcpTest {
 
-    // The server has no event to wait for when it notices a dropped connection. The assertion below also holds if it has
-    // not noticed yet (the live connection keeps the nickname), so this wait only makes the test exercise the grace path.
     private static final long SERVER_NOTICES_CUT_MS = 300;
 
     private GameServer server;
@@ -56,7 +53,6 @@ class ReconnectOverTcpTest {
         return UUID.randomUUID();
     }
 
-    /** A connection that records everything the server pushes to it. */
     private static final class Listening {
         final ServerLink link;
         final List<ServerMessage> inbox = new CopyOnWriteArrayList<>();

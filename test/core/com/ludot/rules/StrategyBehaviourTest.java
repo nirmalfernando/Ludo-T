@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-/** The behaviour of the Red, Green and Yellow players, bullet by bullet as in the specification (section 2.1). */
 @DisplayName("Player behaviour (spec 2.1.1 to 2.1.3)")
 class StrategyBehaviourTest {
 

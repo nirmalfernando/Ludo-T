@@ -21,10 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * The opening roll-off in a room: people press Roll for their own roll-off, in seat order, and the AI seats roll by
- * themselves on the usual pacing. (Spec 1.1: everyone rolls, the highest roller starts, ties roll again.)
- */
 @DisplayName("Opening roll-off in a room")
 class RollOffSessionTest {
 

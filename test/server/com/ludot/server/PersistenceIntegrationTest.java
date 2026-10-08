@@ -31,7 +31,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Real games over a real server, stored through the real asynchronous writer into an H2 database. */
 @DisplayName("Persistence end to end")
 class PersistenceIntegrationTest {
 
@@ -76,7 +75,6 @@ class PersistenceIntegrationTest {
         return link;
     }
 
-    /** Creates a Bot match and returns its id plus a future that completes when the game is over. */
     private String botMatch(ServerLink host, long seed, CompletableFuture<Void> over) throws Exception {
         host.addListener(message -> {
             if (message instanceof ServerMessage.GameOver) {

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** T-3 (blocks cannot be jumped), T-4 (block movement), T-8 (block against block) and Rule 6 for blocks. */
+// T-3 (blocks cannot be jumped), T-4 (block movement), T-8 (block against block) and Rule 6 for blocks
 @DisplayName("Blockades (T-3, T-4, T-8)")
 class BlockadeTest {
 

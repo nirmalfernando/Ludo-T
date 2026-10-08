@@ -37,7 +37,6 @@ class ClassicVariantTest {
             "MysteryExpireEvent", "MysteryTeleportEvent", "BlockFormEvent", "BlockMoveEvent", "BlockBreakEvent",
             "CoinTossEvent", "EffectAppliedEvent", "EffectExpiredEvent", "BriefingEscapeEvent");
 
-    /** Plays a whole Classic game and reports every twist event seen and whether a rule invariant was ever broken. */
     private record Played(Set<String> twistEvents, boolean finished, String violation) {
     }
 

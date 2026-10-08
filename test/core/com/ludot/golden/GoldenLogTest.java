@@ -12,11 +12,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Regression safety net: a full local game for each documented seed must produce a log byte-identical to the
- * recorded one. The logs were re-recorded once after the rule corrections listed in docs/RULES_INTERPRETATION.md;
- * from then on any change in a log means a change in the rules.
- */
 @DisplayName("Golden game logs")
 class GoldenLogTest {
 

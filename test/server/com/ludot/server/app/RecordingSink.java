@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-/** A fake client connection: remembers everything offered to it, optionally with a bounded queue that never drains. */
+// A fake client connection: remembers everything offered to it, optionally with a bounded queue that never drains
 class RecordingSink implements ClientSink {
 
     private final List<ServerMessage> received = new CopyOnWriteArrayList<>();
@@ -48,7 +48,6 @@ class RecordingSink implements ClientSink {
         return received.stream().filter(type::isInstance).map(type::cast).toList();
     }
 
-    /** Waits for a message of the type matching the predicate, searching from the start. */
     <T extends ServerMessage> T await(Class<T> type, Predicate<T> match, long timeoutMs) {
         long deadline = System.currentTimeMillis() + timeoutMs;
         while (System.currentTimeMillis() < deadline) {

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Rule 9 (land or pass the approach cell), Rule 10 (exact roll home), T-7 (a capture first) and T-1 (second pass). */
+// rule 9 (land or pass the approach cell), Rule 10 (exact roll home), T-7 (a capture first) and T-1 (second pass)
 @DisplayName("Entering the home straight (Rules 9 and 10, T-1, T-7)")
 class HomeStraightEntryTest {
 
