@@ -2,7 +2,7 @@ package com.ludot.client.view;
 
 import com.ludot.protocol.ServerMessage.ChatMessage;
 import java.util.function.Consumer;
-import javafx.application.Platform;
+import javafx.animation.PauseTransition;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -15,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.util.Duration;
 import javafx.scene.shape.Circle;
 
 /** A chat list and input box, used for both the lobby and a room. */
@@ -49,9 +50,14 @@ public final class ChatPane extends BorderPane {
         bottom.setPadding(new Insets(6, 0, 0, 0));
         setCenter(list);
         setBottom(bottom);
-        items.addListener((ListChangeListener<ChatMessage>) change ->
-                Platform.runLater(() -> list.scrollTo(items.size() - 1)));
-        Platform.runLater(() -> list.scrollTo(items.size() - 1));
+        // The cells wrap their text, so their heights are only known after layout. Scrolling at once can use stale
+        // estimates and land on older messages; wait a moment for the layout to settle, and scroll again whenever the
+        // list changes or is resized, so the newest message is always the one in view.
+        PauseTransition settle = new PauseTransition(Duration.millis(120));
+        settle.setOnFinished(event -> list.scrollTo(items.size() - 1));
+        items.addListener((ListChangeListener<ChatMessage>) change -> settle.playFromStart());
+        list.heightProperty().addListener((obs, old, now) -> settle.playFromStart());
+        settle.playFromStart();
     }
 
     private void send(Sender sender) {

@@ -102,12 +102,12 @@ public final class SeatPanel extends VBox {
     // "1st" to "4th": where this colour plays in the round, once the opening roll-off has decided it
     private Label orderChip(SeatDto seat) {
         int place = model.playOrderProperty().get().indexOf(seat.colour());
-        Label chip = new Label(place < 0 ? "" : ordinal(place + 1));
+        Label chip = new Label(place < 0 ? "" : "plays " + ordinal(place + 1));
         chip.setVisible(place >= 0);
         chip.setManaged(place >= 0);
         chip.setStyle("-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #ef6c00; -fx-background-color: #fff3e0;"
                 + "-fx-background-radius: 10; -fx-padding: 1 7;");
-        Tooltip.install(chip, new Tooltip("Playing order, decided by the opening roll-off"));
+        Tooltip.install(chip, new Tooltip("Where this colour plays in each round, decided by the opening roll-off (not the final result)"));
         return chip;
     }
 
