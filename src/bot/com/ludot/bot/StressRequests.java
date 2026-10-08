@@ -7,10 +7,6 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Builds the requests the stress client sends: the real roll or move for our own turn, and the deliberately
- * wrong or awkward ones (stale, out of turn, bad index, not host, and so on) for each {@link RequestKind}.
- */
 final class StressRequests {
 
     private static final int BAD_INDEX = 99;
@@ -27,12 +23,10 @@ final class StressRequests {
         this.strategy = BotStrategies.forColour(options.seat(), new Random(options.randomSeed()));
     }
 
-    /** Sets the room the requests are for, once it is known (it may have been created by this client). */
     void useRoom(String room) {
         this.roomId = room;
     }
 
-    /** The real move for an offered turn: a roll, or the option the seat's style prefers. */
     ClientMessage.Request legitMove(ServerMessage.YourTurn turn) {
         return turn.phase() != Phase.AWAITING_MOVE // a roll, or the roll for the playing order
                 ? new ClientMessage.Roll(UUID.randomUUID(), roomId, turn.turnNumber())

@@ -17,13 +17,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-/**
- * Floods a room with asynchronous requests: several sender threads pipeline requests without waiting
- * for answers, a single reader thread completes them, and every answer is judged against what that kind
- * of request should produce. Real turns are answered when our seat's turn arrives; everything else is
- * deliberately wrong (stale, out of turn, duplicate, bad index, not host) to exercise the server's
- * validation, its request queue and its duplicate handling at speed.
- */
 public final class StressClient {
 
     private static final int RECENT_REQUESTS = 50;
@@ -53,7 +46,6 @@ public final class StressClient {
         this.requests = new StressRequests(options, observer);
     }
 
-    /** The room being stressed; known once {@link #run} has set up (it may have been created by this client). */
     public String roomId() {
         return roomId;
     }
@@ -292,7 +284,7 @@ public final class StressClient {
                 observer.updatesSeen(), observer.hashMismatches(), finalHash);
     }
 
-    /** Tiny helper so the sender loop reads cleanly. */
+    // tiny helper so the sender loop reads cleanly
     private static final class LockSupportSleep {
         private LockSupportSleep() {
         }

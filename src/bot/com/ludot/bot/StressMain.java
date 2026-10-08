@@ -1,13 +1,5 @@
 package com.ludot.bot;
 
-/**
- * Runs one stress client. Example, two clients against one room:
- * <pre>
- *   StressMain --create --name stressA --seat RED  --speed fast --start-at T --start-game
- *   StressMain --room R-0001 --name stressB --seat BLUE --start-at T
- * </pre>
- * where T is a shared start time in epoch milliseconds, so both are seated before either sends.
- */
 public final class StressMain {
 
     private StressMain() {

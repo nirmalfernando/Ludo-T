@@ -8,12 +8,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.zip.CRC32;
 
-/**
- * What the stress client learns from everything the server pushes. It is fed by the connection's single reader
- * thread and read by the sender threads, so what the senders need is held in volatile or atomic fields: whose turn
- * it is, the latest turn number, who the host is, and whether the game is over. It also checks every state update
- * against its own hash and fingerprints the order in which chat arrived.
- */
 final class StressObserver implements Consumer<ServerMessage> {
 
     private final AtomicReference<ServerMessage.YourTurn> ourTurn = new AtomicReference<>();
@@ -75,7 +69,7 @@ final class StressObserver implements Consumer<ServerMessage> {
         chatLines.incrementAndGet();
     }
 
-    /** The offer for our seat's turn, handed to exactly one caller, or null if there is none to answer. */
+    // the offer for our seat's turn, handed to exactly one caller, or null if there is none to answer
     ServerMessage.YourTurn takeTurn() {
         return ourTurn.getAndSet(null);
     }

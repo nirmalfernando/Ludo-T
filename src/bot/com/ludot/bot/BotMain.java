@@ -4,10 +4,6 @@ import com.ludot.protocol.ServerLink;
 import com.ludot.protocol.Colour;
 import java.util.Random;
 
-/**
- * Runs one network bot: {@code BotMain --host H --port P --room R-0001 --colour RED [--delay 800] [--name bot_red]}.
- * Four of them (one per colour) play a Play room to the end without any person.
- */
 public final class BotMain {
 
     private static final long GAME_TIME_LIMIT_SECONDS = 3_600;

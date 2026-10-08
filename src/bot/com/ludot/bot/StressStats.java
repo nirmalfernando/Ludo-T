@@ -8,11 +8,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.LongAdder;
 
-/**
- * Counters shared by all sender threads and the reader thread. LongAdder spreads each counter over
- * several cells, so threads that increment at the same moment do not fight over one memory location
- * the way they would on a single AtomicLong.
- */
 final class StressStats {
 
     private static final int MAX_SAMPLES = 10;
@@ -94,7 +89,6 @@ final class StressStats {
         return chatRateLimited.sum();
     }
 
-    /** Outcome label to count, sorted by label. */
     Map<String, Long> outcomeCounts() {
         Map<String, Long> counts = new TreeMap<>();
         outcomes.forEach((label, adder) -> counts.put(label, adder.sum()));
@@ -105,7 +99,6 @@ final class StressStats {
         return java.util.List.copyOf(unexpectedSamples);
     }
 
-    /** Latency in milliseconds at the given percentile (0-100) over all answered requests. */
     long percentileMs(int percentile) {
         long[] recorded = recorded();
         if (recorded.length == 0) {

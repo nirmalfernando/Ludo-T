@@ -3,14 +3,12 @@ package com.ludot.bot;
 import java.util.Map;
 import java.util.Locale;
 
-/** What a stress run measured; {@link #toString()} prints it in the format the test plan specifies. */
 public record StressReport(String name, int sent, long responses, long timeouts, double durationSeconds,
                            Map<String, Long> outcomes, long unexpected, java.util.List<String> unexpectedSamples,
                            long p50Ms, long p95Ms, long maxMs, long chatSent, long chatAccepted,
                            long chatRateLimited, long chatOrderHash, long chatLinesSeen, long updatesSeen,
                            long hashMismatches, String finalHash) {
 
-    /** True when every response was expected, nothing timed out and no state update failed its own hash check. */
     public boolean clean() {
         return unexpected == 0 && timeouts == 0 && hashMismatches == 0 && !finalHash.contains("MISMATCH");
     }

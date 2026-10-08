@@ -3,7 +3,6 @@ package com.ludot.bot;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Minimal {@code --key value} command-line parsing; a key with no value after it is a flag. */
 public final class Args {
 
     private final Map<String, String> values = new HashMap<>();
@@ -33,7 +32,6 @@ public final class Args {
         return values.getOrDefault(key, fallback);
     }
 
-    /** A required option; throws with a helpful message if it is missing. */
     public String require(String key) {
         String value = values.get(key);
         if (value == null) {

@@ -16,17 +16,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
-/**
- * A network player: joins a room, takes a colour and answers every turn the server offers with its
- * strategy, after a pause so humans can follow. Returns when the game is over.
- */
 public final class BotClient {
 
-    /** What a finished bot reports. */
     public record Result(int rolls, int moves, List<Colour> standings) {
     }
 
-    /** The server refused a setup request. */
     public static final class RefusedException extends Exception {
         private static final long serialVersionUID = 1L;
         private final transient ErrorCode code;
@@ -68,7 +62,6 @@ public final class BotClient {
         this.log = log;
     }
 
-    /** Joins, claims the colour and plays until GameOver (or until the connection or the time limit ends it). */
     public Result play(String nickname, long timeoutSeconds) throws Exception {
         link.addListener(this::onMessage);
         link.startHeartbeat(5_000);

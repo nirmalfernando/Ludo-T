@@ -4,10 +4,6 @@ import com.ludot.protocol.ErrorCode;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * The kinds of request the stress client sends besides legitimate moves, with how often each is
- * picked and which outcomes count as correct. Anything else the server answers is UNEXPECTED.
- */
 enum RequestKind {
 
     STALE_MOVE(15, false, ErrorCode.STALE_TURN, ErrorCode.NOT_YOUR_TURN, ErrorCode.NOT_A_PLAYER,
@@ -22,7 +18,7 @@ enum RequestKind {
     PAUSE_NOT_HOST(5, false, ErrorCode.NOT_HOST),
     BAD_INDEX(5, false, ErrorCode.INVALID_MOVE, ErrorCode.WRONG_PHASE, ErrorCode.NOT_YOUR_TURN,
             ErrorCode.STALE_TURN, ErrorCode.NOT_A_PLAYER),
-    /** A real roll or move for our own turn: it races with other sender threads, so a late one is stale. */
+    // A real roll or move for our own turn: it races with other sender threads, so a late one is stale
     LEGIT(0, true, ErrorCode.STALE_TURN, ErrorCode.WRONG_PHASE, ErrorCode.NOT_YOUR_TURN);
 
     private final int weight;
@@ -47,7 +43,7 @@ enum RequestKind {
         return ok ? okAllowed : allowed.contains(code);
     }
 
-    /** Picks a kind by weight from a number in [0, 1); LEGIT has weight 0 because it is sent whenever our turn comes. */
+    // LEGIT has weight 0 because it is sent whenever our turn comes
     static RequestKind pick(double unit) {
         int total = 0;
         for (RequestKind kind : values()) {

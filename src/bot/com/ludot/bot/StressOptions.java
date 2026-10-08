@@ -3,7 +3,6 @@ package com.ludot.bot;
 import com.ludot.protocol.Colour;
 import com.ludot.protocol.Speed;
 
-/** Settings for one stress client. A null roomId together with create=true means "make the room yourself". */
 public record StressOptions(String host, int port, String roomId, boolean create, String name, int requests,
                             int threads, Colour seat, int ratePerSecond, long startAtEpochMs, boolean startGame,
                             Speed speed, int waitForGameOverSeconds, long randomSeed) {

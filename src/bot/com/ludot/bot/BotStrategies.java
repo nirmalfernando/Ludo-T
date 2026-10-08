@@ -6,11 +6,6 @@ import com.ludot.protocol.MoveOption;
 import java.util.Random;
 import java.util.function.ToIntFunction;
 
-/**
- * One play style per colour, mirroring the server-side AI personalities but working only from the
- * move descriptors the server sends (a network bot cannot see the game rules): RED goes for captures,
- * GREEN builds blockades, YELLOW races home, BLUE chooses at random. Ties go to the first option.
- */
 public final class BotStrategies {
 
     private static final int SKIP_PENALTY = -1_000;
