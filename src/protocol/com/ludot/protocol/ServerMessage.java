@@ -5,24 +5,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Every message the server may send. Messages are immutable; lists are copied on construction so one
- * instance can safely be shared by every connection's outbound queue.
- */
+// lists are copied on construction so one instance can safely be shared by every connection's outbound queue
 public sealed interface ServerMessage extends Serializable
         permits ServerMessage.Welcome, ServerMessage.Response, ServerMessage.Pong, ServerMessage.LobbyUpdate, ServerMessage.YourTurn, ServerMessage.ReplayEvent, ServerMessage.ReplayEnded, ServerMessage.RoomPush {
 
-    /**
-     * A push ordered within one room: seq increases by exactly 1 per push, so clients can detect gaps
-     * and ask for a fresh snapshot. For lobby chat, roomId is null and seq is the lobby sequence.
-     */
+    // A push ordered within one room: seq increases by exactly 1 per push, so clients can detect gaps and ask for a fresh snapshot
     sealed interface RoomPush extends ServerMessage permits RoomSnapshot, SeatsUpdated, StateUpdate, RoomStateChanged, MembersChanged, GameOver, ChatMessage {
         String roomId();
 
         long seq();
     }
 
-    /** Reply to a Request. A duplicate request id gets the original Response again. */
     record Response(UUID requestId, ResponseStatus status, ErrorCode errorCode, String message,
                     Serializable payload) implements ServerMessage {
         public Response {
@@ -80,7 +73,6 @@ public sealed interface ServerMessage extends Serializable
             playOrder = playOrder == null ? List.of() : List.copyOf(playOrder);
         }
 
-        /** A snapshot before the play order is known (it is empty until the opening roll-off is over). */
         public RoomSnapshot(String roomId, long seq, RoomMode mode, Variant variant, Long seed, RoomStatus status, String hostId, boolean paused, Speed speed, List<SeatDto> seats, BoardDto board, TurnInfo turn, List<MemberDto> members, List<String> recentLog, List<ChatMessage> recentChat, long stateHash) {
             this(roomId, seq, mode, variant, seed, status, hostId, paused, speed, seats, board, turn, members, recentLog, recentChat, stateHash, List.of());
         }

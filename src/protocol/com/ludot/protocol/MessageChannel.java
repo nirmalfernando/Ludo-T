@@ -14,19 +14,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
 
-/**
- * One end of a client-server connection: sends messages of type S and receives messages of type R.
- *
- * <p>Each message travels as a length-prefixed frame holding the serialised object. A fresh object
- * stream is used per message, so there is no stream-header handshake to deadlock, no back-reference
- * cache to grow or replay stale objects, and the size cap applies to every message individually.
- * Incoming objects are decoded under an allow-list filter, which blocks deserialisation attacks.
- *
- * <p>{@link #send} may be called from several threads; {@link #receive} is meant for one reader thread.
- */
 public final class MessageChannel<S extends Serializable, R extends Serializable> implements Closeable {
 
-    /** Largest frame accepted or produced, in bytes. */
     public static final int MAX_MESSAGE_BYTES = 1 << 20;
 
     // Only protocol types, collections, boxed primitives, strings and java.time values may be deserialised.
@@ -47,17 +36,14 @@ public final class MessageChannel<S extends Serializable, R extends Serializable
         this.in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
     }
 
-    /** The client's end: sends ClientMessages, receives ServerMessages. */
     public static MessageChannel<ClientMessage, ServerMessage> forClient(Socket socket) throws IOException {
         return new MessageChannel<>(socket, ServerMessage.class);
     }
 
-    /** The server's end: sends ServerMessages, receives ClientMessages. */
     public static MessageChannel<ServerMessage, ClientMessage> forServer(Socket socket) throws IOException {
         return new MessageChannel<>(socket, ClientMessage.class);
     }
 
-    /** Serialises and sends one message. Throws ProtocolException if it would exceed the size cap. */
     public void send(S message) throws IOException {
         byte[] frame = encode(message);
         synchronized (writeLock) {
@@ -67,12 +53,6 @@ public final class MessageChannel<S extends Serializable, R extends Serializable
         }
     }
 
-    /**
-     * Blocks until a whole message arrives.
-     *
-     * @throws java.io.EOFException if the peer closed the connection
-     * @throws ProtocolException    if the frame is oversized, uses a disallowed class or is the wrong type
-     */
     public R receive() throws IOException {
         int length = in.readInt();
         if (length <= 0 || length > MAX_MESSAGE_BYTES) {
@@ -83,7 +63,6 @@ public final class MessageChannel<S extends Serializable, R extends Serializable
         return decode(frame);
     }
 
-    /** The remote address, for logging. */
     public String remoteAddress() {
         return String.valueOf(socket.getRemoteSocketAddress());
     }

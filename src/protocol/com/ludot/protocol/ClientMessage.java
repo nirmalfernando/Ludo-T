@@ -4,30 +4,21 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Every message a client may send. Records are immutable and validate themselves on construction,
- * which also runs when the server deserialises them, so a malformed message never reaches the game.
- */
 public sealed interface ClientMessage extends Serializable permits ClientMessage.Ping, ClientMessage.Request {
 
-    /** Liveness probe; answered with a Pong and never with a Response. */
+    // answered with a Pong and never with a Response
     record Ping() implements ClientMessage {
     }
 
-    /** A message that expects a Response; the id lets the server detect duplicates. */
     sealed interface Request extends ClientMessage permits Hello, Reconnect, SignOut, ListRooms, CreateRoom, SendChat, ListFinishedGames, StartReplay, ControlReplay, RoomRequest {
         UUID requestId();
     }
 
-    /** A request addressed to one room, so the router can hand it to that room's queue. */
+    // A request addressed to one room, so the router can hand it to that room's queue
     sealed interface RoomRequest extends Request permits JoinRoom, LeaveRoom, ClaimSeat, ReleaseSeat, ReclaimSeat, StartGame, Roll, ChooseMove, PauseGame, ResumeGame, SetSpeed, RequestSnapshot {
         String roomId();
     }
 
-    /**
-     * Introduces a person. {@code reconnectable} says this client can come back with its token after a dropped
-     * connection (the server then keeps the identity for a grace period); automatic test clients leave it false.
-     */
     record Hello(UUID requestId, String nickname, boolean reconnectable) implements Request {
         public Hello {
             Objects.requireNonNull(requestId, "requestId");
@@ -46,7 +37,7 @@ public sealed interface ClientMessage extends Serializable permits ClientMessage
         }
     }
 
-    /** A polite goodbye: the nickname is freed at once instead of being held for a reconnect. */
+    // A polite goodbye: the nickname is freed at once instead of being held for a reconnect
     record SignOut(UUID requestId) implements Request {
         public SignOut {
             Objects.requireNonNull(requestId, "requestId");

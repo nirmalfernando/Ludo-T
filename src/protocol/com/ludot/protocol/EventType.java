@@ -1,6 +1,5 @@
 package com.ludot.protocol;
 
-/** One value per game event the server narrates to clients. */
 public enum EventType {
     GAME_START,
     ROLL_OFF,

@@ -15,12 +15,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-/**
- * An asynchronous connection to the server, shared by every kind of client (GUI, bot, stress). One reader thread decodes
- * everything the server sends: Responses complete the future of the request they answer, other
- * messages go to listeners. Requests are asynchronous: {@link #request} returns at once with a
- * future that times out after five seconds, so many requests can be in flight on one connection.
- */
 public final class ServerLink implements AutoCloseable {
 
     private static final long REQUEST_TIMEOUT_SECONDS = 5;
@@ -46,12 +40,10 @@ public final class ServerLink implements AutoCloseable {
         return link;
     }
 
-    /** Registers a listener for every message that is not a Response. It runs on the reader thread, so keep it quick. */
     public void addListener(Consumer<ServerMessage> listener) {
         listeners.add(listener);
     }
 
-    /** Sends a request without waiting; the future completes with the Response, or exceptionally on timeout or a lost connection. */
     public CompletableFuture<Response> request(ClientMessage.Request request) {
         CompletableFuture<Response> future = new CompletableFuture<Response>()
                 .orTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -65,12 +57,11 @@ public final class ServerLink implements AutoCloseable {
         return future;
     }
 
-    /** Sends a message that has no response (a Ping). */
     public void send(ClientMessage message) throws IOException {
         channel.send(message);
     }
 
-    /** Pings the server regularly so it does not treat this connection as dead. */
+    // pings the server regularly so it does not treat this connection as dead
     public void startHeartbeat(long intervalMs) {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread thread = new Thread(r, "link-heartbeat");
@@ -93,7 +84,6 @@ public final class ServerLink implements AutoCloseable {
         return closed.isDone();
     }
 
-    /** Completes when the connection ends, for any reason. */
     public CompletableFuture<Void> whenClosed() {
         return closed;
     }

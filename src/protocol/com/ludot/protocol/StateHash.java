@@ -4,17 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.zip.CRC32;
 
-/**
- * Compact fingerprint of what a client should be showing. The server puts it in every update and
- * clients (and the stress client) recompute it from their own copy, so two screens that agree on the
- * hash agree on the game state.
- */
 public final class StateHash {
 
     private StateHash() {
     }
 
-    /** CRC32 over a canonical rendering of the board and the turn number. */
     public static long of(BoardDto board, int turnNumber) {
         StringBuilder canonical = new StringBuilder();
         canonical.append("turn=").append(turnNumber).append(";round=").append(board.round()).append(';');

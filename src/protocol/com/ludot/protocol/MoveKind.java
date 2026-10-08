@@ -1,6 +1,5 @@
 package com.ludot.protocol;
 
-/** What kind of move an option is. */
 public enum MoveKind {
     FROM_BASE,
     MOVE,

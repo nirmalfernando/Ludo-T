@@ -2,7 +2,7 @@ package com.ludot.protocol;
 
 import java.util.Objects;
 
-/** A seat; playerId and nickname are null unless a person holds it. */
+// playerId and nickname are null unless a person holds it
 public record SeatDto(Colour colour, Controller controller, String playerId, String nickname, boolean connected) implements java.io.Serializable {
 
     public SeatDto {

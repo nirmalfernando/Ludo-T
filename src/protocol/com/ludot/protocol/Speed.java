@@ -1,6 +1,5 @@
 package com.ludot.protocol;
 
-/** Pacing between AI actions, in milliseconds. */
 public enum Speed {
     FAST(400),
     NORMAL(1000),
